@@ -11,7 +11,7 @@ const app = express();
 
 // CORS first
 app.use(cors({
-  origin: 'https://bloglio-frontend.vercel.app/',
+  origin: 'https://bloglio-frontend.vercel.app',
   credentials: true,
 }));
 
