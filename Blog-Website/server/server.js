@@ -11,7 +11,10 @@ const app = express();
 
 // CORS first
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [
+    'https://bloglio-frontend.vercel.app',
+    'https://bloglio-frontend-git-main-abdulbasir21s-projects.vercel.app'
+  ],
   credentials: true,
 }));
 
