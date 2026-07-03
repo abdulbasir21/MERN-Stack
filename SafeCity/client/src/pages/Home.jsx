@@ -81,15 +81,33 @@ function MiniBarChart({ data }) {
   );
 }
 
+function Spinner() {
+  return (
+    <div className="flex items-center justify-center py-16">
+      <div
+        className="w-10 h-10 rounded-full border-4 border-surface-container-low border-t-primary animate-spin"
+        aria-label="Loading"
+      />
+    </div>
+  );
+}
+
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats,  setStats]  = useState(null);
   const [recent, setRecent] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/public/stats').then(res => setStats(res.data.data)).catch(() => {});
-    api.get('/public/recent-resolved').then(res => setRecent(res.data.data || [])).catch(() => {});
+    Promise.allSettled([
+      api.get('/public/stats'),
+      api.get('/public/recent-resolved'),
+    ]).then(([statsRes, recentRes]) => {
+      if (statsRes.status === 'fulfilled') setStats(statsRes.value.data.data);
+      if (recentRes.status === 'fulfilled') setRecent(recentRes.value.data.data || []);
+      setLoading(false);
+    });
   }, []);
 
   function handleCategory(cat) {
@@ -170,65 +188,65 @@ export default function Home() {
         <div className="max-w-container-max mx-auto">
           <h2 className="font-headline-lg text-headline-lg text-primary text-center mb-10">Platform statistics</h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Resolution rate donut */}
-            <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col items-center text-center gap-4">
-              <p className="font-label-md text-label-md text-on-surface-variant">Resolution rate</p>
-              {stats ? (
+          {loading ? (
+            <Spinner />
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Resolution rate donut */}
+              <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col items-center text-center gap-4">
+                <p className="font-label-md text-label-md text-on-surface-variant">Resolution rate</p>
                 <ResolutionDonut rate={resolutionRate} />
-              ) : (
-                <div className="w-32 h-32 rounded-full border-8 border-surface-container-low mx-auto animate-pulse" />
-              )}
-              <div className="grid grid-cols-2 gap-3 w-full mt-2">
-                <div className="bg-surface-container-low rounded-lg p-3 text-center">
-                  <p className="font-headline-md text-headline-md text-primary">{stats?.totalComplaints ?? '—'}</p>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant">Total</p>
-                </div>
-                <div className="bg-surface-container-low rounded-lg p-3 text-center">
-                  <p className="font-headline-md text-headline-md text-primary">{activeCount ?? '—'}</p>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant">Active</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Avg resolution time + time histogram */}
-            <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col gap-4">
-              <p className="font-label-md text-label-md text-on-surface-variant">Avg resolution time</p>
-              <div className="flex items-baseline gap-1">
-                <span className="font-headline-xl text-headline-xl text-primary" style={{ fontSize: 40 }}>
-                  {stats?.avgResolutionDays ?? '—'}
-                </span>
-                <span className="font-label-md text-label-md text-on-surface-variant">days</span>
-              </div>
-              <p className="font-body-sm text-body-sm text-on-surface-variant -mt-2">Average across all resolved complaints</p>
-              {timeChartData.some(d => d.count > 0) && (
-                <>
-                  <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">Resolution time breakdown</p>
-                  <MiniBarChart data={timeChartData} />
-                </>
-              )}
-            </div>
-
-            {/* Category breakdown bar chart */}
-            <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col gap-4">
-              <p className="font-label-md text-label-md text-on-surface-variant">Resolved by category</p>
-              {categoryChartData.length > 0 ? (
-                <MiniBarChart data={categoryChartData} />
-              ) : (
-                <div className="flex-1 flex items-center justify-center text-on-surface-variant font-body-sm text-body-sm">
-                  No data yet
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2 mt-1">
-                {categoryChartData.map((d, i) => (
-                  <div key={d.label} className="flex items-center gap-1">
-                    <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: BAR_COLORS[i % BAR_COLORS.length] }} />
-                    <span className="font-label-sm text-label-sm text-on-surface-variant">{d.label}</span>
+                <div className="grid grid-cols-2 gap-3 w-full mt-2">
+                  <div className="bg-surface-container-low rounded-lg p-3 text-center">
+                    <p className="font-headline-md text-headline-md text-primary">{stats?.totalComplaints ?? '—'}</p>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">Total</p>
                   </div>
-                ))}
+                  <div className="bg-surface-container-low rounded-lg p-3 text-center">
+                    <p className="font-headline-md text-headline-md text-primary">{activeCount ?? '—'}</p>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant">Active</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Avg resolution time + time histogram */}
+              <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col gap-4">
+                <p className="font-label-md text-label-md text-on-surface-variant">Avg resolution time</p>
+                <div className="flex items-baseline gap-1">
+                  <span className="font-headline-xl text-headline-xl text-primary" style={{ fontSize: 40 }}>
+                    {stats?.avgResolutionDays ?? '—'}
+                  </span>
+                  <span className="font-label-md text-label-md text-on-surface-variant">days</span>
+                </div>
+                <p className="font-body-sm text-body-sm text-on-surface-variant -mt-2">Average across all resolved complaints</p>
+                {timeChartData.some(d => d.count > 0) && (
+                  <>
+                    <p className="font-label-sm text-label-sm text-on-surface-variant mt-1">Resolution time breakdown</p>
+                    <MiniBarChart data={timeChartData} />
+                  </>
+                )}
+              </div>
+
+              {/* Category breakdown bar chart */}
+              <div className="bg-surface-container-lowest rounded-xl border border-border-subtle p-6 level-1-shadow flex flex-col gap-4">
+                <p className="font-label-md text-label-md text-on-surface-variant">Resolved by category</p>
+                {categoryChartData.length > 0 ? (
+                  <MiniBarChart data={categoryChartData} />
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-on-surface-variant font-body-sm text-body-sm">
+                    No data yet
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {categoryChartData.map((d, i) => (
+                    <div key={d.label} className="flex items-center gap-1">
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: BAR_COLORS[i % BAR_COLORS.length] }} />
+                      <span className="font-label-sm text-label-sm text-on-surface-variant">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -251,67 +269,75 @@ export default function Home() {
       </section>
 
       {/* Recently Resolved — with mini bar chart */}
-      {recent.length > 0 && (
+      {loading ? (
         <section className="py-16 px-4 md:px-gutter bg-surface-container-low">
           <div className="max-w-container-max mx-auto">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-              <div>
-                <h2 className="font-headline-lg text-headline-lg text-primary">Recently resolved</h2>
-                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                  {recent.length} cases resolved — avg {stats?.avgResolutionDays ?? '?'} days each
-                </p>
+            <Spinner />
+          </div>
+        </section>
+      ) : (
+        recent.length > 0 && (
+          <section className="py-16 px-4 md:px-gutter bg-surface-container-low">
+            <div className="max-w-container-max mx-auto">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+                <div>
+                  <h2 className="font-headline-lg text-headline-lg text-primary">Recently resolved</h2>
+                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                    {recent.length} cases resolved — avg {stats?.avgResolutionDays ?? '?'} days each
+                  </p>
+                </div>
+                {/* Mini inline summary bar */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {Object.entries(categoryCountMap).map(([k, v], i) => (
+                    <div key={k} className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full px-3 py-1 border border-border-subtle">
+                      <span className="w-2 h-2 rounded-full" style={{ background: BAR_COLORS[i % BAR_COLORS.length] }} />
+                      <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">{CATEGORY_LABELS[k] || k}</span>
+                      <span className="font-label-sm text-label-sm text-primary font-medium">{v}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              {/* Mini inline summary bar */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {Object.entries(categoryCountMap).map(([k, v], i) => (
-                  <div key={k} className="flex items-center gap-1.5 bg-surface-container-lowest rounded-full px-3 py-1 border border-border-subtle">
-                    <span className="w-2 h-2 rounded-full" style={{ background: BAR_COLORS[i % BAR_COLORS.length] }} />
-                    <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">{CATEGORY_LABELS[k] || k}</span>
-                    <span className="font-label-sm text-label-sm text-primary font-medium">{v}</span>
+
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {recent.slice(0, 6).map((item, i) => (
+                  <div
+                    key={i}
+                    className="bg-surface-container-lowest rounded-xl border border-border-subtle p-5 level-1-shadow flex flex-col gap-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <Badge variant="resolved" />
+                      <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">
+                        {item.category?.replace('_', ' ')}
+                      </span>
+                    </div>
+
+                    <p className="font-label-md text-label-md text-on-surface">{item.area}</p>
+
+                    {/* Resolution time bar */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-label-sm text-label-sm text-on-surface-variant">Resolution time</span>
+                        <span className="font-label-sm text-label-sm text-on-tertiary-container font-medium">
+                          {item.resolutionDays} {item.resolutionDays === 1 ? 'day' : 'days'}
+                        </span>
+                      </div>
+                      {/* Visual bar: 1 day = fast, 14+ = slow */}
+                      <div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(100, (item.resolutionDays / 14) * 100)}%`,
+                            background: item.resolutionDays <= 2 ? '#0d9488' : item.resolutionDays <= 7 ? '#b54708' : '#6b7280',
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {recent.slice(0, 6).map((item, i) => (
-                <div
-                  key={i}
-                  className="bg-surface-container-lowest rounded-xl border border-border-subtle p-5 level-1-shadow flex flex-col gap-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <Badge variant="resolved" />
-                    <span className="font-label-sm text-label-sm text-on-surface-variant capitalize">
-                      {item.category?.replace('_', ' ')}
-                    </span>
-                  </div>
-
-                  <p className="font-label-md text-label-md text-on-surface">{item.area}</p>
-
-                  {/* Resolution time bar */}
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-center">
-                      <span className="font-label-sm text-label-sm text-on-surface-variant">Resolution time</span>
-                      <span className="font-label-sm text-label-sm text-on-tertiary-container font-medium">
-                        {item.resolutionDays} {item.resolutionDays === 1 ? 'day' : 'days'}
-                      </span>
-                    </div>
-                    {/* Visual bar: 1 day = fast, 14+ = slow */}
-                    <div className="h-1.5 bg-surface-container-low rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${Math.min(100, (item.resolutionDays / 14) * 100)}%`,
-                          background: item.resolutionDays <= 2 ? '#0d9488' : item.resolutionDays <= 7 ? '#b54708' : '#6b7280',
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )
       )}
 
       {/* Footer */}
