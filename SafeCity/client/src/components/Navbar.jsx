@@ -16,31 +16,50 @@ const DEMO_ROLES = [
   { role: 'admin',   label: 'As Admin',   icon: 'admin_panel_settings' },
 ];
 
+function Spinner({ size = 16 }) {
+  return (
+    <span
+      className="inline-block animate-spin rounded-full border-2 border-current border-t-transparent"
+      style={{ width: size, height: size }}
+    />
+  );
+}
+
 export default function Navbar() {
   const { user, demoLogin, logout } = useAuth();
   const [demoOpen, setDemoOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileDemoOpen, setMobileDemoOpen] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(null); // 'citizen' | 'officer' | 'admin' | null
+  const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
 
   async function handleDemo(role) {
-    setDemoOpen(false);
-    setMobileOpen(false);
-    setMobileDemoOpen(false);
+    if (loadingRole) return; // prevent double clicks
+    setLoadingRole(role);
     try {
       await demoLogin(role);
       toast.success(`Logged in as demo ${role}`);
+      setDemoOpen(false);
+      setMobileOpen(false);
+      setMobileDemoOpen(false);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Demo login failed');
+    } finally {
+      setLoadingRole(null);
     }
   }
 
   async function handleLogout() {
-    setMobileOpen(false);
+    if (loggingOut) return;
+    setLoggingOut(true);
     try {
       await logout();
+      setMobileOpen(false);
     } catch {
       // ignore
+    } finally {
+      setLoggingOut(false);
     }
   }
 
@@ -91,9 +110,11 @@ export default function Navbar() {
               </span>
               <button
                 onClick={handleLogout}
-                className="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-space-md py-2 rounded-lg hover:border-error hover:text-error transition-all"
+                disabled={loggingOut}
+                className="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-space-md py-2 rounded-lg hover:border-error hover:text-error transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Logout
+                {loggingOut && <Spinner size={14} />}
+                {loggingOut ? 'Logging out...' : 'Logout'}
               </button>
             </>
           ) : (
@@ -109,12 +130,16 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDemoOpen((v) => !v)}
-                  className="bg-on-tertiary-container text-on-primary font-label-md text-label-md px-space-lg py-2.5 rounded-lg hover:opacity-90 flex items-center gap-1"
+                  disabled={!!loadingRole}
+                  className="bg-on-tertiary-container text-on-primary font-label-md text-label-md px-space-lg py-2.5 rounded-lg hover:opacity-90 flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  Try Demo
-                  <span className="material-symbols-outlined text-sm" style={{ fontSize: '16px' }}>
-                    expand_more
-                  </span>
+                  {loadingRole ? <Spinner size={14} /> : null}
+                  {loadingRole ? 'Logging in...' : 'Try Demo'}
+                  {!loadingRole && (
+                    <span className="material-symbols-outlined text-sm" style={{ fontSize: '16px' }}>
+                      expand_more
+                    </span>
+                  )}
                 </button>
                 {demoOpen && (
                   <div className="absolute right-0 top-full mt-1 bg-surface-container-lowest border border-border-subtle rounded-xl level-2-shadow w-48 py-1 z-50">
@@ -122,11 +147,16 @@ export default function Navbar() {
                       <button
                         key={role}
                         onClick={() => handleDemo(role)}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors"
+                        disabled={!!loadingRole}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                       >
-                        <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontSize: '18px' }}>
-                          {icon}
-                        </span>
+                        {loadingRole === role ? (
+                          <Spinner size={16} />
+                        ) : (
+                          <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontSize: '18px' }}>
+                            {icon}
+                          </span>
+                        )}
                         {label}
                       </button>
                     ))}
@@ -184,9 +214,11 @@ export default function Navbar() {
               </span>
               <button
                 onClick={handleLogout}
-                className="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-space-md py-2.5 rounded-lg hover:border-error hover:text-error transition-all text-left"
+                disabled={loggingOut}
+                className="border border-outline-variant text-on-surface-variant font-label-md text-label-md px-space-md py-2.5 rounded-lg hover:border-error hover:text-error transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Logout
+                {loggingOut && <Spinner size={14} />}
+                {loggingOut ? 'Logging out...' : 'Logout'}
               </button>
             </>
           ) : (
@@ -202,12 +234,16 @@ export default function Navbar() {
               {/* Mobile demo section */}
               <button
                 onClick={() => setMobileDemoOpen((v) => !v)}
-                className="bg-on-tertiary-container text-on-primary font-label-md text-label-md px-space-lg py-2.5 rounded-lg hover:opacity-90 flex items-center justify-center gap-1"
+                disabled={!!loadingRole}
+                className="bg-on-tertiary-container text-on-primary font-label-md text-label-md px-space-lg py-2.5 rounded-lg hover:opacity-90 flex items-center justify-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Try Demo
-                <span className="material-symbols-outlined text-sm" style={{ fontSize: '16px' }}>
-                  {mobileDemoOpen ? 'expand_less' : 'expand_more'}
-                </span>
+                {loadingRole ? <Spinner size={14} /> : null}
+                {loadingRole ? 'Logging in...' : 'Try Demo'}
+                {!loadingRole && (
+                  <span className="material-symbols-outlined text-sm" style={{ fontSize: '16px' }}>
+                    {mobileDemoOpen ? 'expand_less' : 'expand_more'}
+                  </span>
+                )}
               </button>
               {mobileDemoOpen && (
                 <div className="flex flex-col bg-surface-container-low rounded-xl overflow-hidden">
@@ -215,11 +251,16 @@ export default function Navbar() {
                     <button
                       key={role}
                       onClick={() => handleDemo(role)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-on-surface font-label-md text-label-md hover:bg-surface-container-lowest transition-colors"
+                      disabled={!!loadingRole}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-on-surface font-label-md text-label-md hover:bg-surface-container-lowest transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontSize: '18px' }}>
-                        {icon}
-                      </span>
+                      {loadingRole === role ? (
+                        <Spinner size={16} />
+                      ) : (
+                        <span className="material-symbols-outlined text-on-tertiary-container" style={{ fontSize: '18px' }}>
+                          {icon}
+                        </span>
+                      )}
                       {label}
                     </button>
                   ))}
