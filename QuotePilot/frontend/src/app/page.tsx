@@ -287,7 +287,7 @@ export default function MarketplaceHomePage() {
                 <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-stone-900">
                   <motion.img
                     style={{ scale: heroImgScale }}
-                    src={(imageKitAssets as Record<string, string>)['hero-covenant.jpg'] || '/images/hero-covenant.jpg'}
+                    src={(imageKitAssets as Record<string, string>)['hero-covenant.jpg']}
                     alt="QuotePilot Milestone Slip and Architecture Workspace"
                     className="w-full h-full object-cover transition-transform duration-700 ease-out"
                   />
