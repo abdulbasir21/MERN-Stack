@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import ImageKit from 'imagekit';
 import { env } from '../../config/env';
-import { sendSuccess, sendBadRequest, sendInternalError } from '../../utils/response';
+import { sendSuccess } from '../../utils/response';
+import { AppError } from '../../utils/AppError';
 
 let imagekitInstance: ImageKit | null = null;
 
@@ -34,8 +35,7 @@ export class UploadController {
     try {
       const { file, fileName, folder } = req.body;
       if (!file || !fileName) {
-        sendBadRequest(res, 'file and fileName are required');
-        return;
+        throw AppError.badRequest('file and fileName are required');
       }
 
       const ik = getImageKitInstance();
@@ -55,8 +55,11 @@ export class UploadController {
         fileType: result.fileType
       }, 201);
     } catch (err: any) {
+      if (err instanceof AppError) {
+        throw err;
+      }
       console.error('ImageKit upload error:', err);
-      sendInternalError(res, err.message || 'Image upload failed');
+      throw AppError.internal(err.message || 'Image upload failed');
     }
   };
 }

@@ -6,7 +6,8 @@ export type ErrorCode =
   | 'NOT_FOUND'
   | 'CONFLICT'
   | 'RATE_LIMITED'
-  | 'INTERNAL_ERROR';
+  | 'INTERNAL_ERROR'
+  | 'INCOMPLETE_BRIEF';
 
 export interface ValidationErrorDetail {
   field?: string;
@@ -59,7 +60,11 @@ export class AppError extends Error {
     return new AppError(409, 'CONFLICT', message);
   }
 
-  static internal(message = 'Internal server error'): AppError {
+  static rateLimited(message = 'Too many requests, please try again later'): AppError {
+    return new AppError(429, 'RATE_LIMITED', message);
+  }
+
+  static internal(message = 'An unexpected error occurred'): AppError {
     return new AppError(500, 'INTERNAL_ERROR', message);
   }
 }
