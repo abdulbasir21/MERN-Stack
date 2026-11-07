@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Filter,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -49,6 +50,8 @@ function CompaniesDirectoryContent() {
   const [companies, setCompanies] = useState<CompanyListItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
 
   // Filters
@@ -70,8 +73,13 @@ function CompaniesDirectoryContent() {
   }, []);
 
   const loadCompanies = async () => {
+    setLoading(true);
+    setLoadError(null);
+    const wakeTimer = setTimeout(() => {
+      setIsWakingUp(true);
+    }, 1500);
+
     try {
-      setLoading(true);
       const params = new URLSearchParams();
       if (search.trim()) params.set('q', search.trim());
       if (selectedCategory) params.set('category', selectedCategory);
@@ -81,9 +89,12 @@ function CompaniesDirectoryContent() {
       const res = await api.get<CompanyListItem[]>(`/companies?${params.toString()}`);
       setCompanies(res.data);
       setTotal(res.meta?.total || res.data.length);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to search companies', err);
+      setLoadError(err.message || 'Unable to connect to registry.');
     } finally {
+      clearTimeout(wakeTimer);
+      setIsWakingUp(false);
       setLoading(false);
     }
   };
@@ -119,9 +130,18 @@ function CompaniesDirectoryContent() {
             </p>
           </div>
 
-          <span className="text-xs font-mono px-3 py-1.5 rounded-lg bg-white border border-paper-border text-ink-secondary flex items-center gap-2">
-            <CheckCircle2 className="w-3.5 h-3.5 text-brand-teal" />
-            <span>{total} Verified {total === 1 ? 'Firm' : 'Firms'} Listed</span>
+          <span className="text-xs font-mono px-3.5 py-1.5 rounded-lg bg-white border border-paper-border text-ink-secondary flex items-center gap-2 shadow-xs">
+            {loading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 text-brand-teal animate-spin" />
+                <span>Querying Verified Registry...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5 text-brand-teal" />
+                <span>{total} Verified {total === 1 ? 'Firm' : 'Firms'} Listed</span>
+              </>
+            )}
           </span>
         </div>
 
@@ -184,22 +204,77 @@ function CompaniesDirectoryContent() {
           </div>
         </div>
 
+        {/* Active Cloud Loading / Server Wakeup Indicator Banner */}
+        {loading && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-teal-50 border border-teal-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-teal-600/10 border border-teal-600/20 flex items-center justify-center shrink-0">
+                <Loader2 className="w-5 h-5 text-brand-teal animate-spin" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif font-bold text-sm sm:text-base text-teal-950">
+                    {isWakingUp ? 'Waking Up Cloud Server on Render...' : 'Connecting to Verified Providers Registry...'}
+                  </h3>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-teal-200/70 text-teal-900">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-600 animate-ping" />
+                    LIVE
+                  </span>
+                </div>
+                <p className="text-xs font-mono text-teal-800 mt-0.5">
+                  {isWakingUp
+                    ? 'Free-tier cloud backend spins down after inactivity. Cold-start spin-up takes ~15–20s on first load.'
+                    : 'Querying SECP-registered commercial studios, covenants, and live starting floors.'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono text-teal-800 shrink-0 self-end md:self-auto bg-white/80 px-3 py-1.5 rounded-lg border border-teal-200/60 shadow-2xs">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-teal" />
+              <span>{isWakingUp ? 'Spinning Up Node.js...' : 'Fetching Records...'}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Server Cold-Start Error Recovery Card */}
+        {loadError && !loading && (
+          <div className="p-8 text-center bg-amber-50 rounded-2xl border border-amber-200 space-y-3 mb-6">
+            <h3 className="text-lg font-serif font-bold text-amber-950">Cloud Backend is Awakening</h3>
+            <p className="text-xs font-mono text-amber-800 max-w-md mx-auto">
+              The free-tier server was sleeping and is completing its initial wake-up. Click below to reload all verified companies.
+            </p>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={loadCompanies}
+              className="font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover"
+            >
+              Wake Server &amp; Reload Registry
+            </Button>
+          </div>
+        )}
+
         {/* Results Grid with Framer Motion Lift */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
-                className="overflow-hidden flex flex-col justify-between h-72 border border-paper-border bg-white rounded-2xl animate-pulse"
+                className="overflow-hidden flex flex-col justify-between h-72 border border-paper-border bg-white rounded-2xl relative shadow-xs"
               >
-                <div className="h-32 bg-stone-100" />
-                <div className="p-5 space-y-3">
-                  <div className="h-5 bg-stone-200 rounded w-2/3" />
-                  <div className="h-3.5 bg-stone-100 rounded w-full" />
+                <div className="h-32 bg-stone-100 flex items-center justify-center relative overflow-hidden">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-xs border border-stone-200 text-xs font-mono text-ink-muted shadow-2xs">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-teal" />
+                    <span>Loading Firm #{i}...</span>
+                  </div>
                 </div>
-                <div className="p-4 border-t border-paper-border flex justify-between">
-                  <div className="h-4 bg-stone-100 rounded w-20" />
-                  <div className="h-4 bg-stone-200 rounded w-16" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-stone-200/80 rounded w-2/3 animate-pulse" />
+                  <div className="h-3.5 bg-stone-100 rounded w-full animate-pulse" />
+                  <div className="h-3.5 bg-stone-100 rounded w-4/5 animate-pulse" />
+                </div>
+                <div className="p-4 border-t border-paper-border flex justify-between items-center bg-stone-50/50">
+                  <div className="h-3.5 bg-stone-200/70 rounded w-24 animate-pulse" />
+                  <div className="h-3.5 bg-stone-200/70 rounded w-16 animate-pulse" />
                 </div>
               </div>
             ))}

@@ -33,13 +33,19 @@ export const createApp = (): Express => {
   );
 
   // 3. CORS Configuration
-  const allowedOrigins = [env.CLIENT_URL, 'http://localhost:3000'].filter(Boolean);
+  const clientUrlClean = env.CLIENT_URL ? env.CLIENT_URL.replace(/\/+$/, '') : '';
+  const allowedOrigins = [clientUrlClean, 'http://localhost:3000'].filter(Boolean);
   app.use(
     cors({
       origin: (origin, callback) => {
         // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin) || env.NODE_ENV === 'development') {
+        const cleanOrigin = origin.replace(/\/+$/, '');
+        if (
+          allowedOrigins.includes(cleanOrigin) ||
+          cleanOrigin.endsWith('.vercel.app') ||
+          env.NODE_ENV === 'development'
+        ) {
           return callback(null, true);
         }
         return callback(new Error('CORS policy: origin not allowed'));

@@ -19,6 +19,7 @@ import {
   Layers,
   FileCheck,
   X,
+  Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
@@ -118,10 +119,25 @@ export default function PublicCompanyProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-paper-canvas flex items-center justify-center p-6">
-        <div className="text-ink-secondary font-serif animate-pulse text-lg flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-brand-teal border-t-transparent rounded-full animate-spin" />
-          <span>Loading verified company docket &amp; quotation catalog...</span>
+      <div className="min-h-screen bg-paper-canvas flex flex-col items-center justify-center p-6 font-sans">
+        <div className="bg-white border border-paper-border rounded-2xl p-8 max-w-md w-full shadow-modal text-center space-y-4">
+          <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center mx-auto text-brand-teal">
+            <Loader2 className="w-6 h-6 animate-spin text-brand-teal" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-serif font-bold text-lg text-ink-primary">
+              Loading Firm Docket
+            </h3>
+            <p className="text-xs font-mono text-ink-secondary">
+              Connecting to QuotePilot Cloud Database &amp; retrieving verified covenants, portfolio, and starting floor...
+            </p>
+          </div>
+          <div className="pt-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono text-teal-800 bg-teal-50 border border-teal-200">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-600 animate-ping" />
+              <span>Awaiting Cloud Response...</span>
+            </span>
+          </div>
         </div>
       </div>
     );

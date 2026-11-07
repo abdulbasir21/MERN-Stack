@@ -32,6 +32,7 @@ import {
   Zap,
   MousePointerClick,
   BadgeCheck,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
@@ -394,34 +395,39 @@ export default function MarketplaceHomePage() {
           </Link>
         </div>
 
-        {/* Server Waking Notice */}
-        {loading && isWakingUp && (
-          <div className="mb-6 p-4 rounded-2xl bg-teal-50 border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-teal-950 shadow-xs animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="relative flex items-center justify-center shrink-0">
-                <div className="w-4 h-4 rounded-full bg-teal-600 animate-ping absolute opacity-75" />
-                <div className="w-2.5 h-2.5 rounded-full bg-teal-800 relative" />
+        {/* Active Cloud Loading / Server Wakeup Indicator Banner */}
+        {loading && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-teal-50 border border-teal-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-teal-950">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-teal-600/10 border border-teal-600/20 flex items-center justify-center shrink-0">
+                <Loader2 className="w-5 h-5 text-brand-teal animate-spin" />
               </div>
               <div className="text-xs font-mono">
-                <span className="font-bold block text-sm text-teal-950">Waking up cloud server...</span>
-                <span className="text-teal-800">Render free tier server spins down when idle. Fetching verified studios &amp; categories (takes ~15–20s on first start).</span>
+                <span className="font-bold block text-sm text-teal-950">
+                  {isWakingUp ? 'Waking up cloud server on Render...' : 'Connecting to QuotePilot Cloud Registry...'}
+                </span>
+                <span className="text-teal-800">
+                  {isWakingUp
+                    ? 'Render free tier spins down when idle. Cold-start spin-up takes ~15–20s on first request.'
+                    : 'Fetching SECP-verified commercial disciplines, approved studios, and covenants.'}
+                </span>
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto font-mono text-[11px] text-teal-800">
-              <div className="w-4 h-4 border-2 border-teal-800 border-t-transparent rounded-full animate-spin" />
-              <span>Connecting...</span>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto font-mono text-[11px] text-teal-800 bg-white/80 px-3 py-1.5 rounded-lg border border-teal-200/60 shadow-2xs">
+              <Loader2 className="w-3.5 h-3.5 border-brand-teal animate-spin" />
+              <span>{isWakingUp ? 'Starting Node Engine...' : 'Loading Registry...'}</span>
             </div>
           </div>
         )}
 
         {/* Server Cold-Start Error Recovery */}
-        {loadError && (
+        {loadError && !loading && (
           <div className="mb-6 p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-3">
             <h4 className="font-serif font-bold text-base text-amber-950">Server is spinning up</h4>
             <p className="text-xs font-mono text-amber-800 max-w-md mx-auto">
               The free-tier cloud server was asleep and is finishing its wake-up cycle. Click below to refresh the catalog.
             </p>
-            <Button variant="primary" size="sm" onClick={loadData} className="font-mono text-xs">
+            <Button variant="primary" size="sm" onClick={loadData} className="font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover">
               Wake Server &amp; Reload Registry
             </Button>
           </div>
@@ -432,25 +438,36 @@ export default function MarketplaceHomePage() {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
                 key={i}
-                className="rounded-2xl bg-white border border-paper-border overflow-hidden h-full flex flex-col justify-between animate-pulse"
+                className="rounded-2xl bg-white border border-paper-border overflow-hidden h-full flex flex-col justify-between shadow-xs"
               >
                 <div>
-                  <div className="h-40 sm:h-44 w-full bg-stone-100 relative">
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-xl bg-stone-200" />
-                    <div className="absolute bottom-2.5 left-3 w-24 h-3 bg-stone-200/60 rounded" />
+                  <div className="h-40 sm:h-44 w-full bg-stone-100 flex items-center justify-center relative overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-xs border border-stone-200 text-xs font-mono text-ink-muted shadow-2xs">
+                      <Loader2 className="w-3.5 h-3.5 text-brand-teal animate-spin" />
+                      <span>Discipline #{i}...</span>
+                    </div>
                   </div>
                   <div className="p-4 sm:p-5 space-y-2.5">
-                    <div className="h-5 bg-stone-200 rounded-md w-3/4" />
-                    <div className="h-3.5 bg-stone-100 rounded-md w-full" />
-                    <div className="h-3.5 bg-stone-100 rounded-md w-2/3" />
+                    <div className="h-5 bg-stone-200/80 rounded-md w-3/4 animate-pulse" />
+                    <div className="h-3.5 bg-stone-100 rounded-md w-full animate-pulse" />
+                    <div className="h-3.5 bg-stone-100 rounded-md w-2/3 animate-pulse" />
                   </div>
                 </div>
-                <div className="px-4 sm:px-5 pb-4 pt-3 border-t border-paper-border flex justify-between items-center">
-                  <div className="h-3.5 bg-stone-100 rounded-md w-24" />
-                  <div className="h-3.5 bg-stone-200 rounded-md w-4" />
+                <div className="px-4 sm:px-5 pb-4 pt-3 border-t border-paper-border flex justify-between items-center bg-stone-50/50">
+                  <div className="h-3.5 bg-stone-200/70 rounded-md w-24 animate-pulse" />
+                  <div className="h-3.5 bg-stone-200/70 rounded-md w-4 animate-pulse" />
                 </div>
               </div>
             ))}
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="p-12 text-center bg-stone-50 rounded-2xl border border-paper-border space-y-3">
+            <p className="text-xs font-mono text-ink-secondary">
+              Unable to load commercial disciplines at this moment.
+            </p>
+            <Button variant="secondary" size="sm" onClick={loadData} className="font-mono text-xs">
+              Retry Connection
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -545,25 +562,36 @@ export default function MarketplaceHomePage() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="rounded-2xl bg-paper-canvas border border-paper-border overflow-hidden flex flex-col justify-between animate-pulse"
+                  className="rounded-2xl bg-paper-canvas border border-paper-border overflow-hidden flex flex-col justify-between shadow-xs"
                 >
-                  <div className="h-44 sm:h-48 w-full bg-stone-200 relative">
-                    <div className="absolute top-3 right-3 w-28 h-6 rounded-md bg-stone-300" />
-                    <div className="absolute bottom-3 left-4 w-32 h-4 rounded bg-stone-300" />
+                  <div className="h-44 sm:h-48 w-full bg-stone-200/80 flex items-center justify-center relative overflow-hidden">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-xs border border-stone-300 text-xs font-mono text-ink-muted shadow-2xs">
+                      <Loader2 className="w-3.5 h-3.5 text-brand-teal animate-spin" />
+                      <span>Studio #{i} Loading...</span>
+                    </div>
                   </div>
                   <div className="p-5 sm:p-6 space-y-4">
                     <div className="space-y-2">
-                      <div className="h-6 bg-stone-200 rounded-md w-2/3" />
-                      <div className="h-4 bg-stone-100 rounded-md w-full" />
-                      <div className="h-4 bg-stone-100 rounded-md w-4/5" />
+                      <div className="h-6 bg-stone-200/80 rounded-md w-2/3 animate-pulse" />
+                      <div className="h-4 bg-stone-100 rounded-md w-full animate-pulse" />
+                      <div className="h-4 bg-stone-100 rounded-md w-4/5 animate-pulse" />
                     </div>
-                    <div className="pt-3 border-t border-paper-border flex justify-between items-center">
-                      <div className="h-4 bg-stone-100 rounded-md w-28" />
-                      <div className="h-8 bg-stone-200 rounded-lg w-24" />
+                    <div className="pt-3 border-t border-paper-border flex justify-between items-center bg-stone-50/50">
+                      <div className="h-4 bg-stone-200/70 rounded-md w-28 animate-pulse" />
+                      <div className="h-8 bg-stone-200/70 rounded-lg w-24 animate-pulse" />
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          ) : featuredCompanies.length === 0 ? (
+            <div className="p-12 text-center bg-stone-50 rounded-2xl border border-paper-border space-y-3">
+              <p className="text-xs font-mono text-ink-secondary">
+                No featured commercial studios available right now.
+              </p>
+              <Button variant="secondary" size="sm" onClick={loadData} className="font-mono text-xs">
+                Retry Connection
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
