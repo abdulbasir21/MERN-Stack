@@ -64,7 +64,7 @@ export async function apiClient<T>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { timeoutMs = 15000, retryOnce = true, headers = {}, ...rest } = options;
+  const { timeoutMs = 45000, retryOnce = true, headers = {}, ...rest } = options;
   const token = getAuthToken();
 
   // Normalize endpoint: strip duplicate /api/v1 if caller provided it, since API_BASE_URL includes it
@@ -121,6 +121,11 @@ export async function apiClient<T>(
   } catch (err: any) {
     clearTimeout(timeoutId);
 
+    if (retryOnce) {
+      console.warn(`[API Client] Retrying ${endpoint} to allow cloud server wake-up...`);
+      return apiClient<T>(endpoint, { ...options, retryOnce: false, timeoutMs: 45000 });
+    }
+
     if (err.name === 'AbortError') {
       // Possible cold start on Render free tier
       throw new ApiError(
@@ -128,11 +133,6 @@ export async function apiClient<T>(
         'SERVER_WAKING',
         'The server is taking longer than usual to respond. It may be waking up from sleep.'
       );
-    }
-
-    if (retryOnce && !err.statusCode) {
-      console.warn(`[API Client] Retrying ${endpoint} after transient network failure...`);
-      return apiClient<T>(endpoint, { ...options, retryOnce: false, timeoutMs: timeoutMs * 1.5 });
     }
 
     if (err instanceof ApiError) {

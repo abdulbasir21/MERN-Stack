@@ -81,6 +81,8 @@ export default function MarketplaceHomePage() {
   const [featuredCompanies, setFeaturedCompanies] = useState<CompanySummary[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Parallax Scrolling Engine (Multi-plane transforms)
   const { scrollY } = useScroll();
@@ -97,21 +99,31 @@ export default function MarketplaceHomePage() {
   const colEvenY = useTransform(scrollY, [300, 1400], [-15, 35]);
   const statsY = useTransform(scrollY, [100, 500], [35, 0]);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const [catRes, compRes] = await Promise.all([
-          api.get<{ categories: Category[] }>('/categories'),
-          api.get<CompanySummary[]>('/companies?limit=6&sort=-ratingAverage'),
-        ]);
-        setCategories(catRes.data.categories);
-        setFeaturedCompanies(compRes.data);
-      } catch (err) {
-        console.error('Failed to load marketplace home data:', err);
-      } finally {
-        setLoading(false);
-      }
+  const loadData = async () => {
+    setLoading(true);
+    setLoadError(null);
+    const wakeTimer = setTimeout(() => {
+      setIsWakingUp(true);
+    }, 1500);
+
+    try {
+      const [catRes, compRes] = await Promise.all([
+        api.get<{ categories: Category[] }>('/categories'),
+        api.get<CompanySummary[]>('/companies?limit=6&sort=-ratingAverage'),
+      ]);
+      setCategories(catRes.data.categories);
+      setFeaturedCompanies(compRes.data);
+    } catch (err: any) {
+      console.error('Failed to load marketplace home data:', err);
+      setLoadError(err.message || 'Server waking up took longer than expected.');
+    } finally {
+      clearTimeout(wakeTimer);
+      setIsWakingUp(false);
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
   }, []);
 
@@ -382,8 +394,67 @@ export default function MarketplaceHomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {categories.map((cat, idx) => {
+        {/* Server Waking Notice */}
+        {loading && isWakingUp && (
+          <div className="mb-6 p-4 rounded-2xl bg-teal-50 border border-teal-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-teal-950 shadow-xs animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="relative flex items-center justify-center shrink-0">
+                <div className="w-4 h-4 rounded-full bg-teal-600 animate-ping absolute opacity-75" />
+                <div className="w-2.5 h-2.5 rounded-full bg-teal-800 relative" />
+              </div>
+              <div className="text-xs font-mono">
+                <span className="font-bold block text-sm text-teal-950">Waking up cloud server...</span>
+                <span className="text-teal-800">Render free tier server spins down when idle. Fetching verified studios &amp; categories (takes ~15–20s on first start).</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto font-mono text-[11px] text-teal-800">
+              <div className="w-4 h-4 border-2 border-teal-800 border-t-transparent rounded-full animate-spin" />
+              <span>Connecting...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Server Cold-Start Error Recovery */}
+        {loadError && (
+          <div className="mb-6 p-6 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-3">
+            <h4 className="font-serif font-bold text-base text-amber-950">Server is spinning up</h4>
+            <p className="text-xs font-mono text-amber-800 max-w-md mx-auto">
+              The free-tier cloud server was asleep and is finishing its wake-up cycle. Click below to refresh the catalog.
+            </p>
+            <Button variant="primary" size="sm" onClick={loadData} className="font-mono text-xs">
+              Wake Server &amp; Reload Registry
+            </Button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-white border border-paper-border overflow-hidden h-full flex flex-col justify-between animate-pulse"
+              >
+                <div>
+                  <div className="h-40 sm:h-44 w-full bg-stone-100 relative">
+                    <div className="absolute top-3 right-3 w-8 h-8 rounded-xl bg-stone-200" />
+                    <div className="absolute bottom-2.5 left-3 w-24 h-3 bg-stone-200/60 rounded" />
+                  </div>
+                  <div className="p-4 sm:p-5 space-y-2.5">
+                    <div className="h-5 bg-stone-200 rounded-md w-3/4" />
+                    <div className="h-3.5 bg-stone-100 rounded-md w-full" />
+                    <div className="h-3.5 bg-stone-100 rounded-md w-2/3" />
+                  </div>
+                </div>
+                <div className="px-4 sm:px-5 pb-4 pt-3 border-t border-paper-border flex justify-between items-center">
+                  <div className="h-3.5 bg-stone-100 rounded-md w-24" />
+                  <div className="h-3.5 bg-stone-200 rounded-md w-4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {categories.map((cat, idx) => {
             const Icon = CATEGORY_ICONS[cat.name] || Briefcase;
             const catImageUrl = (imageKitAssets as Record<string, string>)[cat.name] ||
               'https://ik.imagekit.io/166ie5jqi/quotepilot/categories/cat-web-dev.jpg';
@@ -443,7 +514,8 @@ export default function MarketplaceHomePage() {
               </motion.div>
             );
           })}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Featured Approved Providers: Distinct ImageKit Visual Per Company */}
@@ -468,8 +540,34 @@ export default function MarketplaceHomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {featuredCompanies.map((comp) => {
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl bg-paper-canvas border border-paper-border overflow-hidden flex flex-col justify-between animate-pulse"
+                >
+                  <div className="h-44 sm:h-48 w-full bg-stone-200 relative">
+                    <div className="absolute top-3 right-3 w-28 h-6 rounded-md bg-stone-300" />
+                    <div className="absolute bottom-3 left-4 w-32 h-4 rounded bg-stone-300" />
+                  </div>
+                  <div className="p-5 sm:p-6 space-y-4">
+                    <div className="space-y-2">
+                      <div className="h-6 bg-stone-200 rounded-md w-2/3" />
+                      <div className="h-4 bg-stone-100 rounded-md w-full" />
+                      <div className="h-4 bg-stone-100 rounded-md w-4/5" />
+                    </div>
+                    <div className="pt-3 border-t border-paper-border flex justify-between items-center">
+                      <div className="h-4 bg-stone-100 rounded-md w-28" />
+                      <div className="h-8 bg-stone-200 rounded-lg w-24" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {featuredCompanies.map((comp) => {
               // Completely distinct ImageKit contextual banner per company
               const sceneImage = getCompanySceneImage(comp);
 
@@ -543,7 +641,8 @@ export default function MarketplaceHomePage() {
                 </motion.div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 

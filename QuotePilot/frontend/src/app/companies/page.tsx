@@ -186,8 +186,23 @@ function CompaniesDirectoryContent() {
 
         {/* Results Grid with Framer Motion Lift */}
         {loading ? (
-          <div className="py-20 text-center font-serif text-ink-muted animate-pulse">
-            Searching approved companies in the registry...
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="overflow-hidden flex flex-col justify-between h-72 border border-paper-border bg-white rounded-2xl animate-pulse"
+              >
+                <div className="h-32 bg-stone-100" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-stone-200 rounded w-2/3" />
+                  <div className="h-3.5 bg-stone-100 rounded w-full" />
+                </div>
+                <div className="p-4 border-t border-paper-border flex justify-between">
+                  <div className="h-4 bg-stone-100 rounded w-20" />
+                  <div className="h-4 bg-stone-200 rounded w-16" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : companies.length === 0 ? (
           <div className="p-16 text-center bg-white rounded-2xl border border-paper-border space-y-3">
