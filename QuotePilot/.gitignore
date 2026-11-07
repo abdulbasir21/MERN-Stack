@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Environment variables (CRITICAL)
+.env
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+backend/.env*
+frontend/.env
+frontend/.env*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Production builds
+/dist
+/build
+.next/
+out/
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+
+# Exclusions
+stitch-design/
+docs/
+AGENTS.md
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

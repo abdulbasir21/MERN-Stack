@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-newsreader: 'Newsreader', Georgia, serif;
+    --font-dm-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  body {
+    background-color: #FAF8F4;
+    color: #1B2430;
+    font-family: var(--font-dm-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Currency tabular figures rule per Stitch design system */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Zero-FOUC First-Visit Loader Rules */
+  html.first-visit-active {
+    overflow: hidden !important;
+  }
+
+  html.first-visit-complete #first-visit-loader {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
+@layer utilities {
+  .border-dashed-rule {
+    border-top: 1px dashed #E7E2D9;
+  }
+}
