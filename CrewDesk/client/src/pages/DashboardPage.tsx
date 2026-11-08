@@ -100,58 +100,58 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'OWNER' && (
             <div className="space-y-6">
               {/* Executive Metric Cards */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Collected</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
                       <Wallet className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalCollected)} prefix="$" decimals={2} />
                   </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">
+                  <span className="text-[11px] text-slate-400 block mt-2 truncate">
                     Invoiced: ${parseFloat(stats.metrics.totalInvoiced).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </AnimatedCard>
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Active Portfolio</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
                       <FolderKanban className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
                     <CountUpNumber value={stats.metrics.activeProjects} />
                   </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">
+                  <span className="text-[11px] text-slate-400 block mt-2 truncate">
                     Across {stats.metrics.activeClients} active clients
                   </span>
                 </AnimatedCard>
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Headcount</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
                       <Users className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
                     <CountUpNumber value={stats.metrics.headcount} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Active personnel</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Approvals</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
                       <CalendarClock className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold font-mono text-amber-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-amber-500 mt-2">
                     <CountUpNumber value={stats.metrics.pendingApprovals} />
                   </div>
                   <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
@@ -161,14 +161,14 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Chart & Recent Audit Strip */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">Cashflow Overview</h3>
                       <p className="text-[11px] text-slate-400 mt-0.5">Real-time revenue, collections, and net agency margin</p>
                     </div>
-                    <div className="flex items-center gap-3 text-[11px]">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[11px]">
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-blue-600 inline-block"></span> Invoiced</span>
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-600 inline-block"></span> Collected</span>
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-rose-600 inline-block"></span> Expenses</span>
@@ -250,54 +250,54 @@ export const DashboardPage: React.FC = () => {
               ========================================== */}
           {user.role === 'HR_MANAGER' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Headcount</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
                       <Users className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalHeadcount} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Active personnel</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Present Today</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
                       <UserCheck className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.todayPresent} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">On-site & remote shifts</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Late Arrivals</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
                       <Clock className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-rose-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.todayLate} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Past grace threshold</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Leaves</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
                       <CalendarClock className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-amber-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.pendingLeaveRequests} />
                   </div>
                   <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
@@ -307,7 +307,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Department breakdown chart */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Department Headcount</h3>
                 <div className="h-60">
                   <ResponsiveContainer width="100%" height="100%">
@@ -340,54 +340,54 @@ export const DashboardPage: React.FC = () => {
               ========================================== */}
           {user.role === 'PROJECT_MANAGER' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Projects Managed</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
                       <FolderKanban className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.managedProjectsCount} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Under active management</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Task Completion</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.completionRate} suffix="%" />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Sprint deliverable velocity</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Tasks</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
                       <ListTodo className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalTasks} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Assigned & tracked items</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Overdue Tasks</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
                       <AlertTriangle className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-rose-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.overdueTasks} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Require immediate action</span>
@@ -395,7 +395,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Projects List */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Projects Portfolio</h3>
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {(stats.projects || []).map((proj: any) => (
@@ -422,54 +422,54 @@ export const DashboardPage: React.FC = () => {
               ========================================== */}
           {user.role === 'FINANCE_MANAGER' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Invoiced</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
                       <Receipt className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalInvoiced)} prefix="$" decimals={2} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Cumulative issued billings</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Collected</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
                       <CircleDollarSign className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalCollected)} prefix="$" decimals={2} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Cash deposited in bank</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Outstanding</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
                       <Hourglass className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-amber-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalOutstanding)} prefix="$" decimals={2} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Awaiting client settlement</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Expenses</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
                       <CreditCard className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-xl font-bold font-mono text-rose-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalExpenses)} prefix="$" decimals={2} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Operational disbursements</span>
@@ -477,7 +477,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Expense Category Breakdown Chart */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Expense Distribution by Category</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -517,54 +517,54 @@ export const DashboardPage: React.FC = () => {
               ========================================== */}
           {user.role === 'INVENTORY_MANAGER' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Hardware</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
                       <Laptop className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalHardwareAssets} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Physical fleet assets</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Available</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.availableAssets} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Ready for deployment</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">Assigned</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
                       <UserCheck className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.assignedAssets} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">In custody of personnel</span>
                 </AnimatedCard>
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Low Stock SKUs</span>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
                       <Boxes className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold font-mono text-rose-500 mt-2">
+                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.lowStockAlerts} />
                   </div>
                   <span className="text-[11px] text-slate-400 block mt-2">Require replenishment</span>
@@ -572,7 +572,7 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {stats.lowStockItems?.length > 0 && (
-                <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-xl p-5">
+                <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/60 rounded-xl p-4 sm:p-5">
                   <h3 className="text-sm font-bold text-rose-800 dark:text-rose-400 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4" /> Consumable Stock Replenishment Warnings
                   </h3>
@@ -597,14 +597,14 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'EMPLOYEE' && (
             <div className="space-y-6">
               {/* Daily Shift & Punch Status */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3.5">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-800/40 text-teal-600 dark:text-teal-400 shrink-0">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
                     <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">Today's Attendance</span>
-                    <div className="text-base font-bold text-slate-900 dark:text-white mt-1">
+                    <div className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mt-1">
                       {stats.todayAttendance.checkedIn ? (
                         stats.todayAttendance.checkOutTime ? (
                           <span className="text-emerald-600 dark:text-emerald-400">
@@ -624,14 +624,14 @@ export const DashboardPage: React.FC = () => {
 
                 <Link
                   to="/attendance"
-                  className="px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-sm transition-colors"
+                  className="w-full sm:w-auto text-center px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-sm transition-colors"
                 >
                   Go to Punch Card &rarr;
                 </Link>
               </div>
 
               {/* Leave Balances Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 {(stats.leaves || []).map((l: any, idx: number) => {
                   const getLeaveIcon = (type: string) => {
                     const lower = (type || '').toLowerCase();
@@ -641,17 +641,17 @@ export const DashboardPage: React.FC = () => {
                   };
                   const Icon = getLeaveIcon(l.type);
                   return (
-                    <AnimatedCard key={l.type} index={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+                    <AnimatedCard key={l.type} index={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">{l.type} Leave</span>
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-800/40 text-teal-600 dark:text-teal-400">
                           <Icon className="w-4 h-4" />
                         </div>
                       </div>
-                      <div className="text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
+                      <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2 truncate">
                         <CountUpNumber value={l.remaining} suffix="d" />
                       </div>
-                      <span className="text-[11px] text-slate-400 block mt-2">
+                      <span className="text-[11px] text-slate-400 block mt-2 truncate">
                         {l.used} used of {l.allowance} allowance
                       </span>
                     </AnimatedCard>
