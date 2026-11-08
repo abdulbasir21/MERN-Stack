@@ -13,15 +13,17 @@ export class AuthController {
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 15 * 60 * 1000, // 15 mins
+        path: '/',
       });
 
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        path: '/',
       });
 
       return res.status(200).json({
@@ -46,15 +48,17 @@ export class AuthController {
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 15 * 60 * 1000,
+        path: '/',
       });
 
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
       });
 
       return res.status(200).json({
@@ -72,8 +76,18 @@ export class AuthController {
 
       await authService.logout(rawRefreshToken, userId);
 
-      res.clearCookie('access_token');
-      res.clearCookie('refresh_token');
+      res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+      });
+      res.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+      });
 
       return res.status(200).json({
         data: { message: 'Logged out successfully.' },
@@ -96,15 +110,17 @@ export class AuthController {
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 15 * 60 * 1000,
+        path: '/',
       });
 
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: isProd,
-        sameSite: 'lax',
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/',
       });
 
       return res.status(200).json({
