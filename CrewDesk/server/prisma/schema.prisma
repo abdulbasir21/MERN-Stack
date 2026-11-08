@@ -2,7 +2,8 @@
 // Direct URL is configured for migrations (Neon direct), DATABASE_URL is for pooled connection.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {

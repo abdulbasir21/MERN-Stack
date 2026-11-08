@@ -1,10 +1,50 @@
 import { Request, Response, NextFunction } from 'express';
-import { fileTypeFromBuffer } from 'file-type';
 import { prisma } from '../../lib/prisma.js';
 import { uploadToImageKit, deleteFromImageKit } from '../../lib/imagekit.js';
 import { logAudit } from '../../lib/audit.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+async function detectImageType(buffer: Buffer): Promise<{ mime: string; ext: string } | null> {
+  try {
+    const fileType = await (eval('import("file-type")') as Promise<typeof import('file-type')>);
+    const res = await fileType.fileTypeFromBuffer(buffer);
+    if (res && ALLOWED_MIME_TYPES.includes(res.mime)) {
+      return { mime: res.mime, ext: res.ext };
+    }
+  } catch {
+    // Fall back to magic numbers detection
+  }
+
+  // Magic bytes check for JPEG (FF D8 FF)
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { mime: 'image/jpeg', ext: 'jpg' };
+  }
+  // PNG (89 50 4E 47 0D 0A 1A 0A)
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return { mime: 'image/png', ext: 'png' };
+  }
+  // WebP (RIFF .... WEBP)
+  if (
+    buffer.length >= 12 &&
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return { mime: 'image/webp', ext: 'webp' };
+  }
+
+  return null;
+}
 
 export class AvatarController {
   async uploadAvatar(req: Request, res: Response, next: NextFunction) {
@@ -18,7 +58,7 @@ export class AvatarController {
       }
 
       // 1. Verify REAL file content type from buffer (never trust extension)
-      const detected = await fileTypeFromBuffer(req.file.buffer);
+      const detected = await detectImageType(req.file.buffer);
       if (!detected || !ALLOWED_MIME_TYPES.includes(detected.mime)) {
         return res.status(400).json({
           error: {
