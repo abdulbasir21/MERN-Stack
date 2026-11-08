@@ -9,9 +9,20 @@
 **/.DS_Store
 Thumbs.db
 *.tsbuildinfo
+*.zip
+*.pdf
+**/*.pdf
 
 # QuotePilot Exclusions requested by user
 QuotePilot/stitch-design/
 QuotePilot/docs/
 QuotePilot/AGENTS.md
 QuotePilot/project-documentation/
+
+# CrewDesk Exclusions requested by user
+CrewDesk/AGENTS.md
+CrewDesk/REVIEW_CHECKLIST.md
+CrewDesk/docs/
+CrewDesk/design/
+CrewDesk/.planning/
+CrewDesk/fix-network.bat

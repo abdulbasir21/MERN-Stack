@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment files - NEVER COMMIT
+.env
+.env*.local
+.env*.production
+.env*.development
+!.env.example
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Testing
+*.tsbuildinfo
+
+# PDF documents (User requested exclusion)
+*.pdf
+**/*.pdf
+
+# Instruction & Internal Prompts (User requested exclusion)
+AGENTS.md
+REVIEW_CHECKLIST.md
+docs/
+design/
+.planning/
+fix-network.bat
