@@ -17,6 +17,8 @@ import {
   Boxes,
   Code2,
   Loader2,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { API_BASE } from '../lib/api';
 
@@ -26,6 +28,7 @@ export const LoginPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeRole, setActiveRole] = useState<string | null>(null);
@@ -46,7 +49,7 @@ export const LoginPage: React.FC = () => {
       const body = await res.json();
 
       if (!res.ok) {
-        throw new Error(body.error?.message || 'Login failed');
+        throw new Error(body.error?.message || 'Incorrect email or password.');
       }
 
       queryClient.clear();
@@ -58,7 +61,7 @@ export const LoginPage: React.FC = () => {
         navigate('/');
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred during login');
+      setError(err instanceof Error ? err.message : 'Incorrect email or password.');
     } finally {
       setIsSubmitting(false);
       setActiveRole(null);
@@ -73,51 +76,39 @@ export const LoginPage: React.FC = () => {
   const demoAccounts = [
     {
       role: 'Owner',
-      title: 'Command',
+      description: 'Full agency overview',
       email: 'owner@crewdesk.agency',
       icon: Crown,
-      color: 'border-amber-500/30 hover:border-amber-400/60 bg-amber-950/20 text-amber-200',
-      iconColor: 'text-amber-400 bg-amber-900/40',
     },
     {
       role: 'HR Manager',
-      title: 'People & HR',
+      description: 'People and leave',
       email: 'hr@crewdesk.agency',
       icon: Users,
-      color: 'border-sky-500/30 hover:border-sky-400/60 bg-sky-950/20 text-sky-200',
-      iconColor: 'text-sky-400 bg-sky-900/40',
     },
     {
       role: 'Project Manager',
-      title: 'Portfolio & PM',
+      description: 'Projects and tasks',
       email: 'pm@crewdesk.agency',
       icon: FolderKanban,
-      color: 'border-blue-500/30 hover:border-blue-400/60 bg-blue-950/20 text-blue-200',
-      iconColor: 'text-blue-400 bg-blue-900/40',
     },
     {
       role: 'Finance Manager',
-      title: 'Financial Ledger',
+      description: 'Invoices and expenses',
       email: 'finance@crewdesk.agency',
       icon: Landmark,
-      color: 'border-emerald-500/30 hover:border-emerald-400/60 bg-emerald-950/20 text-emerald-200',
-      iconColor: 'text-emerald-400 bg-emerald-900/40',
     },
     {
       role: 'Inventory Manager',
-      title: 'Assets & Stock',
+      description: 'Assets and stock',
       email: 'inventory@crewdesk.agency',
       icon: Boxes,
-      color: 'border-purple-500/30 hover:border-purple-400/60 bg-purple-950/20 text-purple-200',
-      iconColor: 'text-purple-400 bg-purple-900/40',
     },
     {
       role: 'Employee',
-      title: 'Staff Engineer',
+      description: 'My tasks and leave',
       email: 'employee@crewdesk.agency',
       icon: Code2,
-      color: 'border-teal-500/30 hover:border-teal-400/60 bg-teal-950/20 text-teal-200',
-      iconColor: 'text-teal-400 bg-teal-900/40',
     },
   ];
 
@@ -128,39 +119,42 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F5F0] flex items-center justify-center p-4 sm:p-6">
-      {/* 2-Column Split Executive Container */}
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden grid grid-cols-1 md:grid-cols-12 min-h-[540px]">
+    <div className="min-h-screen bg-[#F6F5F0] flex items-center justify-center p-3 sm:p-5 md:p-6">
+      {/* 2-Column Split Container - Form first on mobile/tablet, Left panel first on desktop */}
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden flex flex-col md:grid md:grid-cols-12 min-h-[500px]">
         
-        {/* Left Hero / Demo Sandbox Column (5 cols) */}
-        <div className="md:col-span-5 bg-gradient-to-br from-[#0B1716] via-[#0F2220] to-[#081211] text-white p-7 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#1E3A36]">
+        {/* Left Hero / Demo Sandbox Column (5 cols on desktop, order-2 on mobile) */}
+        <div className="order-2 md:order-1 md:col-span-5 bg-gradient-to-br from-[#0B1716] via-[#0F2220] to-[#081211] text-white p-5 sm:p-6 md:p-7 flex flex-col justify-between border-t md:border-t-0 md:border-r border-[#1E3A36]">
           <div>
-            {/* Brand Logo */}
-            <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-9 h-9 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-950">
-                <Terminal className="w-5 h-5" />
+            {/* Brand Logo & Wordmark */}
+            <div className="flex items-center gap-2.5 mb-3.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-950 shrink-0">
+                <Terminal className="w-4 h-4" aria-hidden="true" />
               </div>
               <div>
-                <h1 className="text-lg font-bold tracking-tight text-white leading-tight">CrewDesk</h1>
-                <span className="text-[10px] font-mono tracking-wider uppercase text-teal-400">Enterprise Agency ERP</span>
+                <h1 className="text-base font-bold text-white leading-tight">CrewDesk</h1>
+                <span className="text-[10px] font-mono tracking-wider uppercase text-teal-400 block">
+                  ENTERPRISE AGENCY ERP
+                </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed mb-6">
-              Unified agency command center for project portfolios, workforce management, financial cashflow, and hardware assets.
+            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+              One place to run your agency: projects, people, finances, and assets.
             </p>
 
-            {/* Quick Demo Login Buttons Section */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-teal-300 uppercase tracking-wider">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Quick Demo Login Buttons</span>
+            {/* Try a demo account Section */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-300 tracking-normal">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+                <span>Try a demo account</span>
               </div>
-              <p className="text-[11px] text-slate-400 pb-1">
-                Click any role button below to sign in instantly:
+              <p className="text-[11px] text-slate-400 leading-normal pb-1">
+                Pick a role to explore CrewDesk with sample data.
               </p>
 
-              <div className="grid grid-cols-2 gap-2.5 pt-1">
+              {/* 6 Demo Role Buttons */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 {demoAccounts.map((acc) => {
                   const IconComponent = acc.icon;
                   const isThisActive = activeRole === acc.role && isSubmitting;
@@ -170,24 +164,28 @@ export const LoginPage: React.FC = () => {
                       type="button"
                       disabled={isSubmitting}
                       onClick={() => handleQuickDemo(acc.email, acc.role)}
-                      className={`text-left p-2.5 rounded-xl border transition-all active:scale-[0.98] flex items-center gap-2.5 group ${acc.color} ${
-                        isThisActive ? 'ring-2 ring-white animate-pulse' : ''
+                      aria-label={`Sign in as ${acc.role} - ${acc.description}`}
+                      className={`text-left p-2.5 rounded-xl border border-teal-800/40 bg-teal-950/35 hover:bg-teal-900/40 hover:border-teal-500/50 transition-all flex items-start gap-2 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1716] disabled:opacity-50 disabled:cursor-not-allowed ${
+                        isThisActive
+                          ? 'ring-2 ring-teal-300 bg-teal-900/60 border-teal-400 motion-reduce:animate-none'
+                          : ''
                       }`}
                     >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-white/10 ${acc.iconColor}`}>
+                      {/* Consistent Teal-Tinted Icon Badge */}
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border border-teal-500/30 bg-teal-900/60 text-teal-300 shadow-sm mt-0.5">
                         {isThisActive ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-200" aria-hidden="true" />
                         ) : (
-                          <IconComponent className="w-3.5 h-3.5" />
+                          <IconComponent className="w-3.5 h-3.5 text-teal-300" aria-hidden="true" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-xs leading-tight text-white group-hover:text-white transition-colors truncate">
-                          {acc.title}
-                        </div>
-                        <div className="text-[10px] text-slate-400 truncate mt-0.5">
+                        <span className="font-semibold text-xs leading-snug text-white group-hover:text-teal-100 transition-colors block break-words">
                           {acc.role}
-                        </div>
+                        </span>
+                        <span className="text-[10px] text-teal-200/75 leading-tight block mt-0.5 break-words">
+                          {acc.description}
+                        </span>
                       </div>
                     </button>
                   );
@@ -196,85 +194,117 @@ export const LoginPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-[11px] text-slate-400">
+          {/* Bottom Left Panel Status */}
+          <div className="pt-4 border-t border-teal-800/40 mt-5 flex items-center justify-between text-[11px] text-teal-200/80">
             <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
-              Multi-Tenant RBAC Active
+              <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+              <span>Demo environment. Sample data resets daily.</span>
             </span>
-            <span className="font-mono text-[10px] text-slate-400">v1.0 Production</span>
           </div>
         </div>
 
-        {/* Right Sign-in Form Column (7 cols) */}
-        <div className="md:col-span-7 p-8 sm:p-10 flex flex-col justify-center bg-white">
+        {/* Right Sign-in Form Column (7 cols on desktop, order-1 on mobile) */}
+        <div className="order-1 md:order-2 md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
           <div className="max-w-sm w-full mx-auto">
-            <div className="mb-6">
+            <div className="mb-5">
               <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sign in to your agency</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Enter your credentials or use the role switcher on the left.
+              <p className="text-xs text-slate-500 mt-1 leading-normal">
+                Enter your work email and password to continue.
               </p>
             </div>
 
-            {error && (
-              <div className="mb-5 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
-                <span>{error}</span>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1.5">Work Email</label>
+                <label htmlFor="email" className="block text-xs font-medium text-slate-700 mb-1.5">
+                  Work Email
+                </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" aria-hidden="true" />
                   <input
+                    id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@agency.com"
-                    className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-all"
+                    className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
                   />
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-slate-700">Password</label>
-                  <span className="text-[11px] text-slate-400 font-mono">Default: CrewDesk2026!</span>
+                  <label htmlFor="password" className="text-xs font-medium text-slate-700">
+                    Password
+                  </label>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none" aria-hidden="true" />
                   <input
-                    type="password"
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full h-10 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-all"
+                    className="w-full h-10 pl-9 pr-10 rounded-lg border border-slate-200 text-xs text-slate-900 bg-white placeholder:text-slate-400 focus:outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-2.5 p-0.5 text-slate-400 hover:text-slate-600 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="w-4 h-4" aria-hidden="true" />
+                    )}
+                  </button>
                 </div>
+                <p className="text-xs text-slate-500 mt-1.5">
+                  Forgot password? Contact your administrator.
+                </p>
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-10 rounded-lg bg-[#005c55] hover:bg-[#004d47] text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
+                className="w-full h-10 rounded-lg bg-[#005c55] hover:bg-[#004d47] text-white text-xs font-semibold shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
               >
-                {isSubmitting ? (
-                  <span>Authenticating...</span>
+                {isSubmitting && !activeRole ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                    <span>Signing in...</span>
+                  </>
                 ) : (
                   <>
                     <span>Sign in to Dashboard</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                   </>
                 )}
               </button>
+
+              {/* Error message under form with role="alert" */}
+              {error && (
+                <div
+                  role="alert"
+                  aria-live="assertive"
+                  className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 mt-3"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" aria-hidden="true" />
+                  <span>{error}</span>
+                </div>
+              )}
             </form>
 
-            <div className="mt-8 pt-4 border-t border-slate-100 text-center">
-              <p className="text-[11px] text-slate-400">
-                CrewDesk Security • httpOnly cookie authentication • 256-bit encryption
+            <div className="mt-7 pt-4 border-t border-slate-100 text-center">
+              <p className="text-[11px] text-slate-400 leading-normal">
+                Secure sign-in. Your session is protected.
               </p>
             </div>
           </div>
