@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/useAuth';
 import { ShieldCheck, ChevronLeft, ChevronRight, Eye, X } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const AuditLogPage: React.FC = () => {
   const { user } = useAuth();

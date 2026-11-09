@@ -15,8 +15,7 @@ import {
   HeartPulse,
   Coffee,
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 // Weekday calculation helper (Monday to Friday)
 function calculateClientWeekdays(startStr: string, endStr: string): number {

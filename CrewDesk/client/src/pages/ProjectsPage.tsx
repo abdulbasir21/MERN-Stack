@@ -14,8 +14,7 @@ import {
   AlertCircle,
   Building2,
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const ProjectsPage: React.FC = () => {
   const { user } = useAuth();

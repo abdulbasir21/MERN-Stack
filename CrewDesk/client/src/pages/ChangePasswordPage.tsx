@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { KeyRound, AlertCircle, CheckCircle2 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const ChangePasswordPage: React.FC = () => {
   const { user, setUser } = useAuth();

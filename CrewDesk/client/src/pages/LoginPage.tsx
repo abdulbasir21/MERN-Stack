@@ -18,8 +18,7 @@ import {
   Code2,
   Loader2,
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const LoginPage: React.FC = () => {
   const { setUser } = useAuth();

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/useAuth';
 import { Clock, CheckCircle2, AlertCircle, Edit3, X, CalendarCheck, Hourglass } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const AttendancePage: React.FC = () => {
   const { user } = useAuth();

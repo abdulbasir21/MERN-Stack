@@ -22,6 +22,7 @@ import {
 import { Link } from 'react-router-dom';
 import { StatCard } from '../components/common/StatCard';
 import { formatCurrency } from '../lib/utils';
+import { API_BASE } from '../lib/api';
 import {
   BarChart,
   Bar,
@@ -37,19 +38,21 @@ const CASHFLOW_COLORS = ['#2563EB', '#059669', '#E11D48', '#0D9488'];
 const DEPT_COLORS = ['#0F766E', '#0284C7', '#6366F1', '#EC4899', '#8B5CF6'];
 const EXPENSE_COLORS = ['#E11D48', '#F59E0B', '#8B5CF6', '#0284C7', '#10B981', '#64748B'];
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['dashboard', 'stats', user?.id, user?.role],
     queryFn: async () => {
       const res = await fetch(`${API_BASE}/dashboard/stats`, { credentials: 'include' });
-      if (!res.ok) throw new Error('Failed to load dashboard stats');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.error?.message || `Failed to load dashboard metrics (${res.status})`);
+      }
       return res.json();
     },
     enabled: !!user,
+    retry: 1,
   });
 
   if (!user) return null;
@@ -84,12 +87,38 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {isLoading || !isStatsReady ? (
+      {isLoading ? (
         <div className="p-12 text-center text-sm text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
-          Loading executive command center analytics...
+          Loading {user.role.toLowerCase().replace('_', ' ')} analytics...
         </div>
-      ) : !stats ? (
-        <div className="p-8 text-center text-sm text-slate-400">No dashboard metrics available.</div>
+      ) : isError ? (
+        <div className="p-8 text-center bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-xl shadow-sm">
+          <div className="w-10 h-10 mx-auto rounded-full bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-3">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Unable to load dashboard metrics</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
+            {error instanceof Error ? error.message : 'A network or authentication error occurred.'}
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white transition-colors"
+            >
+              Retry
+            </button>
+            <Link
+              to="/login"
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Sign In Again
+            </Link>
+          </div>
+        </div>
+      ) : !isStatsReady || !stats ? (
+        <div className="p-8 text-center text-sm text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+          No dashboard metrics available.
+        </div>
       ) : (
         <>
           {/* ==========================================

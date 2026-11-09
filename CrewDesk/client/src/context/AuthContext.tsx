@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import type { User } from '../types/auth';
 import { AuthContext } from './useAuth';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { API_BASE } from '../lib/api';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
