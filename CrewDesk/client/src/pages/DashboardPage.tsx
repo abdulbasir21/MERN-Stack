@@ -4,6 +4,7 @@ import { useAuth } from '../context/useAuth';
 import {
   AlertTriangle,
   UserCheck,
+  Users,
   FolderKanban,
   CheckCircle2,
   ListTodo,
@@ -19,9 +20,8 @@ import {
   Coffee,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { AnimatedCard } from '../components/common/MotionWrapper';
-import { CountUpNumber } from '../components/common/CountUpNumber';
-import { CircularProgressChart } from '../components/common/CircularProgressChart';
+import { StatCard } from '../components/common/StatCard';
+import { formatCurrency } from '../lib/utils';
 import {
   BarChart,
   Bar,
@@ -99,82 +99,54 @@ export const DashboardPage: React.FC = () => {
             <div className="space-y-6">
               {/* Executive Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const collected = parseFloat(stats.metrics.totalCollected) || 0;
-                    const invoiced = parseFloat(stats.metrics.totalInvoiced) || 1;
-                    const collectionRate = Math.min(100, Math.round((collected / Math.max(invoiced, 1)) * 100));
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Collected</span>
-                          <CircularProgressChart value={collectionRate} color="emerald" label={`${collectionRate}%`} />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                          <CountUpNumber value={collected} prefix="$" decimals={2} />
-                        </div>
-                        <span className="text-[11px] text-slate-400 block mt-2 truncate">
-                          Invoiced: ${invoiced.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </span>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                {(() => {
+                  const collected = parseFloat(stats.metrics.totalCollected) || 0;
+                  const invoiced = parseFloat(stats.metrics.totalInvoiced) || 1;
+                  const collectionRate = Math.min(100, Math.round((collected / Math.max(invoiced, 1)) * 100));
+                  return (
+                    <StatCard
+                      index={0}
+                      label="Total Collected"
+                      value={formatCurrency(collected)}
+                      subtext={`Invoiced: ${formatCurrency(invoiced)}`}
+                      icon={CircleDollarSign}
+                      ringPercentage={collectionRate}
+                      tone="default"
+                    />
+                  );
+                })()}
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const clientRatio = Math.min(100, Math.round(((stats.metrics.activeProjects || 0) / Math.max(stats.metrics.activeClients || 1, 1)) * 100));
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Active Portfolio</span>
-                          <CircularProgressChart value={clientRatio} color="blue" label={`${clientRatio}%`} />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
-                          <CountUpNumber value={stats.metrics.activeProjects} />
-                        </div>
-                        <span className="text-[11px] text-slate-400 block mt-2 truncate">
-                          Across {stats.metrics.activeClients} active clients
-                        </span>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                <StatCard
+                  index={1}
+                  label="Active Portfolio"
+                  value={stats.metrics.activeProjects ?? 0}
+                  subtext={`Across ${stats.metrics.activeClients ?? 0} active clients`}
+                  icon={FolderKanban}
+                  tone="default"
+                />
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Headcount</span>
-                    <CircularProgressChart value={100} color="indigo" label={`${stats.metrics.headcount}`} />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
-                    <CountUpNumber value={stats.metrics.headcount} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Active personnel</span>
-                </AnimatedCard>
+                <StatCard
+                  index={2}
+                  label="Total Headcount"
+                  value={stats.metrics.headcount ?? 0}
+                  subtext="Active personnel"
+                  icon={Users}
+                  tone="default"
+                />
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const pending = stats.metrics.pendingApprovals || 0;
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Approvals</span>
-                          <CircularProgressChart
-                            value={pending > 0 ? Math.min(100, pending * 25) : 100}
-                            color={pending > 0 ? 'amber' : 'emerald'}
-                            label={`${pending}`}
-                          />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-amber-500 mt-2">
-                          <CountUpNumber value={pending} />
-                        </div>
-                        <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
-                          Review leave queue &rarr;
-                        </Link>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                {(() => {
+                  const pending = stats.metrics.pendingApprovals || 0;
+                  return (
+                    <StatCard
+                      index={3}
+                      label="Pending Approvals"
+                      value={pending}
+                      action={{ label: "Review leave queue →", href: "/leave" }}
+                      icon={Clock}
+                      tone={pending > 0 ? 'attention' : 'default'}
+                    />
+                  );
+                })()}
               </div>
 
               {/* Chart & Recent Audit Strip */}
@@ -268,76 +240,59 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'HR_MANAGER' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Headcount</span>
-                    <CircularProgressChart value={100} color="blue" label={`${stats.metrics.totalHeadcount}`} />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.totalHeadcount} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Active personnel</span>
-                </AnimatedCard>
+                <StatCard
+                  index={0}
+                  label="Headcount"
+                  value={stats.metrics.totalHeadcount ?? 0}
+                  subtext="Active personnel"
+                  icon={Users}
+                  tone="default"
+                />
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const presentRate = Math.min(100, Math.round(((stats.metrics.todayPresent || 0) / Math.max(stats.metrics.totalHeadcount || 1, 1)) * 100));
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Present Today</span>
-                          <CircularProgressChart value={presentRate} color="emerald" label={`${presentRate}%`} />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                          <CountUpNumber value={stats.metrics.todayPresent} />
-                        </div>
-                        <span className="text-[11px] text-slate-400 block mt-2">On-site & remote shifts</span>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                {(() => {
+                  const total = stats.metrics.totalHeadcount || 1;
+                  const present = stats.metrics.todayPresent || 0;
+                  const presentRate = Math.min(100, Math.round((present / Math.max(total, 1)) * 100));
+                  return (
+                    <StatCard
+                      index={1}
+                      label="Present Today"
+                      value={present}
+                      subtext="On-site & remote shifts"
+                      icon={UserCheck}
+                      ringPercentage={presentRate}
+                      tone="default"
+                    />
+                  );
+                })()}
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const lateRate = Math.min(100, Math.round(((stats.metrics.todayLate || 0) / Math.max(stats.metrics.todayPresent || 1, 1)) * 100));
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Late Arrivals</span>
-                          <CircularProgressChart value={lateRate} color="rose" label={`${stats.metrics.todayLate}`} />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
-                          <CountUpNumber value={stats.metrics.todayLate} />
-                        </div>
-                        <span className="text-[11px] text-slate-400 block mt-2">Past grace threshold</span>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                {(() => {
+                  const late = stats.metrics.todayLate || 0;
+                  return (
+                    <StatCard
+                      index={2}
+                      label="Late Arrivals"
+                      value={late}
+                      subtext="Past grace threshold"
+                      icon={AlertTriangle}
+                      tone={late > 0 ? 'danger' : 'default'}
+                    />
+                  );
+                })()}
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  {(() => {
-                    const pendingLeaves = stats.metrics.pendingLeaveRequests || 0;
-                    return (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Leaves</span>
-                          <CircularProgressChart
-                            value={pendingLeaves > 0 ? Math.min(100, pendingLeaves * 25) : 100}
-                            color={pendingLeaves > 0 ? 'amber' : 'emerald'}
-                            label={`${pendingLeaves}`}
-                          />
-                        </div>
-                        <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
-                          <CountUpNumber value={pendingLeaves} />
-                        </div>
-                        <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
-                          Action requests &rarr;
-                        </Link>
-                      </>
-                    );
-                  })()}
-                </AnimatedCard>
+                {(() => {
+                  const pendingLeaves = stats.metrics.pendingLeaveRequests || 0;
+                  return (
+                    <StatCard
+                      index={3}
+                      label="Pending Leaves"
+                      value={pendingLeaves}
+                      action={{ label: "Action requests →", href: "/leave" }}
+                      icon={Calendar}
+                      tone={pendingLeaves > 0 ? 'attention' : 'default'}
+                    />
+                  );
+                })()}
               </div>
 
               {/* Department breakdown chart */}
@@ -375,76 +330,54 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'PROJECT_MANAGER' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Projects Managed</span>
-                    <CircularProgressChart
-                      value={Math.min(100, (stats.metrics.managedProjectsCount || 0) * 25)}
-                      color="blue"
-                      label={`${stats.metrics.managedProjectsCount}`}
-                      icon={FolderKanban}
-                    />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.managedProjectsCount} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Under active management</span>
-                </AnimatedCard>
+                <StatCard
+                  index={0}
+                  label="Projects Managed"
+                  value={stats.metrics.managedProjectsCount ?? 0}
+                  subtext="Under active management"
+                  icon={FolderKanban}
+                  tone="default"
+                />
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Task Completion</span>
-                    <CircularProgressChart
-                      value={stats.metrics.completionRate || 0}
-                      color="emerald"
-                      label={`${stats.metrics.completionRate || 0}%`}
+                {(() => {
+                  const done = stats.metrics.completedTasks ?? 0;
+                  const total = stats.metrics.totalTasks ?? 0;
+                  const rate = stats.metrics.completionRate ?? (total > 0 ? Math.round((done / total) * 100) : 0);
+                  return (
+                    <StatCard
+                      index={1}
+                      label="Task Completion"
+                      value={`${done} / ${total}`}
+                      subtext="Sprint deliverable velocity"
                       icon={CheckCircle2}
+                      ringPercentage={rate}
+                      tone="default"
                     />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.completionRate} suffix="%" />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Sprint deliverable velocity</span>
-                </AnimatedCard>
+                  );
+                })()}
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Tasks</span>
-                    <CircularProgressChart
-                      value={100}
-                      color="indigo"
-                      label={`${stats.metrics.totalTasks}`}
-                      icon={ListTodo}
+                <StatCard
+                  index={2}
+                  label="Total Tasks"
+                  value={stats.metrics.totalTasks ?? 0}
+                  subtext="Assigned & tracked items"
+                  icon={ListTodo}
+                  tone="default"
+                />
+
+                {(() => {
+                  const overdue = stats.metrics.overdueTasks || 0;
+                  return (
+                    <StatCard
+                      index={3}
+                      label="Overdue Tasks"
+                      value={overdue}
+                      subtext="Require immediate action"
+                      icon={AlertTriangle}
+                      tone={overdue > 0 ? 'danger' : 'default'}
                     />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.totalTasks} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Assigned & tracked items</span>
-                </AnimatedCard>
-
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Overdue Tasks</span>
-                    {(() => {
-                      const total = Math.max(stats.metrics.totalTasks || 1, 1);
-                      const overdue = stats.metrics.overdueTasks || 0;
-                      const overdueRate = Math.min(100, Math.round((overdue / total) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={overdueRate}
-                          color="rose"
-                          label={`${overdue}`}
-                          icon={AlertTriangle}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.overdueTasks} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Require immediate action</span>
-                </AnimatedCard>
+                  );
+                })()}
               </div>
 
               {/* Projects List */}
@@ -476,90 +409,54 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'FINANCE_MANAGER' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Invoiced</span>
-                    <CircularProgressChart
-                      value={100}
-                      color="blue"
-                      label="100%"
-                      icon={Receipt}
-                    />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                    <CountUpNumber value={parseFloat(stats.metrics.totalInvoiced)} prefix="$" decimals={2} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Cumulative issued billings</span>
-                </AnimatedCard>
+                {(() => {
+                  const totalInvoiced = parseFloat(stats.metrics.totalInvoiced) || 0;
+                  const totalCollected = parseFloat(stats.metrics.totalCollected) || 0;
+                  const finCollectedRate = Math.min(100, Math.round((totalCollected / Math.max(totalInvoiced, 1)) * 100));
+                  const totalOutstanding = parseFloat(stats.metrics.totalOutstanding) || 0;
+                  const totalExpenses = parseFloat(stats.metrics.totalExpenses) || 0;
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Collected</span>
-                    {(() => {
-                      const invoiced = Math.max(parseFloat(stats.metrics.totalInvoiced) || 1, 1);
-                      const collected = parseFloat(stats.metrics.totalCollected) || 0;
-                      const collectedRate = Math.min(100, Math.round((collected / invoiced) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={collectedRate}
-                          color="emerald"
-                          label={`${collectedRate}%`}
-                          icon={CircleDollarSign}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                    <CountUpNumber value={parseFloat(stats.metrics.totalCollected)} prefix="$" decimals={2} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Cash deposited in bank</span>
-                </AnimatedCard>
+                  return (
+                    <>
+                      <StatCard
+                        index={0}
+                        label="Total Invoiced"
+                        value={formatCurrency(totalInvoiced)}
+                        subtext="Cumulative issued billings"
+                        icon={Receipt}
+                        tone="default"
+                      />
 
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Outstanding</span>
-                    {(() => {
-                      const invoiced = Math.max(parseFloat(stats.metrics.totalInvoiced) || 1, 1);
-                      const outstanding = parseFloat(stats.metrics.totalOutstanding) || 0;
-                      const outstandingRate = Math.min(100, Math.round((outstanding / invoiced) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={outstandingRate}
-                          color="amber"
-                          label={`${outstandingRate}%`}
-                          icon={Hourglass}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
-                    <CountUpNumber value={parseFloat(stats.metrics.totalOutstanding)} prefix="$" decimals={2} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Awaiting client settlement</span>
-                </AnimatedCard>
+                      <StatCard
+                        index={1}
+                        label="Collected"
+                        value={formatCurrency(totalCollected)}
+                        subtext="Cash deposited in bank"
+                        icon={CircleDollarSign}
+                        ringPercentage={finCollectedRate}
+                        tone="default"
+                      />
 
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Expenses</span>
-                    {(() => {
-                      const collected = Math.max(parseFloat(stats.metrics.totalCollected) || 1, 1);
-                      const expenses = parseFloat(stats.metrics.totalExpenses) || 0;
-                      const expenseRate = Math.min(100, Math.round((expenses / collected) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={expenseRate}
-                          color="rose"
-                          label={`${expenseRate}%`}
-                          icon={CreditCard}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
-                    <CountUpNumber value={parseFloat(stats.metrics.totalExpenses)} prefix="$" decimals={2} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Operational disbursements</span>
-                </AnimatedCard>
+                      <StatCard
+                        index={2}
+                        label="Outstanding"
+                        value={formatCurrency(totalOutstanding)}
+                        subtext="Awaiting client settlement"
+                        icon={Hourglass}
+                        tone={totalOutstanding > 0 ? 'attention' : 'default'}
+                      />
+
+                      <StatCard
+                        index={3}
+                        label="Expenses"
+                        value={formatCurrency(totalExpenses)}
+                        subtext="Operational disbursements"
+                        icon={CreditCard}
+                        tone="default"
+                      />
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Expense Category Breakdown Chart */}
@@ -604,83 +501,54 @@ export const DashboardPage: React.FC = () => {
           {user.role === 'INVENTORY_MANAGER' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Hardware</span>
-                    <CircularProgressChart
-                      value={100}
-                      color="blue"
-                      label={`${stats.metrics.totalHardwareAssets}`}
-                      icon={Laptop}
+                <StatCard
+                  index={0}
+                  label="Total Hardware"
+                  value={stats.metrics.totalHardwareAssets ?? 0}
+                  subtext="Physical fleet assets"
+                  icon={Laptop}
+                  tone="default"
+                />
+
+                <StatCard
+                  index={1}
+                  label="Available"
+                  value={stats.metrics.availableAssets ?? 0}
+                  subtext="Ready for deployment"
+                  icon={CheckCircle2}
+                  tone="default"
+                />
+
+                {(() => {
+                  const total = stats.metrics.totalHardwareAssets || 1;
+                  const assigned = stats.metrics.assignedAssets || 0;
+                  const assignedRate = Math.min(100, Math.round((assigned / Math.max(total, 1)) * 100));
+                  return (
+                    <StatCard
+                      index={2}
+                      label="Assigned"
+                      value={assigned}
+                      subtext="In custody of personnel"
+                      icon={UserCheck}
+                      ringPercentage={assignedRate}
+                      tone="default"
                     />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.totalHardwareAssets} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Physical fleet assets</span>
-                </AnimatedCard>
+                  );
+                })()}
 
-                <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Available</span>
-                    {(() => {
-                      const total = Math.max(stats.metrics.totalHardwareAssets || 1, 1);
-                      const available = stats.metrics.availableAssets || 0;
-                      const availableRate = Math.min(100, Math.round((available / total) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={availableRate}
-                          color="emerald"
-                          label={`${availableRate}%`}
-                          icon={CheckCircle2}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.availableAssets} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Ready for deployment</span>
-                </AnimatedCard>
-
-                <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">Assigned</span>
-                    {(() => {
-                      const total = Math.max(stats.metrics.totalHardwareAssets || 1, 1);
-                      const assigned = stats.metrics.assignedAssets || 0;
-                      const assignedRate = Math.min(100, Math.round((assigned / total) * 100));
-                      return (
-                        <CircularProgressChart
-                          value={assignedRate}
-                          color="indigo"
-                          label={`${assignedRate}%`}
-                          icon={UserCheck}
-                        />
-                      );
-                    })()}
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.assignedAssets} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">In custody of personnel</span>
-                </AnimatedCard>
-
-                <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Low Stock SKUs</span>
-                    <CircularProgressChart
-                      value={stats.metrics.lowStockAlerts > 0 ? Math.min(100, stats.metrics.lowStockAlerts * 25) : 100}
-                      color={stats.metrics.lowStockAlerts > 0 ? 'rose' : 'emerald'}
-                      label={`${stats.metrics.lowStockAlerts}`}
+                {(() => {
+                  const lowStock = stats.metrics.lowStockAlerts || 0;
+                  return (
+                    <StatCard
+                      index={3}
+                      label="Low Stock SKUs"
+                      value={lowStock}
+                      subtext="Require replenishment"
                       icon={Boxes}
+                      tone={lowStock > 0 ? 'danger' : 'default'}
                     />
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.lowStockAlerts} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Require replenishment</span>
-                </AnimatedCard>
+                  );
+                })()}
               </div>
 
               {stats.lowStockItems?.length > 0 && (
@@ -757,23 +625,16 @@ export const DashboardPage: React.FC = () => {
                   const remainingRate = Math.min(100, Math.round((remaining / allowance) * 100));
 
                   return (
-                    <AnimatedCard key={l.type} index={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">{l.type} Leave</span>
-                        <CircularProgressChart
-                          value={remainingRate}
-                          color="teal"
-                          label={`${remainingRate}%`}
-                          icon={Icon}
-                        />
-                      </div>
-                      <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2 truncate">
-                        <CountUpNumber value={l.remaining} suffix="d" />
-                      </div>
-                      <span className="text-[11px] text-slate-400 block mt-2 truncate">
-                        {l.used} used of {l.allowance} allowance
-                      </span>
-                    </AnimatedCard>
+                    <StatCard
+                      key={l.type}
+                      index={idx}
+                      label={`${l.type} Leave`}
+                      value={`${remaining}d`}
+                      subtext={`${l.used} used of ${l.allowance} allowance`}
+                      icon={Icon}
+                      ringPercentage={remainingRate}
+                      tone="default"
+                    />
                   );
                 })}
               </div>
