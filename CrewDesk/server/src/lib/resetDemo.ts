@@ -10,6 +10,7 @@ export const CORE_DEMO_USERS = [
     title: 'Chief Executive Officer & Founder',
     phone: '+1 (555) 019-2831',
     dept: 'Executive Leadership',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Adnan Qureshi',
@@ -18,6 +19,7 @@ export const CORE_DEMO_USERS = [
     title: 'Director of People Operations',
     phone: '+1 (555) 019-4492',
     dept: 'Executive Leadership',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Rashid Al-Banna',
@@ -26,6 +28,7 @@ export const CORE_DEMO_USERS = [
     title: 'Principal Technical Project Lead',
     phone: '+1 (555) 019-7721',
     dept: 'Product & UX Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Sohail Abbasi',
@@ -34,6 +37,7 @@ export const CORE_DEMO_USERS = [
     title: 'Chief Financial Controller',
     phone: '+1 (555) 019-8833',
     dept: 'Finance & Operations',
+    avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Asim Zafar',
@@ -42,6 +46,7 @@ export const CORE_DEMO_USERS = [
     title: 'Global Assets & Facilities Lead',
     phone: '+1 (555) 019-5561',
     dept: 'Finance & Operations',
+    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Zain Khalid',
@@ -50,6 +55,7 @@ export const CORE_DEMO_USERS = [
     title: 'Senior Full-Stack Engineer',
     phone: '+1 (555) 019-1104',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=256&h=256&fit=crop&crop=faces&q=80',
   },
 ] as const;
 
@@ -61,6 +67,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Staff Backend Engineer',
     phone: '+1 (555) 019-3011',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Kamran Mirza',
@@ -69,6 +76,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Cloud Infrastructure Architect',
     phone: '+1 (555) 019-3012',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Noman Hashmi',
@@ -77,6 +85,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Senior Frontend Engineer',
     phone: '+1 (555) 019-3013',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Salman Javed',
@@ -85,6 +94,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Site Reliability Engineer',
     phone: '+1 (555) 019-3014',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Waqas Shareef',
@@ -93,6 +103,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Principal Product Designer',
     phone: '+1 (555) 019-3015',
     dept: 'Product & UX Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Zubair Kazmi',
@@ -101,6 +112,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Design Systems Lead',
     phone: '+1 (555) 019-3016',
     dept: 'Product & UX Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1521119989659-a83eee488004?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Haris Mehmood',
@@ -109,6 +121,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'UX Research Specialist',
     phone: '+1 (555) 019-3017',
     dept: 'Product & UX Design',
+    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Junaid Akram',
@@ -117,6 +130,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Senior Security Engineer',
     phone: '+1 (555) 019-3018',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Danish Nawaz',
@@ -125,6 +139,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Quality Engineering Lead',
     phone: '+1 (555) 019-3019',
     dept: 'Engineering & Platform',
+    avatarUrl: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Faisal Latif',
@@ -133,6 +148,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'Financial Operations Analyst',
     phone: '+1 (555) 019-3020',
     dept: 'Finance & Operations',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Imran Pasha',
@@ -141,6 +157,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'IT Systems Administrator',
     phone: '+1 (555) 019-3021',
     dept: 'Finance & Operations',
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=256&h=256&fit=crop&crop=faces&q=80',
   },
   {
     name: 'Rizwan Ghafoor',
@@ -149,6 +166,7 @@ export const EXTRA_DEMO_EMPLOYEES = [
     title: 'People Operations Coordinator',
     phone: '+1 (555) 019-3022',
     dept: 'Executive Leadership',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=256&h=256&fit=crop&crop=faces&q=80',
   },
 ] as const;
 
@@ -224,6 +242,7 @@ export async function resetDemoWorkspace() {
           role: u.role,
           title: u.title,
           phone: u.phone,
+          avatarUrl: u.avatarUrl,
           passwordHash: demoPasswordHash,
           departmentId: departments[u.dept],
           mustChangePassword: false,
@@ -233,6 +252,7 @@ export async function resetDemoWorkspace() {
         create: {
           name: u.name,
           email: u.email,
+          avatarUrl: u.avatarUrl,
           passwordHash: demoPasswordHash,
           role: u.role,
           title: u.title,

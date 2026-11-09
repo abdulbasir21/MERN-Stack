@@ -43,25 +43,29 @@ async function seed() {
     });
   }
 
-  // 3. Seed Owner
-  const ownerEmail = env.SEED_OWNER_EMAIL || 'owner@crewdesk.agency';
-  const ownerPassword = env.SEED_OWNER_PASSWORD || 'CrewDeskOwner2026!';
+  // 3. Seed Real Owner
+  const ownerEmail = env.SEED_OWNER_EMAIL || 'admin@crewdesk.agency';
+  const ownerPassword = env.SEED_OWNER_PASSWORD || 'CrewDeskAdmin2026!';
   const passwordHash = await bcrypt.hash(ownerPassword, 10);
 
   await prisma.user.upsert({
     where: { email: ownerEmail.toLowerCase() },
     update: {
+      name: 'Bilal Arshad',
       role: 'OWNER',
+      title: 'Managing Director & Agency Owner',
       isActive: true,
+      isDemo: false,
     },
     create: {
-      name: 'Agency Principal',
+      name: 'Bilal Arshad',
       email: ownerEmail.toLowerCase(),
       passwordHash,
       role: 'OWNER',
-      title: 'Managing Director / Owner',
-      mustChangePassword: false, // Owner starts ready to operate
+      title: 'Managing Director & Agency Owner',
+      mustChangePassword: false,
       isActive: true,
+      isDemo: false,
     },
   });
 
