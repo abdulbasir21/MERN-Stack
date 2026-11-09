@@ -22,7 +22,7 @@ export class FinanceController {
   listExpenses = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const projectId = req.query.projectId as string | undefined;
-      const expenses = await financeService.listExpenses(projectId);
+      const expenses = await financeService.listExpenses(projectId, Boolean(req.user!.isDemo));
       res.json({ success: true, data: expenses });
     } catch (err) {
       next(err);
@@ -54,7 +54,7 @@ export class FinanceController {
     try {
       const clientId = req.query.clientId as string | undefined;
       const projectId = req.query.projectId as string | undefined;
-      const invoices = await financeService.listInvoices(clientId, projectId);
+      const invoices = await financeService.listInvoices(clientId, projectId, Boolean(req.user!.isDemo));
       res.json({ success: true, data: invoices });
     } catch (err) {
       next(err);
@@ -75,16 +75,16 @@ export class FinanceController {
   // Reports
   getProjectProfitability = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const report = await financeService.getProjectProfitability(req.params.projectId);
+      const report = await financeService.getProjectProfitability(req.params.projectId, Boolean(req.user!.isDemo));
       res.json({ success: true, data: report });
     } catch (err) {
       next(err);
     }
   };
 
-  getFinancialSummary = async (_req: Request, res: Response, next: NextFunction) => {
+  getFinancialSummary = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const summary = await financeService.getExecutiveFinancialSummary();
+      const summary = await financeService.getExecutiveFinancialSummary(Boolean(req.user!.isDemo));
       res.json({ success: true, data: summary });
     } catch (err) {
       next(err);

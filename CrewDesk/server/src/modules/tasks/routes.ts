@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../../middleware/auth.js';
 import { requirePermission } from '../../middleware/requirePermission.js';
+import { demoGuard } from '../../middleware/demoGuard.js';
 import { validate } from '../../middleware/validate.js';
 import { taskController } from './controller.js';
 import {
@@ -31,6 +32,7 @@ taskRouter.post(
   '/tasks',
   authenticate,
   requirePermission('task:manage'),
+  demoGuard('SANDBOX_WRITE', { actionName: 'task:create' }),
   validate(createTaskSchema),
   (req, res, next) => taskController.create(req, res, next)
 );
@@ -40,6 +42,7 @@ taskRouter.put(
   '/tasks/:id',
   authenticate,
   requirePermission('task:manage'),
+  demoGuard('SANDBOX_WRITE', { actionName: 'task:update' }),
   validate(updateTaskSchema),
   (req, res, next) => taskController.updateByManager(req, res, next)
 );
@@ -49,6 +52,7 @@ taskRouter.patch(
   '/tasks/:id/progress',
   authenticate,
   requirePermission('task:update-own'),
+  demoGuard('SANDBOX_WRITE', { actionName: 'task:update-progress' }),
   validate(updateTaskEmployeeSchema),
   (req, res, next) => taskController.updateByEmployee(req, res, next)
 );
@@ -58,6 +62,7 @@ taskRouter.post(
   '/tasks/:id/comments',
   authenticate,
   requirePermission('comment:create'),
+  demoGuard('SANDBOX_WRITE', { actionName: 'comment:create' }),
   validate(createCommentSchema),
   (req, res, next) => taskController.addComment(req, res, next)
 );

@@ -167,6 +167,7 @@ model Client {
   phone     String?
   company   String?
   notes     String?
+  isDemo    Boolean   @default(false)
   projects  Project[]
   invoices  Invoice[]
   createdAt DateTime  @default(now())
@@ -183,6 +184,7 @@ model Project {
   deadline    DateTime
   budget      Decimal         @db.Decimal(12, 2)
   status      ProjectStatus   @default(PLANNING)
+  isDemo      Boolean         @default(false)
   managerId   String
   manager     User            @relation("ManagedProjects", fields: [managerId], references: [id], onDelete: Restrict)
   members     ProjectMember[]
@@ -315,18 +317,19 @@ model Attendance {
 }
 
 model User {
-  id                 String          @id @default(uuid())
+  id                 String            @id @default(uuid())
   name               String
-  email              String          @unique
+  email              String            @unique
   passwordHash       String
-  role               Role            @default(EMPLOYEE)
+  role               Role              @default(EMPLOYEE)
   title              String?
   phone              String?
   avatarUrl          String?
   avatarFileId       String?
-  mustChangePassword Boolean         @default(true)
-  isActive           Boolean         @default(true)
-  joinDate           DateTime        @default(now())
+  mustChangePassword Boolean           @default(true)
+  isActive           Boolean           @default(true)
+  isDemo             Boolean           @default(false)
+  joinDate           DateTime          @default(now())
   departmentId       String?
   department         Department?     @relation(fields: [departmentId], references: [id])
   refreshTokens      RefreshToken[]
@@ -392,6 +395,7 @@ model InventoryItem {
   assetStatus     AssetStatus?      @default(AVAILABLE) // For ASSET
   currentQuantity Int               @default(1) // For STOCK
   minQuantity     Int               @default(0) // Minimum threshold alert
+  isDemo          Boolean           @default(false)
   assignedUserId  String?
   assignedUser    User?             @relation("AssignedAssets", fields: [assignedUserId], references: [id], onDelete: SetNull)
   location        String?
@@ -400,6 +404,13 @@ model InventoryItem {
   movements       StockMovement[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int      @default(1)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model AssetAssignment {

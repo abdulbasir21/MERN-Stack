@@ -20,7 +20,7 @@ describe('Phase 8: Inventory (Assets, Stock, Assignments, Deactivation Guard) Te
     const dept = await prisma.department.findFirst();
 
     // Owner
-    const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo: false } });
     ownerToken = signAccessToken({
       userId: owner!.id,
       email: owner!.email,

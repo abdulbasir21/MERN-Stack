@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
+import { assertSameDemoScope, verifyScopedUser } from '../../lib/demoScope.js';
 import {
   createInventoryItemSchema,
   assignAssetSchema,
@@ -13,6 +14,7 @@ import { InventoryKind, AssetStatus, Prisma } from '@prisma/client';
 
 export class InventoryService {
   async createItem(actor: AuthenticatedUser, input: z.infer<typeof createInventoryItemSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     if (input.kind === 'ASSET') {
       const existing = await prisma.inventoryItem.findFirst({
         where: { serialNumber: input.serialNumber },
@@ -33,6 +35,7 @@ export class InventoryService {
         minQuantity: input.kind === 'STOCK' ? input.minQuantity : 0,
         location: input.location || null,
         notes: input.notes || null,
+        isDemo,
       },
     });
 
@@ -46,6 +49,7 @@ export class InventoryService {
   }
 
   async assignAsset(actor: AuthenticatedUser, itemId: string, input: z.infer<typeof assignAssetSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const item = await prisma.inventoryItem.findUnique({
       where: { id: itemId },
     });
@@ -53,6 +57,7 @@ export class InventoryService {
     if (!item) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Inventory item not found.' };
     }
+    assertSameDemoScope(isDemo, item.isDemo, 'Inventory item');
 
     if (item.kind !== 'ASSET') {
       throw { status: 400, code: 'NOT_AN_ASSET', message: 'Only hardware assets can be assigned to employees.' };
@@ -67,6 +72,7 @@ export class InventoryService {
       };
     }
 
+    await verifyScopedUser(input.userId, isDemo, 'Target employee');
     const targetUser = await prisma.user.findUnique({
       where: { id: input.userId },
     });
@@ -119,6 +125,7 @@ export class InventoryService {
   }
 
   async returnAsset(actor: AuthenticatedUser, itemId: string, input: z.infer<typeof returnAssetSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const item = await prisma.inventoryItem.findUnique({
       where: { id: itemId },
       include: { assignedUser: true },
@@ -127,6 +134,7 @@ export class InventoryService {
     if (!item) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Asset not found.' };
     }
+    assertSameDemoScope(isDemo, item.isDemo, 'Asset');
 
     if (item.kind !== 'ASSET') {
       throw { status: 400, code: 'NOT_AN_ASSET', message: 'Item is not an asset.' };
@@ -197,6 +205,7 @@ export class InventoryService {
   }
 
   async recordStockMovement(actor: AuthenticatedUser, itemId: string, input: z.infer<typeof stockMovementSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const item = await prisma.inventoryItem.findUnique({
       where: { id: itemId },
     });
@@ -204,6 +213,7 @@ export class InventoryService {
     if (!item) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Stock item not found.' };
     }
+    assertSameDemoScope(isDemo, item.isDemo, 'Stock item');
 
     if (item.kind !== 'STOCK') {
       throw { status: 400, code: 'NOT_STOCK', message: 'Item is not a consumable stock item.' };
@@ -266,8 +276,10 @@ export class InventoryService {
     return result.item;
   }
 
-  async listItems(kind?: InventoryKind, category?: string, status?: AssetStatus) {
-    const where: Prisma.InventoryItemWhereInput = {};
+  async listItems(kind?: InventoryKind, category?: string, status?: AssetStatus, isDemo = false) {
+    const where: Prisma.InventoryItemWhereInput = {
+      isDemo: Boolean(isDemo),
+    };
     if (kind) where.kind = kind;
     if (category) where.category = category;
     if (status) where.assetStatus = status;
@@ -291,11 +303,12 @@ export class InventoryService {
     });
   }
 
-  async listOwnAssignedAssets(userId: string) {
+  async listOwnAssignedAssets(userId: string, isDemo = false) {
     return prisma.inventoryItem.findMany({
       where: {
         kind: 'ASSET',
         assignedUserId: userId,
+        isDemo: Boolean(isDemo),
       },
       include: {
         assignments: {
@@ -307,13 +320,14 @@ export class InventoryService {
     });
   }
 
-  async getInventorySummary() {
+  async getInventorySummary(isDemo = false) {
+    const scope = Boolean(isDemo);
     const [totalAssets, availableAssets, assignedAssets, maintenanceAssets, stockItems] = await Promise.all([
-      prisma.inventoryItem.count({ where: { kind: 'ASSET' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'AVAILABLE' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'ASSIGNED' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'UNDER_MAINTENANCE' } }),
-      prisma.inventoryItem.findMany({ where: { kind: 'STOCK' } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', isDemo: scope } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'AVAILABLE', isDemo: scope } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'ASSIGNED', isDemo: scope } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'UNDER_MAINTENANCE', isDemo: scope } }),
+      prisma.inventoryItem.findMany({ where: { kind: 'STOCK', isDemo: scope } }),
     ]);
 
     const lowStockAlerts = stockItems.filter((s) => s.currentQuantity <= s.minQuantity);

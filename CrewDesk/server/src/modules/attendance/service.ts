@@ -1,6 +1,7 @@
 import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
+import { verifyScopedAttendance } from '../../lib/demoScope.js';
 import { checkInSchema, checkOutSchema, editAttendanceSchema, attendanceQuerySchema } from './schemas.js';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
@@ -139,8 +140,10 @@ export class AttendanceService {
     });
   }
 
-  async listAllAttendance(query: z.infer<typeof attendanceQuerySchema>) {
-    const where: Prisma.AttendanceWhereInput = {};
+  async listAllAttendance(query: z.infer<typeof attendanceQuerySchema>, isDemo = false) {
+    const where: Prisma.AttendanceWhereInput = {
+      user: { isDemo: Boolean(isDemo) },
+    };
 
     if (query.date) where.date = query.date;
     if (query.userId) where.userId = query.userId;
@@ -155,7 +158,8 @@ export class AttendanceService {
     });
   }
 
-  async editAttendance(actorId: string, attendanceId: string, input: z.infer<typeof editAttendanceSchema>) {
+  async editAttendance(actor: AuthenticatedUser, attendanceId: string, input: z.infer<typeof editAttendanceSchema>) {
+    await verifyScopedAttendance(attendanceId, Boolean(actor.isDemo));
     const existing = await prisma.attendance.findUnique({ where: { id: attendanceId } });
     if (!existing) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Attendance record not found.' };
@@ -184,7 +188,7 @@ export class AttendanceService {
 
     // Business rule: HR edits are audit-logged with old and new values
     await logAudit(
-      actorId,
+      actor.userId,
       'attendance:edit',
       'Attendance',
       attendanceId,

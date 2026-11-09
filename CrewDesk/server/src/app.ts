@@ -1,14 +1,27 @@
+import crypto from 'crypto';
 import express, { Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { prisma } from './lib/prisma.js';
+import { resetDemoWorkspace } from './lib/resetDemo.js';
 import { authRouter } from './modules/auth/routes.js';
 import { authenticate } from './middleware/auth.js';
 import { requirePermission } from './middleware/requirePermission.js';
+import { demoGuard } from './middleware/demoGuard.js';
 
 export const app = express();
+
+/**
+ * Trust Proxy Configuration:
+ * CrewDesk runs behind two Vercel hops in production:
+ * 1. Client Vercel edge rewrite (`crew-desk-client.vercel.app/api/*` -> `crew-desk.vercel.app/api/*`)
+ * 2. Server Vercel serverless edge (`crew-desk.vercel.app`)
+ * Setting trust proxy to 2 ensures Express and rate limiters resolve the real client IP
+ * rather than the intermediate Vercel proxy IP.
+ */
+app.set('trust proxy', 2);
 
 // Security middleware
 app.use(helmet());
@@ -31,7 +44,7 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '250kb' }));
 
 // Health check endpoint (also verifies DB connectivity)
 app.get('/api/health', async (_req: Request, res: Response) => {
@@ -55,8 +68,96 @@ app.get('/api/health', async (_req: Request, res: Response) => {
   }
 });
 
+// Internal Vercel Cron / Admin Demo Reset Endpoint (Protected by CRON_SECRET)
+const handleResetDemo = async (req: Request, res: Response) => {
+  const configuredSecret = env.CRON_SECRET || process.env.CRON_SECRET;
+  if (!configuredSecret) {
+    return res.status(503).json({
+      error: {
+        code: 'CRON_SECRET_NOT_CONFIGURED',
+        message: 'CRON_SECRET is not configured on the server.',
+      },
+    });
+  }
+
+  const authHeader = req.headers.authorization || '';
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const headerToken = (req.headers['x-cron-secret'] as string | undefined)?.trim() || '';
+  const providedSecret = bearerToken || headerToken;
+
+  const expectedBuf = Buffer.from(configuredSecret, 'utf8');
+  const providedBuf = Buffer.from(providedSecret, 'utf8');
+  if (
+    expectedBuf.length !== providedBuf.length ||
+    !crypto.timingSafeEqual(expectedBuf, providedBuf)
+  ) {
+    return res.status(401).json({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing cron secret.',
+      },
+    });
+  }
+
+  try {
+    const summary = await resetDemoWorkspace();
+    return res.status(200).json({
+      success: true,
+      data: {
+        message: 'Demo workspace reset successfully.',
+        ...summary,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: {
+        code: 'DEMO_RESET_FAILED',
+        message: err instanceof Error ? err.message : 'Failed to reset demo workspace',
+      },
+    });
+  }
+};
+
+app.post('/api/internal/reset-demo', handleResetDemo);
+app.get('/api/internal/reset-demo', handleResetDemo);
+
 // Authentication routes
 app.use('/api/auth', authRouter);
+
+// Explicit backend guard for any export, upload, or bulk/destructive delete endpoints
+app.all(
+  ['/api/export', '/api/export/*', '/api/*/export', '/api/uploads', '/api/uploads/*'],
+  authenticate,
+  demoGuard('BLOCK', {
+    actionName: 'export-or-upload:blocked',
+    message: 'Data exports and file uploads are disabled in demo mode.',
+  }),
+  (_req: Request, res: Response) => {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Endpoint not available.' } });
+  }
+);
+
+app.delete(
+  [
+    '/api/users/*',
+    '/api/users',
+    '/api/projects/*',
+    '/api/projects',
+    '/api/clients/*',
+    '/api/clients',
+    '/api/tasks/*',
+    '/api/tasks',
+    '/api/finance/*',
+    '/api/inventory/*',
+    '/api/attendance/*',
+    '/api/leave/*',
+  ],
+  authenticate,
+  demoGuard('BLOCK', {
+    actionName: 'delete:blocked',
+    message: 'Deleting records or bulk deletion is disabled in demo mode.',
+  })
+);
 
 // Domain routes (Users, Departments, Profile, Avatar)
 import { apiRouter } from './modules/users/routes.js';

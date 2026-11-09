@@ -130,11 +130,13 @@ export const EmployeesPage: React.FC = () => {
         <div className="flex items-center gap-2">
           {isHR && (
             <button
+              disabled={Boolean(user?.isDemo)}
+              title={user?.isDemo ? 'Not available in demo' : 'Add a new employee'}
               onClick={() => {
                 setModalMode('EMPLOYEE');
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-4 h-4" />
               <span>+ Add Employee</span>
@@ -143,11 +145,13 @@ export const EmployeesPage: React.FC = () => {
 
           {isOwner && (
             <button
+              disabled={Boolean(user?.isDemo)}
+              title={user?.isDemo ? 'Not available in demo' : 'Create a manager account'}
               onClick={() => {
                 setModalMode('MANAGER');
                 setIsModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-3 py-2 rounded border border-outline-variant hover:bg-[#F8F8F5] text-ink text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded border border-outline-variant hover:bg-[#F8F8F5] text-ink text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Shield className="w-4 h-4 text-primary" />
               <span>+ Create Manager</span>
@@ -278,13 +282,15 @@ export const EmployeesPage: React.FC = () => {
                     <td className="px-4 py-3 text-right">
                       {isHR && u.role !== 'OWNER' && u.id !== user?.id && (
                         <button
+                          disabled={Boolean(user?.isDemo)}
+                          title={user?.isDemo ? 'Not available in demo' : u.isActive ? 'Deactivate user' : 'Reactivate user'}
                           onClick={() =>
                             toggleActiveMutation.mutate({
                               id: u.id,
                               action: u.isActive ? 'deactivate' : 'reactivate',
                             })
                           }
-                          className={`text-xs font-medium hover:underline ${
+                          className={`text-xs font-medium hover:underline disabled:opacity-50 disabled:no-underline disabled:cursor-not-allowed ${
                             u.isActive ? 'text-red-600' : 'text-emerald-700'
                           }`}
                         >

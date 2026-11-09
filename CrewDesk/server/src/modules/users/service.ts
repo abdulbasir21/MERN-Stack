@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
+import { scopeRoot, assertSameDemoScope } from '../../lib/demoScope.js';
 import { Role } from '@prisma/client';
 import {
   createEmployeeSchema,
@@ -13,12 +14,14 @@ import {
 import { z } from 'zod';
 
 export class UserService {
-  async listUsers(query: z.infer<typeof userQuerySchema>) {
+  async listUsers(query: z.infer<typeof userQuerySchema>, isDemo = false) {
     const page = query.page || 1;
     const pageSize = query.pageSize || 10;
     const skip = (page - 1) * pageSize;
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      ...scopeRoot(isDemo),
+    };
 
     if (query.search) {
       where.OR = [
@@ -74,7 +77,7 @@ export class UserService {
     };
   }
 
-  async getUserById(id: string) {
+  async getUserById(id: string, isDemo = false) {
     const user = await prisma.user.findUnique({
       where: { id },
       select: {
@@ -86,6 +89,7 @@ export class UserService {
         phone: true,
         avatarUrl: true,
         isActive: true,
+        isDemo: true,
         joinDate: true,
         department: { select: { id: true, name: true } },
         leaveBalances: {
@@ -95,9 +99,7 @@ export class UserService {
       },
     });
 
-    if (!user) {
-      throw { status: 404, code: 'NOT_FOUND', message: 'User not found' };
-    }
+    assertSameDemoScope(user, isDemo, 'User');
 
     return user;
   }
@@ -227,7 +229,7 @@ export class UserService {
 
   async changeRole(actorId: string, targetUserId: string, input: z.infer<typeof changeRoleSchema>) {
     const target = await prisma.user.findUnique({ where: { id: targetUserId } });
-    if (!target) {
+    if (!target || target.isDemo) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Target user not found' };
     }
 
@@ -247,7 +249,7 @@ export class UserService {
 
   async toggleUserActive(actorId: string, targetUserId: string, isActive: boolean) {
     const target = await prisma.user.findUnique({ where: { id: targetUserId } });
-    if (!target) {
+    if (!target || target.isDemo) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Target user not found' };
     }
 
@@ -311,6 +313,11 @@ export class UserService {
   }
 
   async updateEmployee(actorId: string, targetUserId: string, input: z.infer<typeof updateEmployeeSchema>) {
+    const target = await prisma.user.findUnique({ where: { id: targetUserId } });
+    if (!target || target.isDemo) {
+      throw { status: 404, code: 'NOT_FOUND', message: 'Target user not found' };
+    }
+
     const updated = await prisma.user.update({
       where: { id: targetUserId },
       data: {

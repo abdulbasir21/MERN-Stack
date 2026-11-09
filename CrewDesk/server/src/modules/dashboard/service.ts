@@ -1,40 +1,44 @@
 import { prisma } from '../../lib/prisma.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
+import { scopeAuditLogs } from '../../lib/demoScope.js';
 import { Prisma } from '@prisma/client';
 
 export class DashboardService {
   async getDashboardData(user: AuthenticatedUser) {
+    const isDemo = Boolean(user.isDemo);
     switch (user.role) {
       case 'OWNER':
-        return this.getOwnerDashboard();
+        return this.getOwnerDashboard(isDemo);
       case 'HR_MANAGER':
-        return this.getHrDashboard();
+        return this.getHrDashboard(isDemo);
       case 'PROJECT_MANAGER':
-        return this.getPmDashboard(user.userId);
+        return this.getPmDashboard(user.userId, isDemo);
       case 'FINANCE_MANAGER':
-        return this.getFinanceDashboard();
+        return this.getFinanceDashboard(isDemo);
       case 'INVENTORY_MANAGER':
-        return this.getInventoryDashboard();
+        return this.getInventoryDashboard(isDemo);
       case 'EMPLOYEE':
       default:
-        return this.getEmployeeDashboard(user.userId);
+        return this.getEmployeeDashboard(user.userId, isDemo);
     }
   }
 
   // --- 1. OWNER DASHBOARD ---
-  private async getOwnerDashboard() {
+  private async getOwnerDashboard(isDemo: boolean) {
     const [clientsCount, projectsCount, usersCount, pendingLeavesCount] = await Promise.all([
-      prisma.client.count(),
-      prisma.project.count({ where: { status: 'ACTIVE' } }),
-      prisma.user.count({ where: { isActive: true } }),
-      prisma.leaveRequest.count({ where: { status: 'PENDING' } }),
+      prisma.client.count({ where: { isDemo } }),
+      prisma.project.count({ where: { status: 'ACTIVE', isDemo } }),
+      prisma.user.count({ where: { isActive: true, isDemo } }),
+      prisma.leaveRequest.count({ where: { status: 'PENDING', user: { isDemo } } }),
     ]);
 
     const invoices = await prisma.invoice.findMany({
-      where: { status: { not: 'CANCELLED' } },
+      where: { status: { not: 'CANCELLED' }, client: { isDemo } },
       include: { payments: true },
     });
-    const expenses = await prisma.expense.findMany();
+    const expenses = await prisma.expense.findMany({
+      where: { recordedBy: { isDemo } },
+    });
 
     const totalInvoiced = invoices.reduce((acc, inv) => acc.add(inv.total), new Prisma.Decimal(0));
     const totalCollected = invoices
@@ -43,6 +47,7 @@ export class DashboardService {
     const totalExpenses = expenses.reduce((acc, e) => acc.add(e.amount), new Prisma.Decimal(0));
 
     const recentAudit = await prisma.auditLog.findMany({
+      where: scopeAuditLogs(isDemo),
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: { actor: { select: { name: true, role: true } } },
@@ -65,29 +70,30 @@ export class DashboardService {
   }
 
   // --- 2. HR MANAGER DASHBOARD ---
-  private async getHrDashboard() {
+  private async getHrDashboard(isDemo: boolean) {
     const todayStr = new Date().toISOString().split('T')[0];
 
     const [totalUsers, activeLeaves, todayAttendance, pendingRequests, departments] = await Promise.all([
-      prisma.user.count({ where: { isActive: true } }),
+      prisma.user.count({ where: { isActive: true, isDemo } }),
       prisma.leaveRequest.count({
         where: {
           status: 'APPROVED',
+          user: { isDemo },
           startDate: { lte: new Date() },
           endDate: { gte: new Date() },
         },
       }),
       prisma.attendance.findMany({
-        where: { date: todayStr },
+        where: { date: todayStr, user: { isDemo } },
         include: { user: { select: { name: true } } },
       }),
       prisma.leaveRequest.findMany({
-        where: { status: 'PENDING' },
+        where: { status: 'PENDING', user: { isDemo } },
         include: { user: { select: { name: true, role: true } }, leaveType: true },
         take: 5,
       }),
       prisma.department.findMany({
-        include: { _count: { select: { users: true } } },
+        include: { _count: { select: { users: { where: { isDemo } } } } },
       }),
     ]);
 
@@ -108,9 +114,9 @@ export class DashboardService {
   }
 
   // --- 3. PROJECT MANAGER DASHBOARD ---
-  private async getPmDashboard(pmUserId: string) {
+  private async getPmDashboard(pmUserId: string, isDemo: boolean) {
     const managedProjects = await prisma.project.findMany({
-      where: { managerId: pmUserId },
+      where: { managerId: pmUserId, isDemo },
       include: {
         client: { select: { name: true } },
         milestones: true,
@@ -148,12 +154,13 @@ export class DashboardService {
   }
 
   // --- 4. FINANCE MANAGER DASHBOARD ---
-  private async getFinanceDashboard() {
+  private async getFinanceDashboard(isDemo: boolean) {
     const invoices = await prisma.invoice.findMany({
-      where: { status: { not: 'CANCELLED' } },
+      where: { status: { not: 'CANCELLED' }, client: { isDemo } },
       include: { payments: true, client: { select: { name: true } } },
     });
     const expenses = await prisma.expense.findMany({
+      where: { recordedBy: { isDemo } },
       include: { project: { select: { name: true } } },
     });
 
@@ -190,13 +197,13 @@ export class DashboardService {
   }
 
   // --- 5. INVENTORY MANAGER DASHBOARD ---
-  private async getInventoryDashboard() {
+  private async getInventoryDashboard(isDemo: boolean) {
     const [totalAssets, available, assigned, maintenance, stock] = await Promise.all([
-      prisma.inventoryItem.count({ where: { kind: 'ASSET' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'AVAILABLE' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'ASSIGNED' } }),
-      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'UNDER_MAINTENANCE' } }),
-      prisma.inventoryItem.findMany({ where: { kind: 'STOCK' } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', isDemo } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'AVAILABLE', isDemo } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'ASSIGNED', isDemo } }),
+      prisma.inventoryItem.count({ where: { kind: 'ASSET', assetStatus: 'UNDER_MAINTENANCE', isDemo } }),
+      prisma.inventoryItem.findMany({ where: { kind: 'STOCK', isDemo } }),
     ]);
 
     const lowStock = stock.filter((s) => s.currentQuantity <= s.minQuantity);
@@ -221,7 +228,7 @@ export class DashboardService {
   }
 
   // --- 6. EMPLOYEE PORTAL ---
-  private async getEmployeeDashboard(userId: string) {
+  private async getEmployeeDashboard(userId: string, isDemo: boolean) {
     const todayStr = new Date().toISOString().split('T')[0];
 
     const [todayAttendance, leaveBalances, myTasks, myAssets] = await Promise.all([
@@ -233,13 +240,13 @@ export class DashboardService {
         include: { leaveType: true },
       }),
       prisma.task.findMany({
-        where: { assigneeId: userId, status: { in: ['TODO', 'IN_PROGRESS'] } },
+        where: { assigneeId: userId, status: { in: ['TODO', 'IN_PROGRESS'] }, project: { isDemo } },
         include: { project: { select: { name: true } } },
         orderBy: { dueDate: 'asc' },
         take: 5,
       }),
       prisma.inventoryItem.findMany({
-        where: { kind: 'ASSET', assignedUserId: userId },
+        where: { kind: 'ASSET', assignedUserId: userId, isDemo },
       }),
     ]);
 

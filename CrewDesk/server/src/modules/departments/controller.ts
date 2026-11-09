@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
+import { scopeRoot } from '../../lib/demoScope.js';
 
 export class DepartmentController {
-  async list(_req: Request, res: Response, next: NextFunction) {
+  async list(req: Request, res: Response, next: NextFunction) {
     try {
+      const isDemo = Boolean(req.user?.isDemo);
       const departments = await prisma.department.findMany({
         orderBy: { name: 'asc' },
         include: {
-          _count: { select: { users: true } },
+          _count: { select: { users: { where: scopeRoot(isDemo) } } },
         },
       });
       return res.status(200).json({ data: { departments } });

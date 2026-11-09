@@ -140,7 +140,7 @@ describe('Phase 1: Auth & Permissions Integration Tests', () => {
 
   it('requirePermission middleware allows OWNER to access owner-only route', async () => {
     // Find or create owner token
-    const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo: false } });
     expect(owner).toBeDefined();
 
     const token = signAccessToken({

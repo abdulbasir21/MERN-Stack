@@ -3,6 +3,11 @@ import { logAudit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
 import {
+  assertSameDemoScope,
+  verifyScopedClient,
+  verifyScopedProject,
+} from '../../lib/demoScope.js';
+import {
   createExpenseSchema,
   createInvoiceSchema,
   updateInvoiceStatusSchema,
@@ -50,6 +55,11 @@ export class FinanceService {
 
   // --- EXPENSES ---
   async createExpense(actor: AuthenticatedUser, input: z.infer<typeof createExpenseSchema>) {
+    const isDemo = Boolean(actor.isDemo);
+    if (input.projectId) {
+      await verifyScopedProject(input.projectId, isDemo);
+    }
+
     const amount = new Prisma.Decimal(input.amount);
     if (amount.lte(0)) {
       throw { status: 400, code: 'INVALID_AMOUNT', message: 'Expense amount must be greater than zero.' };
@@ -80,8 +90,10 @@ export class FinanceService {
     return expense;
   }
 
-  async listExpenses(projectId?: string) {
-    const where: Prisma.ExpenseWhereInput = {};
+  async listExpenses(projectId?: string, isDemo = false) {
+    const where: Prisma.ExpenseWhereInput = {
+      recordedBy: { isDemo: Boolean(isDemo) },
+    };
     if (projectId) where.projectId = projectId;
 
     return prisma.expense.findMany({
@@ -96,6 +108,12 @@ export class FinanceService {
 
   // --- INVOICES ---
   async createInvoice(actor: AuthenticatedUser, input: z.infer<typeof createInvoiceSchema>) {
+    const isDemo = Boolean(actor.isDemo);
+    await verifyScopedClient(input.clientId, isDemo);
+    if (input.projectId) {
+      await verifyScopedProject(input.projectId, isDemo);
+    }
+
     const existing = await prisma.invoice.findUnique({
       where: { invoiceNumber: input.invoiceNumber },
     });
@@ -150,14 +168,16 @@ export class FinanceService {
   }
 
   async updateInvoiceStatus(actor: AuthenticatedUser, invoiceId: string, input: z.infer<typeof updateInvoiceStatusSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
-      include: { payments: true },
+      include: { payments: true, client: { select: { isDemo: true } } },
     });
 
     if (!invoice) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Invoice not found.' };
     }
+    assertSameDemoScope(isDemo, invoice.client.isDemo, 'Invoice');
 
     const updated = await prisma.invoice.update({
       where: { id: invoiceId },
@@ -182,8 +202,10 @@ export class FinanceService {
     };
   }
 
-  async listInvoices(clientId?: string, projectId?: string) {
-    const where: Prisma.InvoiceWhereInput = {};
+  async listInvoices(clientId?: string, projectId?: string, isDemo = false) {
+    const where: Prisma.InvoiceWhereInput = {
+      client: { isDemo: Boolean(isDemo) },
+    };
     if (clientId) where.clientId = clientId;
     if (projectId) where.projectId = projectId;
 
@@ -211,6 +233,7 @@ export class FinanceService {
 
   // --- PAYMENTS ---
   async recordPayment(actor: AuthenticatedUser, invoiceId: string, input: z.infer<typeof recordPaymentSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const paymentAmount = new Prisma.Decimal(input.amount);
     if (paymentAmount.lte(0)) {
       throw { status: 400, code: 'INVALID_AMOUNT', message: 'Payment amount must be greater than zero.' };
@@ -224,6 +247,7 @@ export class FinanceService {
     if (!invoice) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Invoice not found.' };
     }
+    assertSameDemoScope(isDemo, invoice.client.isDemo, 'Invoice');
 
     if (invoice.status === 'CANCELLED') {
       throw { status: 400, code: 'INVOICE_CANCELLED', message: 'Cannot record payments on a cancelled invoice.' };
@@ -242,7 +266,7 @@ export class FinanceService {
     }
 
     // Business rule: Recording a payment runs in ONE transaction together with its audit log.
-    const { payment, auditLog } = await prisma.$transaction(async (tx) => {
+    const { payment } = await prisma.$transaction(async (tx) => {
       const p = await tx.payment.create({
         data: {
           invoiceId,
@@ -300,7 +324,7 @@ export class FinanceService {
   }
 
   // --- PROFITABILITY & FINANCIAL REPORTS ---
-  async getProjectProfitability(projectId: string) {
+  async getProjectProfitability(projectId: string, isDemo = false) {
     const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -314,6 +338,7 @@ export class FinanceService {
     if (!project) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Project not found.' };
     }
+    assertSameDemoScope(Boolean(isDemo), project.isDemo, 'Project');
 
     const totalExpenses = project.expenses.reduce((acc, exp) => acc.add(exp.amount), new Prisma.Decimal(0));
     const totalInvoiced = project.invoices
@@ -340,9 +365,13 @@ export class FinanceService {
     };
   }
 
-  async getExecutiveFinancialSummary() {
-    const expenses = await prisma.expense.findMany();
+  async getExecutiveFinancialSummary(isDemo = false) {
+    const scope = Boolean(isDemo);
+    const expenses = await prisma.expense.findMany({
+      where: { recordedBy: { isDemo: scope } },
+    });
     const invoices = await prisma.invoice.findMany({
+      where: { client: { isDemo: scope } },
       include: { payments: true },
     });
 

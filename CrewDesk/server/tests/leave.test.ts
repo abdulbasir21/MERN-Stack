@@ -22,7 +22,7 @@ describe('Phase 6: Leave Management Tests', () => {
     const dept = await prisma.department.findFirst();
 
     // Owner
-    const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo: false } });
     ownerId = owner!.id;
     ownerToken = signAccessToken({
       userId: owner!.id,

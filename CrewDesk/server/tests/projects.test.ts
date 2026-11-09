@@ -23,7 +23,7 @@ describe('Phase 3: Clients, Projects, Milestones & Team Scoping Tests', () => {
     const dept = await prisma.department.findFirst();
 
     // Owner
-    const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo: false } });
     ownerToken = signAccessToken({
       userId: owner!.id,
       email: owner!.email,

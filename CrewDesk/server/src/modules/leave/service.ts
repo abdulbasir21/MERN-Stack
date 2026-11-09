@@ -2,9 +2,10 @@ import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
+import { assertSameDemoScope } from '../../lib/demoScope.js';
 import { createLeaveRequestSchema, rejectLeaveSchema, leaveQuerySchema } from './schemas.js';
 import { z } from 'zod';
-import { LeaveStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export class LeaveService {
   /**
@@ -74,6 +75,7 @@ export class LeaveService {
   }
 
   async createLeaveRequest(actor: AuthenticatedUser, input: z.infer<typeof createLeaveRequestSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const weekdays = this.calculateWeekdays(input.startDate, input.endDate);
     if (weekdays <= 0) {
       throw {
@@ -180,11 +182,11 @@ export class LeaveService {
       endDate: input.endDate,
     });
 
-    // Notify approver:
+    // Notify approver within the SAME demo/real scope:
     // HR_MANAGER requests go to OWNER.
     // EMPLOYEE and other managers go to HR_MANAGER.
     if (actor.role === 'HR_MANAGER') {
-      const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+      const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo, isActive: true } });
       if (owner) {
         await notify(
           owner.id,
@@ -194,7 +196,7 @@ export class LeaveService {
         );
       }
     } else {
-      const hrManagers = await prisma.user.findMany({ where: { role: 'HR_MANAGER', isActive: true } });
+      const hrManagers = await prisma.user.findMany({ where: { role: 'HR_MANAGER', isDemo, isActive: true } });
       for (const hr of hrManagers) {
         await notify(
           hr.id,
@@ -209,6 +211,7 @@ export class LeaveService {
   }
 
   async approveLeaveRequest(actor: AuthenticatedUser, requestId: string) {
+    const isDemo = Boolean(actor.isDemo);
     const request = await prisma.leaveRequest.findUnique({
       where: { id: requestId },
       include: { user: true, leaveType: true },
@@ -217,6 +220,7 @@ export class LeaveService {
     if (!request) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Leave request not found.' };
     }
+    assertSameDemoScope(isDemo, request.user.isDemo, 'Leave request');
 
     if (request.status !== 'PENDING') {
       throw { status: 400, code: 'NOT_PENDING', message: `Cannot approve request with status ${request.status}.` };
@@ -310,6 +314,7 @@ export class LeaveService {
   }
 
   async rejectLeaveRequest(actor: AuthenticatedUser, requestId: string, input: z.infer<typeof rejectLeaveSchema>) {
+    const isDemo = Boolean(actor.isDemo);
     const request = await prisma.leaveRequest.findUnique({
       where: { id: requestId },
       include: { user: true, leaveType: true },
@@ -318,6 +323,7 @@ export class LeaveService {
     if (!request) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Leave request not found.' };
     }
+    assertSameDemoScope(isDemo, request.user.isDemo, 'Leave request');
 
     if (request.status !== 'PENDING') {
       throw { status: 400, code: 'NOT_PENDING', message: `Cannot reject request with status ${request.status}.` };
@@ -372,13 +378,16 @@ export class LeaveService {
   }
 
   async cancelLeaveRequest(actor: AuthenticatedUser, requestId: string) {
+    const isDemo = Boolean(actor.isDemo);
     const request = await prisma.leaveRequest.findUnique({
       where: { id: requestId },
+      include: { user: { select: { isDemo: true } } },
     });
 
     if (!request) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Leave request not found.' };
     }
+    assertSameDemoScope(isDemo, request.user.isDemo, 'Leave request');
 
     if (request.userId !== actor.userId) {
       throw { status: 403, code: 'FORBIDDEN', message: 'You can only cancel your own leave requests.' };
@@ -404,14 +413,15 @@ export class LeaveService {
   }
 
   async listApprovalQueue(actor: AuthenticatedUser) {
+    const isDemo = Boolean(actor.isDemo);
     // Approval chain:
     // EMPLOYEE & other managers -> HR_MANAGER
     // HR_MANAGER -> OWNER
     // Owner can override any
-    let userFilter: Prisma.UserWhereInput = {};
+    let userFilter: Prisma.UserWhereInput = { isDemo };
 
     if (actor.role === 'HR_MANAGER') {
-      userFilter = { role: { notIn: ['HR_MANAGER', 'OWNER'] } };
+      userFilter = { isDemo, role: { notIn: ['HR_MANAGER', 'OWNER'] } };
     } else if (actor.role !== 'OWNER') {
       return [];
     }
@@ -432,7 +442,7 @@ export class LeaveService {
             department: { select: { name: true } },
             // Preview: tasks & deadlines for approver
             assignedTasks: {
-              where: { status: { in: ['TODO', 'IN_PROGRESS'] } },
+              where: { status: { in: ['TODO', 'IN_PROGRESS'] }, project: { isDemo } },
               select: { id: true, title: true, dueDate: true, priority: true, project: { select: { name: true } } },
               take: 5,
             },
@@ -454,8 +464,10 @@ export class LeaveService {
     });
   }
 
-  async listAllLeaveRequests(query: z.infer<typeof leaveQuerySchema>) {
-    const where: Prisma.LeaveRequestWhereInput = {};
+  async listAllLeaveRequests(query: z.infer<typeof leaveQuerySchema>, isDemo = false) {
+    const where: Prisma.LeaveRequestWhereInput = {
+      user: { isDemo: Boolean(isDemo) },
+    };
     if (query.status) where.status = query.status;
     if (query.userId) where.userId = query.userId;
 

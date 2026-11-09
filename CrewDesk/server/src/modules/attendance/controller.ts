@@ -44,7 +44,7 @@ export class AttendanceController {
   getAllAttendance = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = attendanceQuerySchema.parse(req.query);
-      const records = await attendanceService.listAllAttendance(query);
+      const records = await attendanceService.listAllAttendance(query, Boolean(req.user!.isDemo));
       res.json({ success: true, data: records });
     } catch (err) {
       next(err);
@@ -54,7 +54,7 @@ export class AttendanceController {
   editAttendance = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const input = editAttendanceSchema.parse(req.body);
-      const updated = await attendanceService.editAttendance(req.user!.userId, req.params.id, input);
+      const updated = await attendanceService.editAttendance(req.user!, req.params.id, input);
       res.json({ success: true, data: updated });
     } catch (err) {
       next(err);

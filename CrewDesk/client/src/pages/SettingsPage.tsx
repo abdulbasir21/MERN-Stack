@@ -195,8 +195,9 @@ export const SettingsPage: React.FC = () => {
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 type="submit"
-                disabled={updateMutation.isPending}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 rounded-lg shadow-sm transition-colors disabled:opacity-50"
+                disabled={updateMutation.isPending || Boolean(user?.isDemo)}
+                title={user?.isDemo ? 'Not available in demo' : 'Save organization settings'}
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 rounded-lg shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-3.5 h-3.5" />
                 {updateMutation.isPending ? 'Saving Settings...' : 'Save Settings'}

@@ -2,6 +2,7 @@ import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
 import { notify } from '../../lib/notify.js';
 import { AuthenticatedUser } from '../../middleware/auth.js';
+import { assertSameDemoScope, verifyScopedProject, verifyScopedUser } from '../../lib/demoScope.js';
 import {
   createTaskSchema,
   updateTaskSchema,
@@ -14,13 +15,16 @@ import { Prisma, TaskPriority, TaskStatus } from '@prisma/client';
 
 export class TaskService {
   async listTasks(user: AuthenticatedUser, query: z.infer<typeof taskQuerySchema>) {
-    const where: Prisma.TaskWhereInput = {};
+    const isDemo = Boolean(user.isDemo);
+    const where: Prisma.TaskWhereInput = {
+      project: { isDemo },
+    };
 
     // Scope check: Employees see only tasks assigned to them or in their assigned projects
     if (user.role === 'EMPLOYEE') {
       where.OR = [
         { assigneeId: user.userId },
-        { project: { members: { some: { userId: user.userId } } } },
+        { project: { isDemo, members: { some: { userId: user.userId } } } },
       ];
     }
 
@@ -42,6 +46,7 @@ export class TaskService {
   }
 
   async getTaskById(user: AuthenticatedUser, taskId: string) {
+    const isDemo = Boolean(user.isDemo);
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: {
@@ -50,6 +55,7 @@ export class TaskService {
             id: true,
             name: true,
             managerId: true,
+            isDemo: true,
             members: { select: { userId: true } },
           },
         },
@@ -67,6 +73,7 @@ export class TaskService {
     if (!task) {
       throw { status: 404, code: 'NOT_FOUND', message: 'Task not found' };
     }
+    assertSameDemoScope(isDemo, task.project.isDemo, 'Task');
 
     // Scope check: Employee can only view if assignee or member of that project
     if (user.role === 'EMPLOYEE') {
@@ -80,6 +87,10 @@ export class TaskService {
   }
 
   async createTask(user: AuthenticatedUser, input: z.infer<typeof createTaskSchema>) {
+    const isDemo = Boolean(user.isDemo);
+    await verifyScopedProject(input.projectId, isDemo);
+    await verifyScopedUser(input.assigneeId, isDemo, 'Task assignee');
+
     const project = await prisma.project.findUnique({
       where: { id: input.projectId },
       include: { members: true },
@@ -140,18 +151,21 @@ export class TaskService {
   }
 
   async updateTaskByManager(user: AuthenticatedUser, taskId: string, input: z.infer<typeof updateTaskSchema>) {
+    const isDemo = Boolean(user.isDemo);
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: { project: { include: { members: true } } },
     });
 
     if (!task) throw { status: 404, code: 'NOT_FOUND', message: 'Task not found' };
+    assertSameDemoScope(isDemo, task.project.isDemo, 'Task');
 
     if (user.role === 'PROJECT_MANAGER' && task.project.managerId !== user.userId) {
       throw { status: 403, code: 'FORBIDDEN', message: 'You can only manage tasks on your assigned projects.' };
     }
 
     if (input.assigneeId) {
+      await verifyScopedUser(input.assigneeId, isDemo, 'Task assignee');
       const isMember = task.project.members.some((m) => m.userId === input.assigneeId);
       if (!isMember) {
         throw { status: 422, code: 'NOT_PROJECT_MEMBER', message: 'Assignee must be a project member.' };
@@ -181,12 +195,14 @@ export class TaskService {
     taskId: string,
     input: z.infer<typeof updateTaskEmployeeSchema>
   ) {
+    const isDemo = Boolean(user.isDemo);
     const task = await prisma.task.findUnique({
       where: { id: taskId },
-      include: { project: { select: { managerId: true, name: true } } },
+      include: { project: { select: { managerId: true, name: true, isDemo: true } } },
     });
 
     if (!task) throw { status: 404, code: 'NOT_FOUND', message: 'Task not found' };
+    assertSameDemoScope(isDemo, task.project.isDemo, 'Task');
 
     // Scope check: Employees can only update their own assigned tasks
     if (task.assigneeId !== user.userId) {
@@ -228,12 +244,14 @@ export class TaskService {
   }
 
   async addComment(user: AuthenticatedUser, taskId: string, input: z.infer<typeof createCommentSchema>) {
+    const isDemo = Boolean(user.isDemo);
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: { project: { include: { members: true } } },
     });
 
     if (!task) throw { status: 404, code: 'NOT_FOUND', message: 'Task not found' };
+    assertSameDemoScope(isDemo, task.project.isDemo, 'Task');
 
     // Employee must be assignee or project member to comment
     if (user.role === 'EMPLOYEE') {

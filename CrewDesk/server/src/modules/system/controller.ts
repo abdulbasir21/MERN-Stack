@@ -35,7 +35,7 @@ export class SystemController {
   getAuditLogs = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = auditLogQuerySchema.parse(req.query);
-      const logs = await systemService.listAuditLogs(query);
+      const logs = await systemService.listAuditLogs(query, Boolean(req.user!.isDemo));
       res.json({ success: true, data: logs });
     } catch (err) {
       next(err);

@@ -6,7 +6,7 @@ export class UserController {
   async list(req: Request, res: Response, next: NextFunction) {
     try {
       const query = userQuerySchema.parse(req.query);
-      const result = await userService.listUsers(query);
+      const result = await userService.listUsers(query, Boolean(req.user?.isDemo));
       return res.status(200).json(result);
     } catch (err) {
       return next(err);
@@ -15,7 +15,7 @@ export class UserController {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const user = await userService.getUserById(req.params.id);
+      const user = await userService.getUserById(req.params.id, Boolean(req.user?.isDemo));
       return res.status(200).json({ data: { user } });
     } catch (err) {
       return next(err);

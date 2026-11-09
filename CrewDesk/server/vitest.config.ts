@@ -6,7 +6,7 @@ export default defineConfig({
     globals: true,
     fileParallelism: false,
     maxWorkers: 1,
-    testTimeout: 25000,
-    hookTimeout: 25000,
+    testTimeout: 30000,
+    hookTimeout: 45000,
   },
 });

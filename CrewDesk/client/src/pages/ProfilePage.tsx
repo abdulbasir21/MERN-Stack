@@ -139,9 +139,10 @@ export const ProfilePage: React.FC = () => {
               />
               <button
                 type="button"
-                disabled={isUploading}
+                disabled={isUploading || Boolean(user.isDemo)}
+                title={user.isDemo ? 'Not available in demo' : 'Upload a profile picture'}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>{isUploading ? 'Uploading...' : 'Upload Picture'}</span>
@@ -150,9 +151,10 @@ export const ProfilePage: React.FC = () => {
               {user.avatarUrl && (
                 <button
                   type="button"
-                  disabled={isUploading}
+                  disabled={isUploading || Boolean(user.isDemo)}
+                  title={user.isDemo ? 'Not available in demo' : 'Remove profile picture'}
                   onClick={handleRemoveAvatar}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-outline-variant hover:bg-red-50 text-red-600 text-xs font-medium transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-outline-variant hover:bg-red-50 text-red-600 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Remove</span>
@@ -213,8 +215,9 @@ export const ProfilePage: React.FC = () => {
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              disabled={isSaving}
-              className="px-4 py-2 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-50"
+              disabled={isSaving || Boolean(user.isDemo)}
+              title={user.isDemo ? 'Not available in demo' : 'Save profile changes'}
+              className="px-4 py-2 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving changes...' : 'Save Profile'}
             </button>

@@ -24,7 +24,7 @@ export class InventoryController {
       const kind = req.query.kind as InventoryKind | undefined;
       const category = req.query.category as string | undefined;
       const status = req.query.status as AssetStatus | undefined;
-      const items = await inventoryService.listItems(kind, category, status);
+      const items = await inventoryService.listItems(kind, category, status, Boolean(req.user!.isDemo));
       res.json({ success: true, data: items });
     } catch (err) {
       next(err);
@@ -33,7 +33,7 @@ export class InventoryController {
 
   listOwnAssets = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const assets = await inventoryService.listOwnAssignedAssets(req.user!.userId);
+      const assets = await inventoryService.listOwnAssignedAssets(req.user!.userId, Boolean(req.user!.isDemo));
       res.json({ success: true, data: assets });
     } catch (err) {
       next(err);
@@ -70,9 +70,9 @@ export class InventoryController {
     }
   };
 
-  getSummary = async (_req: Request, res: Response, next: NextFunction) => {
+  getSummary = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const summary = await inventoryService.getInventorySummary();
+      const summary = await inventoryService.getInventorySummary(Boolean(req.user!.isDemo));
       res.json({ success: true, data: summary });
     } catch (err) {
       next(err);

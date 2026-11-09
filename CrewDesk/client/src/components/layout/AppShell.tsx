@@ -19,6 +19,7 @@ import {
   LogOut,
   Menu,
   X,
+  Info,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -102,11 +103,30 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [demoToast, setDemoToast] = useState<{ code: string; message: string } | null>(null);
 
   // Close mobile drawer on route transition
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
+
+  // Listen for global 403 DEMO_RESTRICTED / 429 DEMO_DAILY_CAP_REACHED events
+  useEffect(() => {
+    const handleDemoToast = (event: Event) => {
+      const customEvent = event as CustomEvent<{ code: string; message: string }>;
+      if (customEvent.detail?.message) {
+        setDemoToast(customEvent.detail);
+      }
+    };
+    window.addEventListener('crewdesk:demo-toast', handleDemoToast);
+    return () => window.removeEventListener('crewdesk:demo-toast', handleDemoToast);
+  }, []);
+
+  useEffect(() => {
+    if (!demoToast) return;
+    const timer = setTimeout(() => setDemoToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [demoToast]);
 
   if (!user) return null;
 
@@ -114,6 +134,29 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   return (
     <div className="min-h-screen bg-[#F6F5F0] text-ink flex flex-col lg:flex-row">
+      {/* Global Demo Restriction Toast */}
+      {demoToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-4 right-4 z-50 max-w-sm bg-slate-900 text-white border border-amber-500/40 rounded-xl px-4 py-3 shadow-xl flex items-start gap-3 text-xs"
+        >
+          <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-amber-300">Demo Account Restriction</div>
+            <p className="text-slate-200 mt-0.5 leading-relaxed">{demoToast.message}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDemoToast(null)}
+            className="text-slate-400 hover:text-white p-0.5"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* 1. Mobile Backdrop */}
       {isMobileOpen && (
         <div
@@ -206,6 +249,16 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* 3. Global Canvas Header & Content (Offset 240px on desktop, full width on mobile) */}
       <div className="flex-1 flex flex-col min-h-screen lg:ml-60 w-full min-w-0">
+        {/* Slim Demo Workspace Banner */}
+        {user.isDemo && (
+          <div className="bg-teal-900 text-teal-50 border-b border-teal-800 px-3 sm:px-6 py-1.5 text-[11px] flex items-center justify-center gap-2">
+            <Info className="w-3.5 h-3.5 text-teal-300 shrink-0" />
+            <span className="font-medium text-center">
+              You are using a demo account. Data is sample data and resets periodically.
+            </span>
+          </div>
+        )}
+
         <header className="sticky top-0 right-0 h-14 z-30 bg-white border-b border-outline-variant px-3 sm:px-6 flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3 min-w-0">
             {/* Hamburger Button for Mobile */}

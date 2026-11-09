@@ -59,6 +59,7 @@ export class AuthService {
         title: user.title,
         avatarUrl: user.avatarUrl,
         mustChangePassword: user.mustChangePassword,
+        isDemo: user.isDemo,
         department: user.department?.name || null,
       },
     };
@@ -193,6 +194,7 @@ export class AuthService {
         phone: true,
         avatarUrl: true,
         mustChangePassword: true,
+        isDemo: true,
         department: { select: { id: true, name: true } },
       },
     });
@@ -210,6 +212,7 @@ export class AuthService {
       phone: user.phone,
       avatarUrl: user.avatarUrl,
       mustChangePassword: user.mustChangePassword,
+      isDemo: user.isDemo,
       department: user.department?.name || null,
     };
   }

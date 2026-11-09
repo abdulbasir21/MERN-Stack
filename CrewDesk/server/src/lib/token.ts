@@ -11,15 +11,35 @@ export interface TokenPayload {
 }
 
 export function signAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-    expiresIn: env.ACCESS_TOKEN_EXPIRES_IN as jwt.SignOptions['expiresIn'],
-  });
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+      mustChangePassword: payload.mustChangePassword,
+    },
+    env.JWT_ACCESS_SECRET,
+    {
+      expiresIn: env.ACCESS_TOKEN_EXPIRES_IN as jwt.SignOptions['expiresIn'],
+      jwtid: crypto.randomUUID(),
+    }
+  );
 }
 
 export function signRefreshToken(payload: TokenPayload): { token: string; hash: string } {
-  const token = jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.REFRESH_TOKEN_EXPIRES_IN as jwt.SignOptions['expiresIn'],
-  });
+  const token = jwt.sign(
+    {
+      userId: payload.userId,
+      email: payload.email,
+      role: payload.role,
+      mustChangePassword: payload.mustChangePassword,
+    },
+    env.JWT_REFRESH_SECRET,
+    {
+      expiresIn: env.REFRESH_TOKEN_EXPIRES_IN as jwt.SignOptions['expiresIn'],
+      jwtid: crypto.randomUUID(),
+    }
+  );
   const hash = hashToken(token);
   return { token, hash };
 }

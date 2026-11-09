@@ -3,9 +3,9 @@ import { projectService } from './service.js';
 
 export class ProjectController {
   // Clients
-  async listClients(_req: Request, res: Response, next: NextFunction) {
+  async listClients(req: Request, res: Response, next: NextFunction) {
     try {
-      const clients = await projectService.listClients();
+      const clients = await projectService.listClients(Boolean(req.user?.isDemo));
       return res.status(200).json({ data: { clients } });
     } catch (err) {
       return next(err);
@@ -14,7 +14,7 @@ export class ProjectController {
 
   async getClientById(req: Request, res: Response, next: NextFunction) {
     try {
-      const client = await projectService.getClientById(req.params.id);
+      const client = await projectService.getClientById(req.params.id, Boolean(req.user?.isDemo));
       return res.status(200).json({ data: { client } });
     } catch (err) {
       return next(err);
@@ -23,7 +23,7 @@ export class ProjectController {
 
   async createClient(req: Request, res: Response, next: NextFunction) {
     try {
-      const client = await projectService.createClient(req.user!.userId, req.body);
+      const client = await projectService.createClient(req.user!, req.body);
       return res.status(201).json({ data: { client } });
     } catch (err) {
       return next(err);
@@ -32,7 +32,7 @@ export class ProjectController {
 
   async updateClient(req: Request, res: Response, next: NextFunction) {
     try {
-      const client = await projectService.updateClient(req.user!.userId, req.params.id, req.body);
+      const client = await projectService.updateClient(req.user!, req.params.id, req.body);
       return res.status(200).json({ data: { client } });
     } catch (err) {
       return next(err);
@@ -60,7 +60,7 @@ export class ProjectController {
 
   async createProject(req: Request, res: Response, next: NextFunction) {
     try {
-      const project = await projectService.createProject(req.user!.userId, req.body);
+      const project = await projectService.createProject(req.user!, req.body);
       return res.status(201).json({ data: { project } });
     } catch (err) {
       return next(err);

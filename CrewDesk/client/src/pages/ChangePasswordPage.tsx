@@ -122,8 +122,9 @@ export const ChangePasswordPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="w-full h-9 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-50 mt-2"
+            disabled={isSubmitting || Boolean(user?.isDemo)}
+            title={user?.isDemo ? 'Not available in demo' : 'Update password'}
+            className="w-full h-9 rounded bg-primary-container hover:bg-primary-hover text-white text-xs font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
           >
             {isSubmitting ? 'Updating password...' : 'Update password and continue'}
           </button>

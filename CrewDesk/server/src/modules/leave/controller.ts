@@ -72,7 +72,7 @@ export class LeaveController {
   getAllRequests = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = leaveQuerySchema.parse(req.query);
-      const requests = await leaveService.listAllLeaveRequests(query);
+      const requests = await leaveService.listAllLeaveRequests(query, Boolean(req.user!.isDemo));
       res.json({ success: true, data: requests });
     } catch (err) {
       next(err);

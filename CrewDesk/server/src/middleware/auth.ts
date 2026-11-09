@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 
 export interface AuthenticatedUser extends TokenPayload {
   name: string;
+  isDemo: boolean;
 }
 
 declare global {
@@ -30,10 +31,18 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
   try {
     const payload = verifyAccessToken(token);
 
-    // Verify user exists and is active in DB
+    // Verify user exists and is active in DB (always load role and isDemo from DB, never trust token/request)
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, name: true, role: true, isActive: true, mustChangePassword: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        mustChangePassword: true,
+        isDemo: true,
+      },
     });
 
     if (!user || !user.isActive) {
@@ -51,6 +60,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       name: user.name,
       role: user.role,
       mustChangePassword: user.mustChangePassword,
+      isDemo: user.isDemo,
     };
 
     // mustChangePassword enforcement on server

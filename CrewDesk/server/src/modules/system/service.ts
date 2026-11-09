@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma.js';
 import { logAudit } from '../../lib/audit.js';
+import { scopeAuditLogs } from '../../lib/demoScope.js';
 import { updateSettingsSchema, auditLogQuerySchema } from './schemas.js';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
@@ -40,9 +41,11 @@ export class SystemService {
     });
   }
 
-  // --- AUDIT LOGS (APPEND-ONLY, OWNER-ONLY) ---
-  async listAuditLogs(query: z.infer<typeof auditLogQuerySchema>) {
-    const where: Prisma.AuditLogWhereInput = {};
+  // --- AUDIT LOGS (APPEND-ONLY, OWNER-ONLY, SCOPED BY isDemo) ---
+  async listAuditLogs(query: z.infer<typeof auditLogQuerySchema>, isDemo = false) {
+    const where: Prisma.AuditLogWhereInput = {
+      ...scopeAuditLogs(Boolean(isDemo)),
+    };
     if (query.action) where.action = { contains: query.action, mode: 'insensitive' };
     if (query.entityType) where.entityType = { contains: query.entityType, mode: 'insensitive' };
     if (query.actorId) where.actorId = query.actorId;

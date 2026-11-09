@@ -20,7 +20,7 @@ describe('Phase 2: Employees, Managers, Profile & Avatar Tests', () => {
     departmentId = dept!.id;
 
     // Owner
-    const owner = await prisma.user.findFirst({ where: { role: 'OWNER' } });
+    const owner = await prisma.user.findFirst({ where: { role: 'OWNER', isDemo: false } });
     ownerToken = signAccessToken({
       userId: owner!.id,
       email: owner!.email,

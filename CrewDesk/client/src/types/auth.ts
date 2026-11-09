@@ -15,5 +15,6 @@ export interface User {
   phone?: string | null;
   avatarUrl: string | null;
   mustChangePassword: boolean;
+  isDemo?: boolean;
   department: string | { id: string; name: string } | null;
 }
