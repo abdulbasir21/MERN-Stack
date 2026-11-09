@@ -3,14 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../context/useAuth';
 import {
   AlertTriangle,
-  Users,
   UserCheck,
   FolderKanban,
   CheckCircle2,
   ListTodo,
-  CalendarClock,
   Clock,
-  Wallet,
   Receipt,
   CircleDollarSign,
   Hourglass,
@@ -24,6 +21,7 @@ import {
 import { Link } from 'react-router-dom';
 import { AnimatedCard } from '../components/common/MotionWrapper';
 import { CountUpNumber } from '../components/common/CountUpNumber';
+import { CircularProgressChart } from '../components/common/CircularProgressChart';
 import {
   BarChart,
   Bar,
@@ -102,41 +100,51 @@ export const DashboardPage: React.FC = () => {
               {/* Executive Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Collected</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
-                      <Wallet className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                    <CountUpNumber value={parseFloat(stats.metrics.totalCollected)} prefix="$" decimals={2} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2 truncate">
-                    Invoiced: ${parseFloat(stats.metrics.totalInvoiced).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </span>
+                  {(() => {
+                    const collected = parseFloat(stats.metrics.totalCollected) || 0;
+                    const invoiced = parseFloat(stats.metrics.totalInvoiced) || 1;
+                    const collectionRate = Math.min(100, Math.round((collected / Math.max(invoiced, 1)) * 100));
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Collected</span>
+                          <CircularProgressChart value={collectionRate} color="emerald" label={`${collectionRate}%`} />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
+                          <CountUpNumber value={collected} prefix="$" decimals={2} />
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-2 truncate">
+                          Invoiced: ${invoiced.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </span>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
 
                 <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Active Portfolio</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
-                      <FolderKanban className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
-                    <CountUpNumber value={stats.metrics.activeProjects} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2 truncate">
-                    Across {stats.metrics.activeClients} active clients
-                  </span>
+                  {(() => {
+                    const clientRatio = Math.min(100, Math.round(((stats.metrics.activeProjects || 0) / Math.max(stats.metrics.activeClients || 1, 1)) * 100));
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Active Portfolio</span>
+                          <CircularProgressChart value={clientRatio} color="blue" label={`${clientRatio}%`} />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
+                          <CountUpNumber value={stats.metrics.activeProjects} />
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-2 truncate">
+                          Across {stats.metrics.activeClients} active clients
+                        </span>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
 
                 <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Headcount</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
-                      <Users className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart value={100} color="indigo" label={`${stats.metrics.headcount}`} />
                   </div>
                   <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2">
                     <CountUpNumber value={stats.metrics.headcount} />
@@ -145,18 +153,27 @@ export const DashboardPage: React.FC = () => {
                 </AnimatedCard>
 
                 <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Approvals</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
-                      <CalendarClock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-extrabold font-mono text-amber-500 mt-2">
-                    <CountUpNumber value={stats.metrics.pendingApprovals} />
-                  </div>
-                  <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
-                    Review leave queue &rarr;
-                  </Link>
+                  {(() => {
+                    const pending = stats.metrics.pendingApprovals || 0;
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Approvals</span>
+                          <CircularProgressChart
+                            value={pending > 0 ? Math.min(100, pending * 25) : 100}
+                            color={pending > 0 ? 'amber' : 'emerald'}
+                            label={`${pending}`}
+                          />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-extrabold font-mono text-amber-500 mt-2">
+                          <CountUpNumber value={pending} />
+                        </div>
+                        <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
+                          Review leave queue &rarr;
+                        </Link>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
               </div>
 
@@ -254,9 +271,7 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Headcount</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
-                      <Users className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart value={100} color="blue" label={`${stats.metrics.totalHeadcount}`} />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalHeadcount} />
@@ -265,44 +280,63 @@ export const DashboardPage: React.FC = () => {
                 </AnimatedCard>
 
                 <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Present Today</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.todayPresent} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">On-site & remote shifts</span>
+                  {(() => {
+                    const presentRate = Math.min(100, Math.round(((stats.metrics.todayPresent || 0) / Math.max(stats.metrics.totalHeadcount || 1, 1)) * 100));
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Present Today</span>
+                          <CircularProgressChart value={presentRate} color="emerald" label={`${presentRate}%`} />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
+                          <CountUpNumber value={stats.metrics.todayPresent} />
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-2">On-site & remote shifts</span>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
 
                 <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Late Arrivals</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.todayLate} />
-                  </div>
-                  <span className="text-[11px] text-slate-400 block mt-2">Past grace threshold</span>
+                  {(() => {
+                    const lateRate = Math.min(100, Math.round(((stats.metrics.todayLate || 0) / Math.max(stats.metrics.todayPresent || 1, 1)) * 100));
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Late Arrivals</span>
+                          <CircularProgressChart value={lateRate} color="rose" label={`${stats.metrics.todayLate}`} />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
+                          <CountUpNumber value={stats.metrics.todayLate} />
+                        </div>
+                        <span className="text-[11px] text-slate-400 block mt-2">Past grace threshold</span>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
 
                 <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Leaves</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
-                      <CalendarClock className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
-                    <CountUpNumber value={stats.metrics.pendingLeaveRequests} />
-                  </div>
-                  <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
-                    Action requests &rarr;
-                  </Link>
+                  {(() => {
+                    const pendingLeaves = stats.metrics.pendingLeaveRequests || 0;
+                    return (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Pending Leaves</span>
+                          <CircularProgressChart
+                            value={pendingLeaves > 0 ? Math.min(100, pendingLeaves * 25) : 100}
+                            color={pendingLeaves > 0 ? 'amber' : 'emerald'}
+                            label={`${pendingLeaves}`}
+                          />
+                        </div>
+                        <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
+                          <CountUpNumber value={pendingLeaves} />
+                        </div>
+                        <Link to="/leave" className="text-[11px] text-blue-600 dark:text-blue-400 font-medium block mt-2 hover:underline">
+                          Action requests &rarr;
+                        </Link>
+                      </>
+                    );
+                  })()}
                 </AnimatedCard>
               </div>
 
@@ -344,9 +378,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Projects Managed</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
-                      <FolderKanban className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={Math.min(100, (stats.metrics.managedProjectsCount || 0) * 25)}
+                      color="blue"
+                      label={`${stats.metrics.managedProjectsCount}`}
+                      icon={FolderKanban}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.managedProjectsCount} />
@@ -357,9 +394,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Task Completion</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={stats.metrics.completionRate || 0}
+                      color="emerald"
+                      label={`${stats.metrics.completionRate || 0}%`}
+                      icon={CheckCircle2}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.completionRate} suffix="%" />
@@ -370,9 +410,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Tasks</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
-                      <ListTodo className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={100}
+                      color="indigo"
+                      label={`${stats.metrics.totalTasks}`}
+                      icon={ListTodo}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalTasks} />
@@ -383,9 +426,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Overdue Tasks</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
-                      <AlertTriangle className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const total = Math.max(stats.metrics.totalTasks || 1, 1);
+                      const overdue = stats.metrics.overdueTasks || 0;
+                      const overdueRate = Math.min(100, Math.round((overdue / total) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={overdueRate}
+                          color="rose"
+                          label={`${overdue}`}
+                          icon={AlertTriangle}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.overdueTasks} />
@@ -426,9 +479,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Invoiced</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
-                      <Receipt className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={100}
+                      color="blue"
+                      label="100%"
+                      icon={Receipt}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalInvoiced)} prefix="$" decimals={2} />
@@ -439,9 +495,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Collected</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
-                      <CircleDollarSign className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const invoiced = Math.max(parseFloat(stats.metrics.totalInvoiced) || 1, 1);
+                      const collected = parseFloat(stats.metrics.totalCollected) || 0;
+                      const collectedRate = Math.min(100, Math.round((collected / invoiced) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={collectedRate}
+                          color="emerald"
+                          label={`${collectedRate}%`}
+                          icon={CircleDollarSign}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalCollected)} prefix="$" decimals={2} />
@@ -452,9 +518,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-amber-500">Outstanding</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-800/40 text-amber-600 dark:text-amber-400">
-                      <Hourglass className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const invoiced = Math.max(parseFloat(stats.metrics.totalInvoiced) || 1, 1);
+                      const outstanding = parseFloat(stats.metrics.totalOutstanding) || 0;
+                      const outstandingRate = Math.min(100, Math.round((outstanding / invoiced) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={outstandingRate}
+                          color="amber"
+                          label={`${outstandingRate}%`}
+                          icon={Hourglass}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-amber-500 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalOutstanding)} prefix="$" decimals={2} />
@@ -465,9 +541,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Expenses</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
-                      <CreditCard className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const collected = Math.max(parseFloat(stats.metrics.totalCollected) || 1, 1);
+                      const expenses = parseFloat(stats.metrics.totalExpenses) || 0;
+                      const expenseRate = Math.min(100, Math.round((expenses / collected) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={expenseRate}
+                          color="rose"
+                          label={`${expenseRate}%`}
+                          icon={CreditCard}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={parseFloat(stats.metrics.totalExpenses)} prefix="$" decimals={2} />
@@ -521,9 +607,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={0} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">Total Hardware</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-800/40 text-blue-600 dark:text-blue-400">
-                      <Laptop className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={100}
+                      color="blue"
+                      label={`${stats.metrics.totalHardwareAssets}`}
+                      icon={Laptop}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900 dark:text-white mt-2 truncate">
                     <CountUpNumber value={stats.metrics.totalHardwareAssets} />
@@ -534,9 +623,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={1} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-emerald-600 dark:text-emerald-400">Available</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/40 text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const total = Math.max(stats.metrics.totalHardwareAssets || 1, 1);
+                      const available = stats.metrics.availableAssets || 0;
+                      const availableRate = Math.min(100, Math.round((available / total) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={availableRate}
+                          color="emerald"
+                          label={`${availableRate}%`}
+                          icon={CheckCircle2}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.availableAssets} />
@@ -547,9 +646,19 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={2} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400">Assigned</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/40 text-indigo-600 dark:text-indigo-400">
-                      <UserCheck className="w-4 h-4" />
-                    </div>
+                    {(() => {
+                      const total = Math.max(stats.metrics.totalHardwareAssets || 1, 1);
+                      const assigned = stats.metrics.assignedAssets || 0;
+                      const assignedRate = Math.min(100, Math.round((assigned / total) * 100));
+                      return (
+                        <CircularProgressChart
+                          value={assignedRate}
+                          color="indigo"
+                          label={`${assignedRate}%`}
+                          icon={UserCheck}
+                        />
+                      );
+                    })()}
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-blue-600 dark:text-blue-400 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.assignedAssets} />
@@ -560,9 +669,12 @@ export const DashboardPage: React.FC = () => {
                 <AnimatedCard index={3} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold tracking-wider uppercase text-rose-500">Low Stock SKUs</span>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800/40 text-rose-600 dark:text-rose-400">
-                      <Boxes className="w-4 h-4" />
-                    </div>
+                    <CircularProgressChart
+                      value={stats.metrics.lowStockAlerts > 0 ? Math.min(100, stats.metrics.lowStockAlerts * 25) : 100}
+                      color={stats.metrics.lowStockAlerts > 0 ? 'rose' : 'emerald'}
+                      label={`${stats.metrics.lowStockAlerts}`}
+                      icon={Boxes}
+                    />
                   </div>
                   <div className="text-xl sm:text-2xl font-bold font-mono text-rose-500 mt-2 truncate">
                     <CountUpNumber value={stats.metrics.lowStockAlerts} />
@@ -640,13 +752,20 @@ export const DashboardPage: React.FC = () => {
                     return Coffee;
                   };
                   const Icon = getLeaveIcon(l.type);
+                  const allowance = Math.max(l.allowance || 1, 1);
+                  const remaining = Math.max(l.remaining || 0, 0);
+                  const remainingRate = Math.min(100, Math.round((remaining / allowance) * 100));
+
                   return (
                     <AnimatedCard key={l.type} index={idx} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400">{l.type} Leave</span>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-50 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-800/40 text-teal-600 dark:text-teal-400">
-                          <Icon className="w-4 h-4" />
-                        </div>
+                        <CircularProgressChart
+                          value={remainingRate}
+                          color="teal"
+                          label={`${remainingRate}%`}
+                          icon={Icon}
+                        />
                       </div>
                       <div className="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 dark:text-white mt-2 truncate">
                         <CountUpNumber value={l.remaining} suffix="d" />
