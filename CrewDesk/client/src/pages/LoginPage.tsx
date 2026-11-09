@@ -143,30 +143,24 @@ export const LoginPage: React.FC = () => {
               One place to run your agency: projects, people, finances, and assets.
             </p>
 
-            {/* Try a demo account Section with Robot Guide pointing toward the buttons */}
-            <div className="space-y-1.5">
-              <div className="flex items-end justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-300 tracking-normal">
-                    <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
-                    <span>Try a demo account</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-normal pb-0.5">
-                    Pick a role to explore CrewDesk with sample data.
-                  </p>
-                </div>
-                {/* CrewDesk Robot pointing directly at the 6 demo buttons */}
-                <div className="relative shrink-0 flex items-center justify-center -mb-1">
-                  <img
-                    src="/robot-guide.png"
-                    alt="CrewDesk Robot pointing to demo roles"
-                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain select-none pointer-events-none drop-shadow-[0_4px_16px_rgba(20,184,166,0.35)]"
-                  />
-                </div>
+            {/* Try a demo account Section with Centered Robot Guide */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-300 tracking-normal">
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+                <span>Try a demo account</span>
+              </div>
+
+              {/* Centered Robot Guide directly in the middle above the Owner and HR Manager columns */}
+              <div className="flex justify-center -mb-2 relative z-10">
+                <img
+                  src="/robot-guide.png"
+                  alt="CrewDesk Robot pointing to demo roles"
+                  className="w-16 h-16 sm:w-20 sm:h-20 object-contain select-none pointer-events-none drop-shadow-[0_4px_16px_rgba(20,184,166,0.35)]"
+                />
               </div>
 
               {/* 6 Demo Role Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="grid grid-cols-2 gap-2 pt-1 relative z-0">
                 {demoAccounts.map((acc) => {
                   const IconComponent = acc.icon;
                   const isThisActive = activeRole === acc.role && isSubmitting;
