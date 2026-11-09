@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useReducedMotion } from 'motion/react';
 import { useAuth } from './context/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
@@ -21,7 +22,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    return <LoadingScreen message="Verifying workspace session..." />;
+    return <LoadingScreen message="Verifying your session" />;
   }
 
   if (!user) {
@@ -37,13 +38,30 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { user, isLoading } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
+  const [isLoaderMounted, setIsLoaderMounted] = useState(isLoading);
+  const [isFadingOut, setIsFadingOut] = useState(false);
 
-  if (isLoading) {
-    return <LoadingScreen message="Initializing CrewDesk ERP..." />;
-  }
+  useEffect(() => {
+    if (!isLoading) {
+      if (shouldReduceMotion) {
+        setIsLoaderMounted(false);
+        return;
+      }
+      setIsFadingOut(true);
+      const timer = setTimeout(() => {
+        setIsLoaderMounted(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setIsLoaderMounted(true);
+      setIsFadingOut(false);
+    }
+  }, [isLoading, shouldReduceMotion]);
 
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route
         path="/login"
         element={user ? <Navigate to={user.mustChangePassword ? '/change-password' : '/'} replace /> : <LoginPage />}
@@ -151,5 +169,7 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    {isLoaderMounted && <LoadingScreen isFadingOut={isFadingOut} />}
+  </>
   );
 }

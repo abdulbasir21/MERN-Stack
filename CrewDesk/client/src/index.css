@@ -19,3 +19,33 @@ html, body {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+@keyframes moduleTileFill {
+  0% {
+    background-color: #DDDBD2;
+  }
+  11% {
+    background-color: #0F6E56;
+  }
+  72% {
+    background-color: #0F6E56;
+  }
+  83% {
+    background-color: #DDDBD2;
+  }
+  100% {
+    background-color: #DDDBD2;
+  }
+}
+
+.animate-module-tile {
+  background-color: #DDDBD2;
+  animation: moduleTileFill 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-module-tile {
+    animation: none !important;
+    background-color: #0F6E56 !important;
+  }
+}

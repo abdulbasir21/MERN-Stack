@@ -14,36 +14,70 @@
         background-color: #F6F5F0;
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
       }
-      @keyframes progressTrack {
-        0% { transform: translateX(-100%); }
-        50% { transform: translateX(100%); }
-        100% { transform: translateX(250%); }
+      @keyframes moduleTileFill {
+        0% { background-color: #DDDBD2; }
+        11% { background-color: #0F6E56; }
+        72% { background-color: #0F6E56; }
+        83% { background-color: #DDDBD2; }
+        100% { background-color: #DDDBD2; }
       }
-      .loading-progress {
-        animation: progressTrack 1.4s ease-in-out infinite;
+      .module-tile {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #DDDBD2;
+        animation: moduleTileFill 3.2s ease-in-out infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .module-tile {
+          animation: none !important;
+          background-color: #0F6E56 !important;
+        }
       }
     </style>
   </head>
   <body>
     <div id="root">
-      <div style="min-height: 100vh; background-color: #F6F5F0; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none;">
-        <div style="display: flex; flex-direction: column; align-items: center; max-width: 280px; width: 100%; text-align: center;">
-          <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #0f766e, #004d47); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(0, 77, 71, 0.25); margin-bottom: 20px;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="4 17 10 11 4 5"></polyline>
-              <line x1="12" y1="19" x2="20" y2="19"></line>
-            </svg>
+      <div style="min-height: 100vh; background-color: #F6F5F0; display: flex; flex-direction: column; align-items: center; justify-content: center; user-select: none; padding: 16px;">
+        <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+          <div style="display: grid; grid-template-columns: repeat(2, 40px); gap: 6px;">
+            <div class="module-tile" style="animation-delay: 0s;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+              </svg>
+            </div>
+            <div class="module-tile" style="animation-delay: 0.5s;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="module-tile" style="animation-delay: 1.5s;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"></path>
+                <path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"></path>
+              </svg>
+            </div>
+            <div class="module-tile" style="animation-delay: 1.0s;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                <path d="M10 6h4"></path>
+                <path d="M10 10h4"></path>
+                <path d="M10 14h4"></path>
+                <path d="M10 18h4"></path>
+              </svg>
+            </div>
           </div>
-          <div style="font-size: 18px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em;">CrewDesk</div>
-          <div style="font-size: 10px; font-weight: 600; font-family: monospace; letter-spacing: 0.15em; text-transform: uppercase; color: #005c55; margin-top: 4px;">Enterprise Agency ERP</div>
-          <div style="width: 180px; height: 4px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; margin-top: 24px; position: relative;">
-            <div class="loading-progress" style="position: absolute; top: 0; bottom: 0; left: 0; width: 50%; border-radius: 9999px; background: linear-gradient(90deg, #0d9488, #10b981);"></div>
-          </div>
-          <div style="font-size: 12px; color: #64748b; font-weight: 500; margin-top: 14px; display: flex; align-items: center; gap: 6px;">
-            <span style="width: 6px; height: 6px; border-radius: 9999px; background-color: #0d9488;"></span>
-            <span>Initializing CrewDesk ERP...</span>
-          </div>
+          <span style="font-size: 15px; font-weight: 500; color: #04342C; letter-spacing: -0.01em; margin-top: 20px;">CrewDesk</span>
         </div>
+        <p style="font-size: 12px; color: #6B7280; font-weight: 400; margin-top: 6px; min-height: 18px;">Checking your session</p>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
