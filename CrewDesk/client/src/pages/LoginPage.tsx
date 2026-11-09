@@ -120,11 +120,11 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#F6F5F0] flex items-center justify-center p-3 sm:p-5 md:p-6">
-      {/* 2-Column Split Container - Form first on mobile/tablet, Left panel first on desktop */}
+      {/* 2-Column Split Container - Demo panel above on mobile/tablet, Left panel on desktop */}
       <div className="w-full max-w-4xl bg-white rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden flex flex-col md:grid md:grid-cols-12 min-h-[500px]">
         
-        {/* Left Hero / Demo Sandbox Column (5 cols on desktop, order-2 on mobile) */}
-        <div className="order-2 md:order-1 md:col-span-5 bg-gradient-to-br from-[#0B1716] via-[#0F2220] to-[#081211] text-white p-5 sm:p-6 md:p-7 flex flex-col justify-between border-t md:border-t-0 md:border-r border-[#1E3A36]">
+        {/* Left Hero / Demo Sandbox Column (5 cols on desktop, top on mobile) */}
+        <div className="md:col-span-5 bg-gradient-to-br from-[#0B1716] via-[#0F2220] to-[#081211] text-white p-5 sm:p-6 md:p-7 flex flex-col justify-between border-b md:border-b-0 md:border-r border-[#1E3A36]">
           <div>
             {/* Brand Logo & Wordmark */}
             <div className="flex items-center gap-2.5 mb-3.5">
@@ -139,19 +139,31 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+            <p className="text-xs text-slate-300 leading-relaxed mb-3.5">
               One place to run your agency: projects, people, finances, and assets.
             </p>
 
-            {/* Try a demo account Section */}
+            {/* Try a demo account Section with Robot Guide pointing toward the buttons */}
             <div className="space-y-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-300 tracking-normal">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
-                <span>Try a demo account</span>
+              <div className="flex items-end justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-teal-300 tracking-normal">
+                    <ShieldCheck className="w-3.5 h-3.5 text-teal-400 shrink-0" aria-hidden="true" />
+                    <span>Try a demo account</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-normal pb-0.5">
+                    Pick a role to explore CrewDesk with sample data.
+                  </p>
+                </div>
+                {/* CrewDesk Robot pointing directly at the 6 demo buttons */}
+                <div className="relative shrink-0 flex items-center justify-center -mb-1">
+                  <img
+                    src="/robot-guide.png"
+                    alt="CrewDesk Robot pointing to demo roles"
+                    className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain select-none pointer-events-none drop-shadow-[0_4px_16px_rgba(20,184,166,0.35)]"
+                  />
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 leading-normal pb-1">
-                Pick a role to explore CrewDesk with sample data.
-              </p>
 
               {/* 6 Demo Role Buttons */}
               <div className="grid grid-cols-2 gap-2 pt-1">
@@ -203,8 +215,8 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Sign-in Form Column (7 cols on desktop, order-1 on mobile) */}
-        <div className="order-1 md:order-2 md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
+        {/* Right Sign-in Form Column (7 cols on desktop, bottom on mobile) */}
+        <div className="md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-center bg-white">
           <div className="max-w-sm w-full mx-auto">
             <div className="mb-5">
               <h2 className="text-xl font-bold text-slate-900 tracking-tight">Sign in to your agency</h2>
