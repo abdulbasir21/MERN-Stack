@@ -142,3 +142,37 @@
 - **Assumptions**: Default global monthly caps seeded as `10,000` requests, `5,000,000` tokens, and `$25.00` USD budget (editable by `ADMIN` in Phase 12).
 
 ---
+
+## Phase 4 — Documents (Upload, Storage, Extraction, Summaries)
+
+- **What was built**:
+  - Prisma schema and migration (`20261110030000_phase4_documents`) for `UploadedDocument` table and enums (`DocumentType`, `DocumentSourceKind`, `DocumentStatus`, `DocumentFailureReason`).
+  - ImageKit private storage adapter (`server/src/services/storage/imagekitAdapter.ts`) with upload, authenticated private download streaming, and deletion, plus `InMemoryStorageAdapter` for automated tests (`DOC-3`, `DOC-8`).
+  - Wired storage adapter deletion into `setUserStorageCleanupHook` for 3-step account deletion (`USR-3`).
+  - Local document text extraction service (`server/src/services/documents/textExtractor.ts`) using `pdf-parse` (class `PDFParse`) and `mammoth` (DOCX). Correctly identifies blank/scanned PDFs with no extractable text, marking status as `FAILED` with `failureReason: NO_TEXT` (`DOC-9`).
+  - Strict factual document summary generator (`server/src/services/documents/documentSummaryService.ts`) with Gemini 3.5 Flash Lite prompt template and schema constraint, executed via `withAiUsage` with `consumeDocumentAnalysis: true` (`DOC-6`, `QTA-1`).
+  - Document service, controller, and routes (`server/src/modules/documents/documentService.ts`, `documentController.ts`, `documentRoutes.ts`):
+    - Upload endpoint `POST /api/documents/upload` validating PDF/DOCX magic bytes, MIME types, and `<= 5 MB` (`DOC-2`, `SEC-5`), blocking demo visitors (`DOC-1`), and enforcing maximum 5 documents per type (`DOC-4`).
+    - Pasted JD endpoint `POST /api/documents/paste-jd` validating `<= 15,000` characters (`DOC-4`).
+    - Document listing `GET /api/documents` and metadata `GET /api/documents/:id` returning document metadata with **never** any public ImageKit URL (`DOC-3`).
+    - Authenticated download streaming `GET /api/documents/:id/download` proxying file bytes securely without exposing public storage links (`DOC-7`).
+    - Document deletion `DELETE /api/documents/:id` cleaning up storage adapter and database row (`DOC-8`).
+    - Cross-user access isolation returning `404 NOT_FOUND` when user B accesses user A's document (`SEC-1`).
+  - Client documents management page (`client/app/(app)/documents/page.tsx`) with tabbed CV/JD views, upload dropzone, pasted JD modal, summary drawer, and download/delete controls.
+  - Test suite `server/tests/api/documents.test.ts` covering `DOC-1` through `DOC-9`, `QTA-1`, and `SEC-5`.
+- **Files created/changed**:
+  - `server/package.json`, `package-lock.json`, `shared/src/index.ts`, `client/lib/api.ts`
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261110030000_phase4_documents/migration.sql`
+  - `server/src/services/storage/imagekitAdapter.ts`, `server/src/services/documents/textExtractor.ts`, `server/src/services/documents/documentSummaryService.ts`
+  - `server/src/modules/documents/documentService.ts`, `server/src/modules/documents/documentController.ts`, `server/src/modules/documents/documentRoutes.ts`, `server/src/modules/auth/authService.ts`, `server/src/app.ts`, `server/src/db/prisma.ts`, `server/src/services/quota/quotaEngine.ts`
+  - `client/app/(app)/documents/page.tsx`
+  - `server/tests/api/documents.test.ts`, `server/tests/db/quota-engine.test.ts`, `server/tests/db/test-db.test.ts`, `server/vitest.config.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/documents.test.ts`: 4 passed
+  - Prior suites: 35 passed
+  - **Total**: 39 passed (9 test files), `type-check` passed, `lint` passed.
+- **Incomplete items**: None for Phase 4.
+- **Assumptions**: None.
+
+---
