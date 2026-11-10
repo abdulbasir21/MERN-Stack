@@ -9,8 +9,36 @@ export interface SeedOptions {
   defaultAdminPassword?: string;
 }
 
+export function getDefaultApplicationSettings(): Record<string, unknown> {
+  return {
+    aiEnabled: true,
+    demoEnabled: true,
+    liveDemoEnabled: true,
+    globalMonthlyRequestCap: 10000,
+    globalMonthlyTokenCap: 5000000,
+    globalMonthlyCostBudgetUsd: '25.000000',
+    warningThresholdRatio: '0.80',
+    demoGlobalInterviewsPerDay: 20,
+    demoInterviewsPerIpPerDay: 1,
+    reservationTtlSeconds: 300,
+    modelPrices: {
+      [env.GEMINI_TEXT_MODEL]: { inputUsdPerMillion: '0', outputUsdPerMillion: '0' },
+      [env.GEMINI_TRANSCRIBE_MODEL]: {
+        inputUsdPerMillion: '0',
+        outputUsdPerMillion: '0',
+      },
+      [env.GEMINI_TTS_MODEL]: { inputUsdPerMillion: '0', outputUsdPerMillion: '0' },
+      [env.GEMINI_EMBEDDING_MODEL]: {
+        inputUsdPerMillion: '0',
+        outputUsdPerMillion: '0',
+      },
+    },
+  };
+}
+
 /**
- * Seed script for quota profiles (M3 defaults) and the first ADMIN from ADMIN_BOOTSTRAP_EMAIL (AUTH-7).
+ * Seed script for quota profiles (M3 defaults), ApplicationSetting defaults,
+ * and the first ADMIN from ADMIN_BOOTSTRAP_EMAIL (AUTH-7).
  * No API endpoint can ever grant the ADMIN role; only this seed function can.
  */
 export async function seedDatabase(
@@ -68,6 +96,16 @@ export async function seedDatabase(
     },
   });
 
+  // M3 ApplicationSetting defaults
+  const defaultSettings = getDefaultApplicationSettings();
+  for (const [key, value] of Object.entries(defaultSettings)) {
+    await db.applicationSetting.upsert({
+      where: { key },
+      create: { key, value: value as object },
+      update: { value: value as object },
+    });
+  }
+
   // AUTH-7: Bootstrap first ADMIN from ADMIN_BOOTSTRAP_EMAIL
   const existingAdmin = await db.user.findUnique({
     where: { email: adminEmail },
@@ -116,7 +154,10 @@ if (isDirectRun) {
       return defaultPrisma.$disconnect();
     })
     .catch(async (err) => {
-      console.error('[SEED] Failed to seed database:', err instanceof Error ? err.message : 'Unknown error');
+      console.error(
+        '[SEED] Failed to seed database:',
+        err instanceof Error ? err.message : 'Unknown error'
+      );
       await defaultPrisma.$disconnect();
       process.exit(1);
     });

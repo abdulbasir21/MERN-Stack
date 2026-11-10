@@ -12,6 +12,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { AppError } from './lib/errors.js';
 import { authRouter } from './modules/auth/authRoutes.js';
 import { userRouter } from './modules/users/userRoutes.js';
+import { quotaRouter } from './modules/quota/quotaRoutes.js';
 
 export interface CreateAppOptions {
   allowedOrigin?: string;
@@ -67,6 +68,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
 
   app.use('/api/auth', authRouter);
   app.use('/api/users', userRouter);
+  app.use('/api/quota', quotaRouter);
 
   // Admin role check endpoint (ADM-1, SEC-1)
   app.get(

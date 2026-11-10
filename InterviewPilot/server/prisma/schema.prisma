@@ -41,6 +41,36 @@ enum QuotaProfile {
   FREE_USER
 }
 
+enum UsageScopeType {
+  GLOBAL
+  USER
+}
+
+enum UsagePeriodType {
+  DAY
+  MONTH
+}
+
+enum AIOperationType {
+  DOCUMENT_SUMMARY
+  DOCUMENT_EMBEDDING
+  QUERY_EMBEDDING
+  INTERVIEW_PLAN
+  ANSWER_EVALUATION
+  CANDIDATE_INQUIRY
+  REPORT_GENERATION
+  SPEECH_TRANSCRIPTION
+  SPEECH_SYNTHESIS
+}
+
+enum AIUsageStatus {
+  RESERVED
+  SETTLED
+  RELEASED
+  FAILED
+  EXPIRED
+}
+
 model ApplicationSetting {
   id        String   @id @default(cuid())
   key       String   @unique
@@ -62,6 +92,8 @@ model User {
   updatedAt           DateTime             @updatedAt
   profile             UserProfile?
   passwordResetTokens PasswordResetToken[]
+  quota               UserQuota?
+  aiUsageRecords      AIUsageRecord[]
 
   @@index([status, role, isDemo])
 }
@@ -106,6 +138,74 @@ model QuotaConfiguration {
   concurrentActiveInterviews Int
   createdAt                  DateTime     @default(now())
   updatedAt                  DateTime     @updatedAt
+}
+
+model UserQuota {
+  id                         String   @id @default(cuid())
+  userId                     String   @unique
+  interviewsPerDay           Int?
+  maxDurationMinutes         Int?
+  maxQuestionsPerInterview   Int?
+  maxInquiriesPerInterview   Int?
+  documentAnalysesPerDay     Int?
+  reportGenerationsPerDay    Int?
+  concurrentActiveInterviews Int?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsageCounter {
+  id                       String          @id @default(cuid())
+  scopeType                UsageScopeType
+  scopeId                  String
+  periodType               UsagePeriodType
+  periodStart              DateTime
+  requestsUsed             Int             @default(0)
+  requestsReserved         Int             @default(0)
+  tokensUsed               Int             @default(0)
+  tokensReserved           Int             @default(0)
+  costUsed                 Decimal         @default(0) @db.Decimal(18, 6)
+  costReserved             Decimal         @default(0) @db.Decimal(18, 6)
+  interviewsCreated        Int             @default(0)
+  interviewsReserved       Int             @default(0)
+  documentAnalyses         Int             @default(0)
+  documentAnalysesReserved Int             @default(0)
+  reportsGenerated         Int             @default(0)
+  reportsReserved          Int             @default(0)
+  demoInterviewsCreated    Int             @default(0)
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+
+  @@unique([scopeType, scopeId, periodType, periodStart])
+  @@index([scopeType, scopeId, periodType])
+}
+
+model AIUsageRecord {
+  id                 String          @id @default(cuid())
+  userId             String?
+  interviewId        String?
+  operation          AIOperationType
+  model              String
+  status             AIUsageStatus   @default(RESERVED)
+  reservedRequests   Int             @default(1)
+  reservedTokens     Int             @default(0)
+  reservedCost       Decimal         @default(0) @db.Decimal(18, 6)
+  actualRequests     Int             @default(0)
+  actualInputTokens  Int             @default(0)
+  actualOutputTokens Int             @default(0)
+  actualTokens       Int             @default(0)
+  ttsCharacters      Int             @default(0)
+  costEstimated      Decimal         @default(0) @db.Decimal(18, 6)
+  periodDayStart     DateTime
+  periodMonthStart   DateTime
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  user               User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([model, createdAt])
+  @@index([status, createdAt])
 }
 
 model AdminAuditLog {

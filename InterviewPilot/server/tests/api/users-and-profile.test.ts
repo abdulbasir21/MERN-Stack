@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/db/prisma.js';
@@ -33,10 +33,6 @@ describe('Phase 2 — Users, Profile, Onboarding, Settings (USR-1 to USR-4)', ()
 
   afterEach(() => {
     resetUserStorageCleanupHook();
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
   });
 
   it('USR-1: onboarding requires only fullName, saves optional fields, and skip works without fullName', async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/db/prisma.js';
@@ -28,10 +28,6 @@ describe('Phase 1 — Authentication, Roles, Permissions & Rate Limits (AUTH-1..
     await prisma.userProfile.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.adminAuditLog.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
   });
 
   it('AUTH-1 & AUTH-2: validates registration, normalizes email, hashes password, and rejects duplicate emails', async () => {

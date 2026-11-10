@@ -116,3 +116,29 @@
 - **Assumptions**: None.
 
 ---
+## Phase 3 — Quota and AI Budget Engine ★
+
+- **What was built**:
+  - **Part (a) Pure functions (`server/src/lib/quotaMath.ts`)**:
+    - UTC day and month start & rollover helpers (`getUtcDayStart`, `getUtcMonthStart`, `isSameUtcDay`, `isSameUtcMonth`, `QTA-5`).
+    - Per-user override resolution (`resolveEffectiveUserQuota`, `QTA-15`) and effective interview limit calculation (`computeEffectiveInterviewLimits`, `QTA-9`, `SET-3`).
+    - Model price entry validator (`validateModelPriceEntry`, `QTA-8`) requiring an explicit price (`0` valid for free-tier models; missing/negative blocked).
+    - Exact `Prisma.Decimal` cost estimation (`estimateAiCostUsd`), remaining budget math (`computeRemainingBudget`, `ADM-2`), reservation capacity check (`canReserveCounter`), calculated warning flag (`calculateUsageWarningFlag`, `QTA-10`), settlement delta calculator (`computeSettlementDelta`, `QTA-6`), and idempotency key builder (`buildIdempotencyKey`, `QTA-12`).
+  - **Part (b) Database & Quota Engine (`server/src/services/quota/quotaEngine.ts`, `server/src/modules/quota/quotaRoutes.ts`)**:
+    - Prisma schema and migration (`20261110020000_phase3_quota_engine`) for `UserQuota`, `UsageCounter`, and `AIUsageRecord`, applied to both main and test databases.
+    - Updated `server/prisma/seed.ts` to seed default `ApplicationSetting` rows (`aiEnabled`, `demoEnabled`, `liveDemoEnabled`, global monthly caps, `warningThresholdRatio`, `reservationTtlSeconds`, and `modelPrices` = `0` for configured free-tier Gemini models).
+    - Implemented `withAiUsage` enforcing the 10-step order (`QTA-1`), atomic conditional SQL `UPDATE ... WHERE (used + reserved + needed <= limit) RETURNING id` reservation (`QTA-2`), fail-closed `503 AI_UNAVAILABLE` error handling (`QTA-3`), live database `aiEnabled` emergency shutdown check (`QTA-4`), lazy expiry of stale `RESERVED` records (`QTA-6`), provider failure settlement (`1` request counted, reserved tokens released, `QTA-6`), and `GET /api/quota/me` + dev simulation route `POST /api/quota/dev-simulate` with `20 req/min/user` rate limiting (`QTA-13`).
+- **Files created/changed**:
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261110020000_phase3_quota_engine/migration.sql`, `server/prisma/seed.ts`
+  - `server/src/lib/quotaMath.ts`, `server/src/services/quota/quotaEngine.ts`, `server/src/modules/quota/quotaRoutes.ts`, `server/src/app.ts`
+  - `server/tests/unit/quota-math.test.ts`, `server/tests/db/quota-engine.test.ts`, `server/tests/api/auth-and-permissions.test.ts`, `server/tests/api/users-and-profile.test.ts`, `server/tests/db/test-db.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/quota-math.test.ts`: 6 passed
+  - `tests/db/quota-engine.test.ts`: 6 passed (including 20 parallel requests vs limit 5 → 5 succeeded, 15 denied)
+  - Prior suites: 23 passed
+  - **Total**: 35 passed (8 test files), `type-check` passed, `lint` passed.
+- **Incomplete items**: None for Phase 3.
+- **Assumptions**: Default global monthly caps seeded as `10,000` requests, `5,000,000` tokens, and `$25.00` USD budget (editable by `ADMIN` in Phase 12).
+
+---
