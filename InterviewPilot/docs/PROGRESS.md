@@ -90,3 +90,29 @@
 - **Assumptions**: Used Nodemailer SMTP adapter configured from `EMAIL_HOST`/`EMAIL_PORT`/`EMAIL_USER`/`EMAIL_PASS`/`EMAIL_FROM` in `server/.env` (`D-1`), mocked in automated tests.
 
 ---
+
+## Phase 2 — Users, Profile, Onboarding, Settings
+
+- **What was built**:
+  - Shared Zod validation schemas (`OnboardingInputSchema`, `UpdateProfileInputSchema`, `DeleteAccountInputSchema`, `PrivacyControlEnum`) in `shared/src/index.ts`.
+  - Pluggable user storage cleanup hook (`server/src/services/storage/storageCleanupHook.ts`) so Phase 2 account deletion executes the 3-step `DELETING` → storage cleanup → hard delete flow (`USR-3`) and Phase 4 wires in real ImageKit deletion.
+  - User service, controller, and routes (`server/src/modules/users/userService.ts`, `userController.ts`, `userRoutes.ts`):
+    - `POST /api/users/me/onboarding` requiring only `fullName` (`USR-1`) and saving optional `statusType`, `experienceLevel`, `targetRole`, `careerGoals`, `preferredCategories`, and `onboardingCompletedAt`.
+    - `POST /api/users/me/onboarding/skip` setting `onboardingCompletedAt` without requiring `fullName` (`USR-1`).
+    - `GET /api/users/me/profile` and `PUT /api/users/me/profile` ignoring any `id`/`userId` fields in the request body (`USR-2`), plus `GET /api/users/:id/profile` and `PUT /api/users/:id/profile` returning `404 NOT_FOUND` when accessing another user's profile (`SEC-1`).
+    - `GET /api/users/me/privacy-controls` returning exclusively `['DELETE_INTERVIEW', 'DELETE_DOCUMENT', 'DELETE_ACCOUNT']` (`USR-4`).
+    - `POST /api/users/me/delete-account` verifying current password, marking user `DELETING` in step 1 (blocking login and normal requests immediately), running storage cleanup in step 2 (allowing retry if cleanup fails), and hard-deleting the user in step 3 (cascading `UserProfile` & `PasswordResetToken` while preserving `AdminAuditLog` rows, `USR-3`).
+  - Frontend AppShell layout (`client/components/layout/AppShell.tsx`), Onboarding page (`client/app/(app)/onboarding/page.tsx`), and Account & Privacy Settings page (`client/app/(app)/settings/page.tsx`) with profile editing, password change, and password-confirmed account deletion.
+- **Files created/changed**:
+  - `shared/src/index.ts`
+  - `server/src/services/storage/storageCleanupHook.ts`, `server/src/modules/users/userService.ts`, `server/src/modules/users/userController.ts`, `server/src/modules/users/userRoutes.ts`, `server/src/app.ts`
+  - `server/tests/api/users-and-profile.test.ts`
+  - `client/lib/api.ts`, `client/components/layout/AppShell.tsx`, `client/app/(app)/onboarding/page.tsx`, `client/app/(app)/settings/page.tsx`
+- **Tests run**:
+  - `tests/api/users-and-profile.test.ts`: 4 passed (`USR-1` to `USR-4`, wrong-role matrix)
+  - Prior suites: 19 passed
+  - **Total**: 23 passed (6 test files), `type-check` passed, `lint` passed.
+- **Incomplete items**: None for Phase 2.
+- **Assumptions**: None.
+
+---

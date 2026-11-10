@@ -135,3 +135,67 @@ export async function submitPasswordChange(
     body: JSON.stringify(input),
   });
 }
+
+// Phase 2 — Users, Onboarding, Profile & Privacy Controls
+import type {
+  DeleteAccountInput,
+  OnboardingInput,
+  PrivacyControl,
+  UpdateProfileInput,
+} from '@interviewpilot/shared';
+
+export async function completeOnboarding(
+  input: OnboardingInput
+): Promise<ApiSuccessResponse<{ user: AuthUserDto }>> {
+  return apiRequest<{ user: AuthUserDto }>('/api/users/me/onboarding', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function skipOnboarding(): Promise<
+  ApiSuccessResponse<{ user: AuthUserDto }>
+> {
+  return apiRequest<{ user: AuthUserDto }>('/api/users/me/onboarding/skip', {
+    method: 'POST',
+  });
+}
+
+export async function fetchMyProfile(): Promise<
+  ApiSuccessResponse<{ user: AuthUserDto }>
+> {
+  return apiRequest<{ user: AuthUserDto }>('/api/users/me/profile', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function updateMyProfile(
+  input: UpdateProfileInput
+): Promise<ApiSuccessResponse<{ user: AuthUserDto }>> {
+  return apiRequest<{ user: AuthUserDto }>('/api/users/me/profile', {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchPrivacyControls(): Promise<
+  ApiSuccessResponse<{ controls: PrivacyControl[] }>
+> {
+  return apiRequest<{ controls: PrivacyControl[] }>(
+    '/api/users/me/privacy-controls',
+    {
+      method: 'GET',
+      cache: 'no-store',
+    }
+  );
+}
+
+export async function deleteMyAccount(
+  input: DeleteAccountInput
+): Promise<ApiSuccessResponse<{ deleted: boolean }>> {
+  return apiRequest<{ deleted: boolean }>('/api/users/me/delete-account', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}

@@ -204,3 +204,56 @@ export interface AuthUserDto {
     onboardingCompletedAt: string | null;
   } | null;
 }
+
+// Phase 2 — Onboarding, Profile & Privacy Controls (USR-1..4)
+export const OnboardingInputSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(1, 'Full name is required')
+      .max(100, 'Full name must be at most 100 characters'),
+    statusType: UserStatusTypeEnum.nullable().optional(),
+    experienceLevel: ExperienceLevelEnum.nullable().optional(),
+    targetRole: z.string().trim().max(100).nullable().optional(),
+    careerGoals: z.string().trim().max(1000).nullable().optional(),
+    preferredCategories: z.array(InterviewCategoryEnum).max(3).optional(),
+  })
+  .strict();
+
+export type OnboardingInput = z.infer<typeof OnboardingInputSchema>;
+
+export const UpdateProfileInputSchema = z
+  .object({
+    // Optional id/userId fields are accepted only so the server can explicitly ignore them per USR-2 test
+    id: z.string().optional(),
+    userId: z.string().optional(),
+    fullName: z
+      .string()
+      .trim()
+      .min(1, 'Full name is required')
+      .max(100, 'Full name must be at most 100 characters'),
+    statusType: UserStatusTypeEnum.nullable().optional(),
+    experienceLevel: ExperienceLevelEnum.nullable().optional(),
+    targetRole: z.string().trim().max(100).nullable().optional(),
+    careerGoals: z.string().trim().max(1000).nullable().optional(),
+    preferredCategories: z.array(InterviewCategoryEnum).max(3).optional(),
+  })
+  .strict();
+
+export type UpdateProfileInput = z.infer<typeof UpdateProfileInputSchema>;
+
+export const DeleteAccountInputSchema = z
+  .object({
+    password: z.string().min(1, 'Password is required to delete your account').max(128),
+  })
+  .strict();
+
+export type DeleteAccountInput = z.infer<typeof DeleteAccountInputSchema>;
+
+export const PrivacyControlEnum = z.enum([
+  'DELETE_INTERVIEW',
+  'DELETE_DOCUMENT',
+  'DELETE_ACCOUNT',
+]);
+export type PrivacyControl = z.infer<typeof PrivacyControlEnum>;

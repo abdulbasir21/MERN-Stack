@@ -11,6 +11,7 @@ import { requireRole } from './middleware/permissions.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { AppError } from './lib/errors.js';
 import { authRouter } from './modules/auth/authRoutes.js';
+import { userRouter } from './modules/users/userRoutes.js';
 
 export interface CreateAppOptions {
   allowedOrigin?: string;
@@ -65,6 +66,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
   });
 
   app.use('/api/auth', authRouter);
+  app.use('/api/users', userRouter);
 
   // Admin role check endpoint (ADM-1, SEC-1)
   app.get(
