@@ -5,8 +5,12 @@ import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { requestIdMiddleware } from './middleware/requestId.js';
 import { csrfMiddleware } from './middleware/csrf.js';
+import { globalRateLimiter } from './middleware/rateLimit.js';
+import { authenticate } from './middleware/auth.js';
+import { requireRole } from './middleware/permissions.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { AppError } from './lib/errors.js';
+import { authRouter } from './modules/auth/authRoutes.js';
 
 export interface CreateAppOptions {
   allowedOrigin?: string;
@@ -44,6 +48,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
 
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
+  app.use(globalRateLimiter);
   app.use(csrfMiddleware);
 
   app.get('/api/health', (_req, res) => {
@@ -58,6 +63,26 @@ export function createApp(options: CreateAppOptions = {}): Express {
       },
     });
   });
+
+  app.use('/api/auth', authRouter);
+
+  // Admin role check endpoint (ADM-1, SEC-1)
+  app.get(
+    '/api/admin/access-check',
+    authenticate,
+    requireRole('ADMIN'),
+    (req, res) => {
+      res.status(200).json({
+        data: {
+          allowed: true,
+          role: req.actor?.role,
+        },
+        meta: {
+          requestId: req.requestId,
+        },
+      });
+    }
+  );
 
   // Test-only error simulation route when running automated tests
   if (process.env.NODE_ENV === 'test') {

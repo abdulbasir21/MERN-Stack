@@ -1,7 +1,13 @@
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
+  AuthUserDto,
+  ChangePasswordInput,
+  ForgotPasswordInput,
   HealthResponse,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
 } from '@interviewpilot/shared';
 
 export class ApiClientError extends Error {
@@ -66,5 +72,66 @@ export async function fetchHealth(): Promise<ApiSuccessResponse<HealthResponse>>
   return apiRequest<HealthResponse>('/api/health', {
     method: 'GET',
     cache: 'no-store',
+  });
+}
+
+// Auth API helpers (Phase 1)
+export async function registerAccount(
+  input: RegisterInput
+): Promise<ApiSuccessResponse<{ user: AuthUserDto }>> {
+  return apiRequest<{ user: AuthUserDto }>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function loginAccount(
+  input: LoginInput
+): Promise<ApiSuccessResponse<{ user: AuthUserDto }>> {
+  return apiRequest<{ user: AuthUserDto }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function logoutAccount(): Promise<
+  ApiSuccessResponse<{ loggedOut: boolean }>
+> {
+  return apiRequest<{ loggedOut: boolean }>('/api/auth/logout', {
+    method: 'POST',
+  });
+}
+
+export async function fetchMe(): Promise<ApiSuccessResponse<{ user: AuthUserDto }>> {
+  return apiRequest<{ user: AuthUserDto }>('/api/auth/me', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function requestPasswordResetEmail(
+  input: ForgotPasswordInput
+): Promise<ApiSuccessResponse<{ message: string }>> {
+  return apiRequest<{ message: string }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function submitPasswordReset(
+  input: ResetPasswordInput
+): Promise<ApiSuccessResponse<{ message: string }>> {
+  return apiRequest<{ message: string }>('/api/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function submitPasswordChange(
+  input: ChangePasswordInput
+): Promise<ApiSuccessResponse<{ message: string }>> {
+  return apiRequest<{ message: string }>('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }

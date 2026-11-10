@@ -8,10 +8,115 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETING
+}
+
+enum UserStatusType {
+  STUDENT
+  PROFESSIONAL
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  EXPERIENCED
+}
+
+enum InterviewCategory {
+  TECHNICAL
+  HR
+  BEHAVIORAL
+}
+
+enum QuotaProfile {
+  DEMO
+  FREE_USER
+}
+
 model ApplicationSetting {
   id        String   @id @default(cuid())
   key       String   @unique
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String?
+  role                UserRole             @default(USER)
+  status              UserStatus           @default(ACTIVE)
+  isDemo              Boolean              @default(false)
+  tokenVersion        Int                  @default(0)
+  lastLoginAt         DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  profile             UserProfile?
+  passwordResetTokens PasswordResetToken[]
+
+  @@index([status, role, isDemo])
+}
+
+model UserProfile {
+  id                    String              @id @default(cuid())
+  userId                String              @unique
+  fullName              String?
+  statusType            UserStatusType?
+  experienceLevel       ExperienceLevel?
+  targetRole            String?
+  careerGoals           String?
+  preferredCategories   InterviewCategory[]
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model QuotaConfiguration {
+  id                         String       @id @default(cuid())
+  profile                    QuotaProfile @unique
+  interviewsPerDay           Int
+  maxDurationMinutes         Int
+  maxQuestionsPerInterview   Int
+  maxInquiriesPerInterview   Int
+  documentAnalysesPerDay     Int
+  reportGenerationsPerDay    Int
+  concurrentActiveInterviews Int
+  createdAt                  DateTime     @default(now())
+  updatedAt                  DateTime     @updatedAt
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  targetType String
+  targetId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
 }

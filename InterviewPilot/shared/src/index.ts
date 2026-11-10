@@ -59,3 +59,148 @@ export const HealthResponseSchema = z.object({
 });
 
 export type HealthResponse = z.infer<typeof HealthResponseSchema>;
+
+// Roles & Account Statuses (M1, M2)
+export const UserRoleEnum = z.enum(['USER', 'ADMIN']);
+export type UserRole = z.infer<typeof UserRoleEnum>;
+
+export const UserStatusEnum = z.enum(['ACTIVE', 'BLOCKED', 'DELETING']);
+export type UserStatus = z.infer<typeof UserStatusEnum>;
+
+export const UserStatusTypeEnum = z.enum(['STUDENT', 'PROFESSIONAL']);
+export type UserStatusType = z.infer<typeof UserStatusTypeEnum>;
+
+export const ExperienceLevelEnum = z.enum(['BEGINNER', 'INTERMEDIATE', 'EXPERIENCED']);
+export type ExperienceLevel = z.infer<typeof ExperienceLevelEnum>;
+
+export const InterviewCategoryEnum = z.enum(['TECHNICAL', 'HR', 'BEHAVIORAL']);
+export type InterviewCategory = z.infer<typeof InterviewCategoryEnum>;
+
+export const QuotaProfileEnum = z.enum(['DEMO', 'FREE_USER']);
+export type QuotaProfile = z.infer<typeof QuotaProfileEnum>;
+
+// Permission strings (ARCHITECTURE §6)
+export const PermissionEnum = z.enum([
+  'profile:read:own',
+  'profile:update:own',
+  'document:create',
+  'document:read:own',
+  'document:delete:own',
+  'document:read:any',
+  'document:delete:any',
+  'interview:create',
+  'interview:read:own',
+  'interview:delete:own',
+  'interview:read:any',
+  'report:read:own',
+  'report:read:any',
+  'user:list',
+  'user:block',
+  'user:delete',
+  'usage:read',
+  'audit:read',
+  'settings:update',
+  'quota:update',
+  'ai:shutdown',
+  'demo:manage',
+]);
+
+export type Permission = z.infer<typeof PermissionEnum>;
+
+// Password validation helper (AUTH-1: at least 8 chars, 1 letter, 1 digit)
+export const PasswordRuleSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters long')
+  .max(128, 'Password must be at most 128 characters long')
+  .regex(/[A-Za-z]/, 'Password must contain at least one letter')
+  .regex(/[0-9]/, 'Password must contain at least one digit');
+
+export const EmailRuleSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email('Please enter a valid email address')
+  .max(255);
+
+// AUTH-1: Register input schema (strict — rejects role, status, isDemo, tokenVersion, or unknown fields)
+export const RegisterInputSchema = z
+  .object({
+    email: EmailRuleSchema,
+    password: PasswordRuleSchema,
+    confirmPassword: z.string(),
+  })
+  .strict()
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+export type RegisterInput = z.infer<typeof RegisterInputSchema>;
+
+// AUTH-3: Login input schema
+export const LoginInputSchema = z
+  .object({
+    email: EmailRuleSchema,
+    password: z.string().min(1, 'Password is required').max(128),
+  })
+  .strict();
+
+export type LoginInput = z.infer<typeof LoginInputSchema>;
+
+// AUTH-6: Forgot password input schema
+export const ForgotPasswordInputSchema = z
+  .object({
+    email: EmailRuleSchema,
+  })
+  .strict();
+
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordInputSchema>;
+
+// AUTH-6: Reset password input schema
+export const ResetPasswordInputSchema = z
+  .object({
+    token: z.string().trim().min(16, 'Invalid reset token').max(256),
+    password: PasswordRuleSchema,
+    confirmPassword: z.string(),
+  })
+  .strict()
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
+
+export type ResetPasswordInput = z.infer<typeof ResetPasswordInputSchema>;
+
+// AUTH-5: Change password input schema
+export const ChangePasswordInputSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required').max(128),
+    newPassword: PasswordRuleSchema,
+    confirmNewPassword: z.string(),
+  })
+  .strict()
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmNewPassword'],
+  });
+
+export type ChangePasswordInput = z.infer<typeof ChangePasswordInputSchema>;
+
+export interface AuthUserDto {
+  id: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+  isDemo: boolean;
+  lastLoginAt: string | null;
+  createdAt: string;
+  profile: {
+    fullName: string | null;
+    statusType: UserStatusType | null;
+    experienceLevel: ExperienceLevel | null;
+    targetRole: string | null;
+    careerGoals: string | null;
+    preferredCategories: InterviewCategory[];
+    onboardingCompletedAt: string | null;
+  } | null;
+}

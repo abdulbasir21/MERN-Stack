@@ -61,3 +61,32 @@
 - **Assumptions**: Used existing `DATABASE_URL_UNPOOLED` / `TEST_DATABASE_URL_UNPOOLED` env variable names from `server/.env` as `DIRECT_URL` aliases.
 
 ---
+
+## Phase 1 — Authentication, Roles, Permissions, Helpers
+
+- **What was built**:
+  - Prisma schema and migration (`20261110010000_phase1_auth_permissions`) for `User`, `UserProfile`, `PasswordResetToken`, `QuotaConfiguration`, and `AdminAuditLog`.
+  - Shared Zod validation schemas (`RegisterInputSchema`, `LoginInputSchema`, `ForgotPasswordInputSchema`, `ResetPasswordInputSchema`, `ChangePasswordInputSchema`) with `.strict()` unknown-field rejection (`SEC-2`, `AUTH-1`).
+  - Authentication service & controller (`authService.ts`, `authController.ts`, `authRoutes.ts`) implementing:
+    - Registration in a single transaction (`User` + `UserProfile`), email normalization (trimmed/lowercase), bcrypt cost 12 hashing (`AUTH-1`, `AUTH-2`).
+    - Login with generic `401` ("Invalid email or password"), `httpOnly; Secure; SameSite=Lax` JWT cookie (`ip_session`), and login failure rate limiter (`> 5` attempts per `email + IP` in 15m → `429`, `AUTH-3`, `QTA-13`).
+    - Database-backed `authenticate` middleware checking `status === 'ACTIVE'` (`BLOCKED`/`DELETING` → `403 ACCOUNT_BLOCKED`, `AUTH-4`) and `tokenVersion` on every request (`AUTH-5`).
+    - Permission string & role middlewares (`requirePermission`, `requireRole`, `requireAnonymous`, `SEC-1`).
+    - Password change and SHA-256 hashed 32-byte single-use 30-minute password reset tokens (`AUTH-5`, `AUTH-6`) with SMTP/mock email adapter (`emailAdapter.ts`, `D-1`).
+    - Logout cookie clearing (`AUTH-8`), transactional admin audit-log helper (`auditService.ts`), file upload magic-byte/MIME/size validator helper (`fileValidation.ts`, `SEC-5`), and database seed script (`prisma/seed.ts`, `AUTH-7`).
+  - Frontend authentication screens (`client/app/(auth)/login/page.tsx`, `register/page.tsx`, `forgot-password/page.tsx`, `reset-password/page.tsx`) with validation, error banners, and loading states (`PUB-3`).
+- **Files created/changed**:
+  - `shared/src/index.ts`
+  - `server/package.json`, `server/vitest.config.ts`, `server/prisma/schema.prisma`, `server/prisma/migrations/20261110010000_phase1_auth_permissions/migration.sql`, `server/prisma/seed.ts`
+  - `server/src/config/constants.ts`, `server/src/lib/fileValidation.ts`, `server/src/services/email/emailAdapter.ts`, `server/src/services/audit/auditService.ts`, `server/src/middleware/validate.ts`, `server/src/middleware/rateLimit.ts`, `server/src/middleware/auth.ts`, `server/src/middleware/permissions.ts`, `server/src/modules/auth/authService.ts`, `server/src/modules/auth/authController.ts`, `server/src/modules/auth/authRoutes.ts`, `server/src/app.ts`
+  - `server/tests/unit/file-validation.test.ts`, `server/tests/api/auth-and-permissions.test.ts`
+  - `client/lib/api.ts`, `client/components/ui/input.tsx`, `client/components/ui/label.tsx`, `client/app/(auth)/login/page.tsx`, `client/app/(auth)/register/page.tsx`, `client/app/(auth)/forgot-password/page.tsx`, `client/app/(auth)/reset-password/page.tsx`
+- **Tests run**:
+  - `tests/api/auth-and-permissions.test.ts`: 7 passed
+  - `tests/unit/file-validation.test.ts`: 4 passed
+  - Prior suites: 8 passed
+  - **Total**: 19 passed (5 test files), `type-check` passed, `lint` passed.
+- **Incomplete items**: None for Phase 1.
+- **Assumptions**: Used Nodemailer SMTP adapter configured from `EMAIL_HOST`/`EMAIL_PORT`/`EMAIL_USER`/`EMAIL_PASS`/`EMAIL_FROM` in `server/.env` (`D-1`), mocked in automated tests.
+
+---
