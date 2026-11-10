@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ScopeSentry AI - Construction Change Detective</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-primary-container": "#eeefff",
+            "primary-fixed": "#dbe1ff",
+            "outline-variant": "#c3c6d7",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#ffddb8",
+            "tertiary": "#784b00",
+            "on-surface-variant": "#434655",
+            "on-error": "#ffffff",
+            "primary-container": "#2563eb",
+            "background": "#f7fafe",
+            "surface-container": "#ebeef2",
+            "on-tertiary-fixed": "#2a1700",
+            "on-tertiary": "#ffffff",
+            "on-secondary-fixed": "#0c1b34",
+            "tertiary-fixed-dim": "#ffb95f",
+            "on-tertiary-container": "#ffeedd",
+            "secondary-container": "#ceddff",
+            "inverse-surface": "#0a1a33",
+            "on-tertiary-fixed-variant": "#653e00",
+            "on-background": "#181c1f",
+            "inverse-primary": "#b4c5ff",
+            "tertiary-container": "#996100",
+            "error": "#ba1a1a",
+            "surface-dim": "#d7dade",
+            "on-error-container": "#93000a",
+            "on-secondary-fixed-variant": "#394762",
+            "inverse-on-surface": "#eef1f5",
+            "on-primary-fixed": "#00174b",
+            "on-primary-fixed-variant": "#003ea8",
+            "secondary": "#505f7b",
+            "surface": "#f7fafe",
+            "on-primary": "#ffffff",
+            "surface-variant": "#e0e3e7",
+            "on-secondary": "#ffffff",
+            "primary": "#004ac6",
+            "secondary-fixed": "#d7e3ff",
+            "on-surface": "#181c1f",
+            "surface-bright": "#f7fafe",
+            "outline": "#737686",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#e0e3e7",
+            "surface-container-low": "#f1f4f8",
+            "surface-container-high": "#e5e8ec",
+            "primary-fixed-dim": "#b4c5ff",
+            "secondary-fixed-dim": "#b8c7e8",
+            "on-secondary-container": "#53617e",
+            "surface-tint": "#0053db"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "margin-lg": "2.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "margin-md": "1.5rem",
+            "gutter-lg": "2rem",
+            "gutter": "1.25rem",
+            "space-xl": "2.25rem",
+            "margin": "1rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Plus Jakarta Sans"],
+            "body-md": ["Inter"],
+            "code-sm": ["JetBrains Mono"],
+            "headline-lg-mobile": ["Plus Jakarta Sans"],
+            "body-sm": ["Inter"],
+            "code-md": ["JetBrains Mono"],
+            "headline-md": ["Plus Jakarta Sans"],
+            "headline-xl": ["Plus Jakarta Sans"],
+            "headline-xl-mobile": ["Plus Jakarta Sans"],
+            "label-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-lg": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+            "headline-sm": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.005em", "fontWeight": "400" }],
+            "code-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "code-md": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "800" }],
+            "headline-xl-mobile": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "800" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.025em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .blueprint-grid {
+      background-size: 24px 24px;
+      background-image: 
+        linear-gradient(to right, rgba(226, 232, 240, 0.4) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(226, 232, 240, 0.4) 1px, transparent 1px);
+    }
+    .blueprint-navy-grid {
+      background-size: 28px 28px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c3c6d7;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex selection:bg-primary-container selection:text-white">
+<!-- ==================== LEFT SIDEBAR COMPONENT ==================== -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col justify-between bg-inverse-surface border-r border-outline-variant/20 z-50">
+<div class="p-4 flex flex-col">
+<!-- App Brand Anchor -->
+<div class="flex items-center gap-3 px-2 py-3 mb-6">
+<div class="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-white shadow-md shadow-primary-container/30">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">radar</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm font-bold text-surface-container-lowest tracking-tight">ScopeSentry AI</span>
+<span class="font-label-sm text-label-sm text-outline-variant truncate">Metropolitan Tower Phase II</span>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<nav class="space-y-1.5">
+<!-- Overview -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Overview</span>
+</a>
+<!-- Document Comparison -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]">compare</span>
+<span>Document Comparison</span>
+</a>
+<!-- AI Change Findings (ACTIVE TAB: primary intent of this dashboard) -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-container text-on-primary font-headline-sm text-headline-sm shadow-sm transition-all duration-150 ease-in-out active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span>AI Change Findings</span>
+<span class="ml-auto bg-white/20 text-white font-code-sm text-code-sm px-1.5 py-0.5 rounded">24</span>
+</a>
+<!-- Cost & Schedule Impact -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+<span>Cost &amp; Schedule Impact</span>
+</a>
+<!-- Reports & Export -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span>Reports &amp; Export</span>
+</a>
+<!-- Audit Log -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20 active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span>Audit Log</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar Footer -->
+<div class="p-4 border-t border-white/10 space-y-1">
+<div class="px-3 py-2 mb-2 bg-white/5 rounded-lg border border-white/5">
+<p class="font-code-sm text-code-sm text-outline-variant">AI Detection Engine v4.2</p>
+<div class="flex items-center gap-1.5 mt-1">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-surface-container-lowest">Real-time Spec OCR Active</span>
+</div>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20" href="#">
+<span class="material-symbols-outlined text-[20px]">account_circle</span>
+<span>Reviewer Profile</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-outline-variant hover:text-surface-container-lowest font-body-md text-body-md transition-colors hover:bg-on-surface-variant/20" href="#">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span>Settings</span>
+</a>
+</div>
+</aside>
+<!-- ==================== MAIN CONTENT WRAPPER ==================== -->
+<div class="ml-64 flex-1 flex flex-col min-w-0">
+<!-- ==================== TOP NAVIGATION BAR ==================== -->
+<header class="sticky top-0 w-full z-40 bg-surface-container-lowest border-b border-surface-container-high shadow-sm">
+<div class="flex justify-between items-center h-16 px-6 w-full">
+<!-- Left: Breadcrumb / Product Name & Fast Search -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 font-code-md text-code-md font-medium text-on-surface tracking-tight">
+<span class="text-secondary">Projects</span>
+<span class="text-outline-variant">/</span>
+<span class="text-secondary">Metropolitan Tower</span>
+<span class="text-outline-variant">/</span>
+<span class="text-primary font-semibold flex items-center gap-1.5">
+              Change Analysis #04
+              <span class="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary font-bold uppercase tracking-wider">Live</span>
+</span>
+</div>
+<!-- Quick Search Filter Input -->
+<div class="relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-outline">search</span>
+<input class="w-full pl-9 pr-12 py-1.5 text-xs bg-surface-container-low border border-outline-variant/50 rounded-lg text-on-surface focus:outline-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20 font-body-md" placeholder="Search specs, CSI codes, or delta..." type="text"/>
+<kbd class="absolute right-2.5 top-2 px-1.5 py-0.5 text-[10px] font-code-sm bg-surface-container border border-outline-variant/60 rounded text-secondary">⌘K</kbd>
+</div>
+</div>
+<!-- Right: Actions Cluster -->
+<div class="flex items-center gap-3">
+<!-- Workspace Switcher -->
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-lowest text-secondary hover:bg-surface-container-low transition duration-150 active:scale-[0.98] font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">domain</span>
+<span>Workspace Switcher</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<!-- Primary Action Button -->
+<button class="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-primary-container text-white font-label-md text-label-md hover:bg-blue-700 shadow-sm transition duration-150 active:scale-[0.98]">
+<span class="material-symbols-outlined text-[18px]">add_box</span>
+<span>Compare New Revisions</span>
+</button>
+<div class="h-6 w-px bg-surface-container-high mx-1"></div>
+<!-- Trailing Icon Actions -->
+<button class="p-2 text-secondary hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white"></span>
+</button>
+<button class="p-2 text-secondary hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors">
+<span class="material-symbols-outlined text-[20px]">help</span>
+</button>
+<!-- User Avatar -->
+<div class="flex items-center gap-2.5 pl-2">
+<img class="w-8 h-8 rounded-full border border-outline-variant/60 object-cover" data-alt="A cinematic medium portrait shot of a mid-thirties senior commercial construction engineer wearing a crisp navy collared shirt against a modern glass high-rise background with subtle blueprint underlays. High-key natural lighting with soft contrast, realistic skin textures, confident and analytical demeanor." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4O88c2VSwJJntRW8JZLlCGork9-T-c30ABs1NM6L7uhSg0S-lR-vcs28ccS_30rjBwvlUKxrSX-d-D1WHYBgjxmJhTQky21S7n9-wsMAjWqoxg9k0w2QHLkG4TOfTisM5s11kHC-dD_WTEteXmSqGaj7GDxKd1wPkLpqHhKBfYQw4TTsMDf9VwNKtsfZsrp5wdiRK7iCAkrKYkqWI1-M38obGHyBEoD2Vo-xlAQ"/>
+<div class="hidden xl:flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface leading-tight">Marcus Vance, PE</span>
+<span class="font-code-sm text-[10px] text-secondary leading-tight">Lead Forensic Estimator</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- ==================== MAIN PAGE BODY ==================== -->
+<main class="p-6 space-y-6 blueprint-grid flex-1">
+<!-- PROJECT SPEC REVISION BANNER -->
+<section class="bg-inverse-surface text-surface-container-lowest rounded-xl p-5 border border-white/10 blueprint-navy-grid shadow-md relative overflow-hidden">
+<div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div class="space-y-1.5">
+<div class="flex items-center gap-2.5 flex-wrap">
+<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">verified</span> Commercial Core &amp; Shell
+              </span>
+<span class="text-white/40 text-xs font-mono">|</span>
+<span class="font-code-md text-code-md text-blue-200">Drawing Set Rev 04 vs Rev 03</span>
+<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[11px] font-mono border border-amber-400/30">Addendum 02 Issued Oct 14, 2024</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg font-bold tracking-tight text-white">
+              Metropolitan Tower Phase II - Forensic Scope Delta &amp; Variance Analysis
+            </h1>
+<p class="font-body-md text-body-md text-outline-variant max-w-3xl">
+              Automated structural spec differencing completed across 418 architectural &amp; structural sheets. Every project change has a cost. Make sure you see it.
+            </p>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-start lg:self-center">
+<button class="px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-label-md flex items-center gap-2 border border-white/15 transition-all">
+<span class="material-symbols-outlined text-base">filter_list</span>
+              View Delta Overlay
+            </button>
+<button class="px-3.5 py-2 rounded-lg bg-primary-container text-white text-xs font-label-md flex items-center gap-2 hover:bg-blue-600 shadow-lg shadow-blue-900/40 transition-all">
+<span class="material-symbols-outlined text-base">download</span>
+              Export Audit Package
+            </button>
+</div>
+</div>
+</section>
+<!-- SECTION 1: EXECUTIVE METRICS STRIP (4 Stat Cards) -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Metric 1: Total Net Cost Impact -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04),0_1px_2px_-1px_rgba(10,26,51,0.02)] relative group hover:border-[#D5DFEE] transition-all">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Total Net Cost Impact</span>
+<div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">calculate</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">+$342,850</span>
+<span class="font-code-sm text-code-sm text-secondary font-medium">USD</span>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 border border-amber-500/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span> +8.4%
+            </span>
+<span class="font-body-sm text-body-sm text-secondary">Above baseline contingency</span>
+</div>
+</div>
+<!-- Metric 2: Schedule Variance -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04),0_1px_2px_-1px_rgba(10,26,51,0.02)] relative group hover:border-[#D5DFEE] transition-all">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Schedule Variance</span>
+<div class="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">schedule</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">+18</span>
+<span class="font-headline-sm text-headline-sm text-secondary font-semibold">Calendar Days</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-rose-600 font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span>Critical path impact: Curtain wall envelope</span>
+</div>
+</div>
+<!-- Metric 3: AI Detected Discrepancies -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04),0_1px_2px_-1px_rgba(10,26,51,0.02)] relative group hover:border-[#D5DFEE] transition-all">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">AI Detected Discrepancies</span>
+<div class="w-9 h-9 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">search_insights</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">24</span>
+<span class="font-headline-sm text-headline-sm text-secondary font-medium">Discrepancies</span>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-xs text-secondary font-code-sm">
+<span class="text-rose-600 font-semibold">14 Scope Creep</span> • 
+            <span class="text-amber-600 font-semibold">7 Subs</span> • 
+            <span class="text-blue-600 font-semibold">3 Spec Diff</span>
+</div>
+</div>
+<!-- Metric 4: Human Review Progress -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04),0_1px_2px_-1px_rgba(10,26,51,0.02)] relative group hover:border-[#D5DFEE] transition-all">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Human Review Progress</span>
+<div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">assignment_turned_in</span>
+</div>
+</div>
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">19</span>
+<span class="font-body-md text-body-md text-secondary">of 24 Verified</span>
+</div>
+<!-- Mini radial gauge badge -->
+<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">79%</span>
+</div>
+<!-- Progress Bar -->
+<div class="mt-3.5 w-full bg-surface-container rounded-full h-2 overflow-hidden flex">
+<div class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 79.1%"></div>
+</div>
+<p class="mt-2 font-label-sm text-label-sm text-secondary text-right">5 Awaiting Senior PM sign-off</p>
+</div>
+</section>
+<!-- SECTION 2: INTERACTIVE MAIN WORKSPACE (Bento Grid 7/5 Split) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- ==================== LEFT COLUMN: FINDINGS FEED & REVIEWER INSPECTOR (7 cols) ==================== -->
+<div class="lg:col-span-7 space-y-4">
+<!-- Category Filter Pills Bar -->
+<div class="bg-surface-container-lowest rounded-xl p-3 border border-[#E6ECF5] flex items-center gap-2 overflow-x-auto custom-scrollbar">
+<span class="font-label-sm text-label-sm text-secondary px-2 shrink-0">Filter Trade:</span>
+<button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white shrink-0 shadow-sm">
+              All (24)
+            </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container text-on-surface hover:bg-surface-variant transition shrink-0">
+              Structural &amp; Steel (6)
+            </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+              Curtain Wall / Glazing (8)
+            </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container text-on-surface hover:bg-surface-variant transition shrink-0">
+              HVAC &amp; MEP (5)
+            </button>
+<button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container text-on-surface hover:bg-surface-variant transition shrink-0">
+              Finishes &amp; Millwork (5)
+            </button>
+</div>
+<!-- PROMINENT HIGH-IMPACT FINDING CARD (Selected for Review) -->
+<article class="bg-surface-container-lowest rounded-[14px] border-2 border-primary/40 shadow-[0_8px_16px_-4px_rgba(10,26,51,0.08)] overflow-hidden">
+<!-- Card Header Ribbon -->
+<div class="bg-surface-container-low px-5 py-3.5 border-b border-[#E6ECF5] flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2.5">
+<span class="px-2 py-0.5 rounded text-[11px] font-code-sm font-semibold bg-blue-100 text-blue-800">
+                  CSI MasterFormat 08 51 13
+                </span>
+<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                  98.4% Confidence
+                </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                  Pending Human Verification
+                </span>
+</div>
+</div>
+<!-- Card Body Content -->
+<div class="p-5 space-y-4">
+<!-- Finding Title -->
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">
+                  Structural Aluminum Framing Specification Drift &amp; Profile Modification
+                </h2>
+<p class="mt-1 font-body-md text-body-md text-secondary">
+                  Detected non-negotiable alloy drift without an authorized Change Proposal or Architect's Supplemental Instruction (ASI).
+                </p>
+</div>
+<!-- Cost & Schedule Delta Strip -->
+<div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-base">monetization_on</span>
+</div>
+<div>
+<div class="font-label-sm text-[11px] text-secondary">Unclaimed Cost Delta</div>
+<div class="font-code-md text-code-md font-bold text-rose-600">+$148,200.00 USD</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-base">timelapse</span>
+</div>
+<div>
+<div class="font-label-sm text-[11px] text-secondary">Schedule Lead-Time Variance</div>
+<div class="font-code-md text-code-md font-bold text-amber-600">+9 Calendar Days (Extrusion)</div>
+</div>
+</div>
+</div>
+<!-- SIDE-BY-SIDE SPEC CLAUSE COMPARISON BOX -->
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base text-primary">difference</span>
+                    Clause Side-by-Side Verification
+                  </span>
+<span class="font-code-sm text-code-sm text-secondary">Section 08 51 13 - Page 41</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<!-- Original Rev 03 Baseline -->
+<div class="rounded-lg border border-slate-200 bg-surface-container-lowest p-3.5 relative">
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 text-xs font-semibold text-secondary">
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-slate-400"></span> Original Rev 03 (Baseline)
+                      </span>
+<span class="font-code-sm text-[11px] text-slate-400">Jun 12, 2024</span>
+</div>
+<div class="font-code-sm text-code-sm text-slate-700 leading-relaxed">
+<p class="font-bold text-slate-900 mb-1">Clause 2.02.A - Extrusions:</p>
+                      "Thermally improved anodized aluminum framing, standard <span class="bg-slate-100 px-1 py-0.5 rounded text-slate-900 font-semibold">6063-T6 Extruded Aluminum alloy</span>, 2-1/2" x 6" standard structural profile for perimeter glazing zones."
+                    </div>
+</div>
+<!-- Revision Rev 04 Addendum -->
+<div class="rounded-lg border border-amber-300 bg-amber-50/50 p-3.5 relative">
+<div class="flex items-center justify-between pb-2 mb-2 border-b border-amber-200 text-xs font-semibold text-amber-900">
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span> Revision Rev 04 (Addendum 02)
+                      </span>
+<span class="font-code-sm text-[11px] text-amber-700 font-bold">Oct 14, 2024</span>
+</div>
+<div class="font-code-sm text-code-sm text-amber-950 leading-relaxed">
+<p class="font-bold text-amber-900 mb-1">Clause 2.02.A - Extrusions [MODIFIED]:</p>
+                      "High-wind seismic resistance custom profile <span class="bg-amber-200/80 px-1 py-0.5 rounded font-bold text-amber-900">7075-T651 structural alloy</span> with dual thermal polyamide barrier and heavy gauge reinforce."
+                    </div>
+</div>
+</div>
+<!-- Callout explanation note -->
+<div class="bg-blue-50/70 border border-blue-200 rounded-lg p-2.5 flex items-start gap-2 text-xs text-blue-900">
+<span class="material-symbols-outlined text-sm text-blue-600 mt-0.5">info</span>
+<div>
+<strong>AI Analysis Reasoning:</strong> 7075-T651 requires specialty custom extrusion dies not budgeted in base bid package #08-A. Unit raw material cost jumps from $3.80/lb to $11.45/lb.
+                  </div>
+</div>
+</div>
+<!-- Reviewer Action Strip & Notes -->
+<div class="pt-3 border-t border-slate-200 space-y-3">
+<div>
+<label class="block font-label-sm text-label-sm text-secondary mb-1">Forensic Reviewer Notes &amp; Justification:</label>
+<input class="w-full text-xs font-body-md border border-slate-300 rounded-lg p-2.5 bg-white text-slate-800 focus:ring-2 focus:ring-primary focus:outline-none" type="text" value="Confirmed against structural engineer stamped calculation sheet S-204. Subcontractor must be notified before mill purchase."/>
+</div>
+<!-- Three Primary Review Action Buttons -->
+<div class="flex flex-wrap items-center gap-2.5 pt-1">
+<button class="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-label-md text-xs flex items-center gap-1.5 shadow-sm transition active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+                    Approve &amp; Issue Change Order (+$148,200)
+                  </button>
+<button class="px-3.5 py-2 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-on-surface font-label-md text-xs flex items-center gap-1.5 transition active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px] text-blue-600">help</span>
+                    Create RFI to Architect
+                  </button>
+<button class="px-3.5 py-2 rounded-lg bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-700 font-label-md text-xs flex items-center gap-1.5 transition active:scale-[0.98]">
+<span class="material-symbols-outlined text-[16px]">gavel</span>
+                    Flag as Disputed Contractor Scope
+                  </button>
+</div>
+</div>
+</div>
+</article>
+<!-- SECONDARY FINDINGS LIST (Quick Peek Rows) -->
+<div class="space-y-2">
+<div class="text-xs font-semibold text-secondary uppercase tracking-wider px-1">Other Unresolved Flagged Changes in Rev 04</div>
+<!-- Item 2 -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl border border-[#E6ECF5] hover:border-slate-300 transition flex items-center justify-between gap-4 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                  23
+                </div>
+<div>
+<h3 class="font-headline-sm text-sm font-semibold text-on-surface">Section 23 31 13 - Ductwork Acoustic Lining Density Upgraded</h3>
+<p class="font-body-sm text-xs text-secondary">Acoustic absorption spec increased to 3.0 lb/cu ft. 4 fan rooms impacted.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-code-md text-xs font-bold text-rose-600 block">+$42,100</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 font-medium">Awaiting PM</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container-lowest p-3.5 rounded-xl border border-[#E6ECF5] hover:border-slate-300 transition flex items-center justify-between gap-4 cursor-pointer">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
+                  05
+                </div>
+<div>
+<h3 class="font-headline-sm text-sm font-semibold text-on-surface">Section 05 12 00 - Structural Steel Anchor Bolt Tensile Grade</h3>
+<p class="font-body-sm text-xs text-secondary">ASTM F1554 Grade 36 substituted with Grade 55 with Charpy V-notch.</p>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-code-md text-xs font-bold text-rose-600 block">+$66,500</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-100 text-emerald-800 font-medium">Approved</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ==================== RIGHT COLUMN: IMPACT & EVIDENCE ANALYTICS (5 cols) ==================== -->
+<div class="lg:col-span-5 space-y-6">
+<!-- ANALYTIC CARD 1: Cost Impact Breakdown By Trade -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04)]">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+<div>
+<h3 class="font-headline-sm text-sm font-bold text-on-surface">Cost Variance by Trade</h3>
+<p class="font-body-sm text-xs text-secondary">Baseline allocation vs current Rev 04 delta</p>
+</div>
+<span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-code-sm text-[11px] font-semibold">USD</span>
+</div>
+<!-- Custom Horizontal Bar Representation -->
+<div class="space-y-4">
+<!-- Glazing -->
+<div>
+<div class="flex justify-between text-xs mb-1.5 font-medium">
+<span class="text-slate-800">Glazing &amp; Curtain Wall</span>
+<span class="font-code-sm font-bold text-rose-600">+$182,000 <span class="text-slate-400 font-normal">/ $1.2M</span></span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+<div class="bg-blue-600 h-full rounded-full" style="width: 65%"></div>
+<div class="bg-rose-500 h-full rounded-r-full" style="width: 25%"></div>
+</div>
+</div>
+<!-- MEP -->
+<div>
+<div class="flex justify-between text-xs mb-1.5 font-medium">
+<span class="text-slate-800">Mechanical, Electrical &amp; HVAC</span>
+<span class="font-code-sm font-bold text-rose-600">+$94,350 <span class="text-slate-400 font-normal">/ $840K</span></span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+<div class="bg-blue-600 h-full rounded-full" style="width: 50%"></div>
+<div class="bg-rose-500 h-full rounded-r-full" style="width: 18%"></div>
+</div>
+</div>
+<!-- Steel -->
+<div>
+<div class="flex justify-between text-xs mb-1.5 font-medium">
+<span class="text-slate-800">Structural Steel &amp; Framing</span>
+<span class="font-code-sm font-bold text-rose-600">+$66,500 <span class="text-slate-400 font-normal">/ $2.1M</span></span>
+</div>
+<div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+<div class="bg-blue-600 h-full rounded-full" style="width: 78%"></div>
+<div class="bg-rose-500 h-full rounded-r-full" style="width: 10%"></div>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-secondary">
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 bg-blue-600 rounded-sm"></span> Baseline Bid
+              </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 bg-rose-500 rounded-sm"></span> Unapproved Addendum Delta
+              </span>
+</div>
+</div>
+<!-- ANALYTIC CARD 2: Change Root Cause (Donut Analytics Breakdown) -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04)]">
+<div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+<div>
+<h3 class="font-headline-sm text-sm font-bold text-on-surface">Change Root Cause Attribution</h3>
+<p class="font-body-sm text-xs text-secondary">Dispute forensic categorization</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">pie_chart</span>
+</div>
+<div class="flex items-center gap-5">
+<!-- Radial Ring Graphic -->
+<div class="relative w-28 h-28 shrink-0 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<!-- Arch Rev 45% -->
+<circle cx="18" cy="18" fill="none" r="15.9155" stroke="#2563eb" stroke-dasharray="45 55" stroke-dashoffset="0" stroke-width="4.5"></circle>
+<!-- Field Cond 25% -->
+<circle cx="18" cy="18" fill="none" r="15.9155" stroke="#f59e0b" stroke-dasharray="25 75" stroke-dashoffset="-45" stroke-width="4.5"></circle>
+<!-- Value Eng 20% -->
+<circle cx="18" cy="18" fill="none" r="15.9155" stroke="#7c3aed" stroke-dasharray="20 80" stroke-dashoffset="-70" stroke-width="4.5"></circle>
+<!-- Owner Add 10% -->
+<circle cx="18" cy="18" fill="none" r="15.9155" stroke="#10b981" stroke-dasharray="10 90" stroke-dashoffset="-90" stroke-width="4.5"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-sm text-xs font-bold text-on-surface">24 Total</span>
+<span class="text-[9px] text-secondary font-mono">Origins</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="space-y-1.5 text-xs flex-1">
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5 text-slate-700">
+<span class="w-2 h-2 rounded-full bg-blue-600"></span> Arch. Spec Revision
+                  </span>
+<span class="font-code-sm font-semibold">45%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5 text-slate-700">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span> Field Condition Drift
+                  </span>
+<span class="font-code-sm font-semibold">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5 text-slate-700">
+<span class="w-2 h-2 rounded-full bg-purple-600"></span> Value Eng. Reversal
+                  </span>
+<span class="font-code-sm font-semibold">20%</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="flex items-center gap-1.5 text-slate-700">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Owner Scope Add
+                  </span>
+<span class="font-code-sm font-semibold">10%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ANALYTIC CARD 3: Critical Path Schedule Slippage -->
+<div class="bg-surface-container-lowest rounded-[14px] p-5 border border-[#E6ECF5] shadow-[0_1px_3px_0_rgba(10,26,51,0.04)]">
+<div class="flex items-center justify-between mb-3">
+<div>
+<h3 class="font-headline-sm text-sm font-bold text-on-surface">Critical Path Milestone Impact</h3>
+<p class="font-body-sm text-xs text-secondary">Curtain wall enclosure delay projection</p>
+</div>
+<span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-mono text-[11px] font-bold">+18 Days</span>
+</div>
+<!-- Gantt bar visualization -->
+<div class="p-3 bg-surface-container-low rounded-lg space-y-3 font-code-sm text-xs">
+<div>
+<div class="flex justify-between text-secondary mb-1">
+<span>Baseline Enclosure Milestone</span>
+<span>Dec 15, 2024</span>
+</div>
+<div class="w-full bg-slate-200 h-2 rounded-full">
+<div class="bg-slate-400 h-full rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-rose-600 font-bold mb-1">
+<span>Forecasted Rev 04 Enclosure</span>
+<span>Jan 02, 2025 (+18d)</span>
+</div>
+<div class="w-full bg-slate-200 h-2 rounded-full">
+<div class="bg-rose-500 h-full rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+<div class="mt-3 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary">Substantial Completion Risk: <strong class="text-amber-700">HIGH</strong></span>
+<a class="font-label-md text-xs text-primary hover:underline flex items-center gap-0.5" href="#">
+                Full Gantt Schedule <span class="material-symbols-outlined text-xs">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- ANALYTIC CARD 4: Export & Verification Package -->
+<div class="bg-gradient-to-br from-inverse-surface to-slate-900 rounded-[14px] p-5 text-white shadow-md relative overflow-hidden">
+<div class="relative z-10 space-y-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-400 text-lg">shield</span>
+<span class="font-label-sm text-xs uppercase tracking-wider text-blue-300 font-semibold">Audit-Ready Legal Package</span>
+</div>
+<h4 class="font-headline-sm text-base font-bold">
+                Generate AIA G701™ Change Order Addendum Report
+              </h4>
+<p class="font-body-sm text-xs text-outline-variant">
+                Includes full OCR side-by-side diff proof, timestamped AI classification, and engineer sign-off hashes.
+              </p>
+<button class="w-full py-2.5 px-4 bg-primary-container hover:bg-blue-600 text-white rounded-lg font-label-md text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 transition">
+<span class="material-symbols-outlined text-base">picture_as_pdf</span>
+                Download 48-Page Stamped Forensic PDF
+              </button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

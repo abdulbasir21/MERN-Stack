@@ -1,6 +1,10 @@
 # Antigravity Secrets Protection
 **/.env*
 !**/.env.example
+**/server/env
+**/frontend/env
+!**/server/env.example
+!**/frontend/env.example
 **/node_modules/
 **/.next/
 **/dist/
