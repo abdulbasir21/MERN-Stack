@@ -70,3 +70,65 @@ Path: `docs/PROGRESS.md`
 - Dark mode toggle seen on Stitch dashboard (spec sets light canvas `#F7FAFE` with navy text).
 - Public demo file upload (spec requires demo to be read-only on pre-seeded documents).
 - Multi-tier billing cards from Stitch homepage (billing/subscriptions are out of MVP scope per MASTER_PROMPT section 14).
+
+---
+
+## Phase 1 — Shared Helpers, Auth Infrastructure, Permissions
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-10
+
+### 1. What was built
+- **Domain Mathematics & Formulas (`server/src/domain/math.js`):**
+  - High-precision decimal arithmetic via `decimal.js` (28 precision, `ROUND_HALF_UP`).
+  - Guaranteed decimal exactness (`0.1 + 0.2 === 0.3`).
+  - Section 7 business logic:
+    - `quantityDifference(revised, original)`: signed difference (`revised - original`).
+    - `estimatedCostDifference(quantityDiff, unitPrice)`: returns `quantityDiff * unitPrice`; returns `null` if unitPrice is missing or empty (BR-I7: never guess a price).
+    - `priceDelta(originalUnitPrice, revisedUnitPrice, revisedQuantity)`: calculates unit price variation delta.
+    - `percentChange(original, revised)`: returns `null` when original is 0 or null; computes signed percentage change.
+    - `roundHalfUp(val, decimals)`: display-only half-up rounding (2 decimal places for currency/percentage).
+- **Calendar Date Calculations in UTC (`server/src/domain/dates.js`):**
+  - `isValidCalendarDate(str)`: strictly checks `YYYY-MM-DD` ISO calendar dates.
+  - `calendarDateDiffDays(startDate, endDate)`: calculates whole calendar days in UTC (signed integer, works across leap years, month boundaries, and year boundaries).
+- **Ownership Scoping & Security (`server/src/domain/ownership.js`):**
+  - `buildOwnerScope(ownerId, extra)`: builds owner-scoped database query filter; throws if ownerId is missing.
+  - `buildProjectScope(ownerId, projectId, extra)`: enforces BR-C4 (every retrieval query requires ownerId and projectId).
+  - `assertOwnership(resource, ownerId)`: throws `404 Not Found` (never 403) when user does not own the resource or resource is null.
+- **Middleware & Security Controls:**
+  - `server/src/middleware/validate.js`: validates `body`, `query`, and `params` against Zod schemas; returns formatted 400 `VALIDATION_ERROR` with field details.
+  - `server/src/middleware/auth.js`: verifies session JWT from httpOnly cookie or Bearer token; attaches `req.user`; returns 401 `UNAUTHENTICATED`.
+  - `server/src/middleware/auth.js` (`requirePermission`): role-permission lookup (Visitor, User); returns 403 `FORBIDDEN`.
+  - `server/src/middleware/csrf.js`: verifies `X-CSRF-Token` header against cookie on mutating HTTP verbs (`POST`, `PUT`, `PATCH`, `DELETE`); returns 403 `FORBIDDEN`; provides `issueCsrfToken(res)`.
+  - `server/src/middleware/rateLimit.js`: express-rate-limit presets for auth (10/15min), uploads (30/15min), investigations (10/15min), and demo (20/hour); returns standard 429 `RATE_LIMITED`.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest:**
+  - `tests/unit/math.test.js`: 17 passed
+  - `tests/unit/ownership.test.js`: 7 passed
+  - `tests/unit/dates.test.js`: 8 passed
+  - `tests/api/middleware.test.js`: 11 passed
+  - `tests/api/health.test.js`: 4 passed
+  - `tests/unit/env.test.js`: 2 passed
+  - **Total Server:** 49 tests passed (6 test files, duration: 2.23s)
+- **Frontend Vitest:**
+  - `src/App.test.jsx`: 1 passed (1 test file, duration: 4.33s)
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking changes not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- `decimal.js` v10.4.3 (official decimal.js documentation)
+- `jsonwebtoken` v9.0.2 (official jsonwebtoken documentation)
+- `bcryptjs` v2.4.3 (official bcryptjs documentation)
+- `express-rate-limit` v7.4.1 (official express-rate-limit documentation)
+- `zod` v3.23.8 (official Zod documentation)
+
+### 4. Decisions Made
+- All currency calculations remain pure string/Decimal internally and are only formatted via `roundHalfUp` at read/display time, guaranteeing zero precision drift.
+- CSRF protection explicitly excludes safe methods (`GET`, `HEAD`, `OPTIONS`) and strictly verifies the `X-CSRF-Token` header for all mutating verbs.
+
+### 5. Suggestions (Not Built — Out of Scope)
+- Dynamic exchange rates / currency conversions (prohibited by BR-P7; projects maintain single currency label).
