@@ -1,0 +1,26 @@
+{
+  "name": "interviewpilot",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev:server": "npm --workspace=@interviewpilot/server run dev",
+    "dev:client": "npm --workspace=@interviewpilot/client run dev",
+    "build": "npm --workspace=@interviewpilot/shared run build && npm --workspace=@interviewpilot/server run build && npm --workspace=@interviewpilot/client run build",
+    "type-check": "npm --workspace=@interviewpilot/shared run type-check && npm --workspace=@interviewpilot/server run type-check && npm --workspace=@interviewpilot/client run type-check",
+    "lint": "eslint --no-error-on-unmatched-pattern shared/src server/src server/tests client/app client/components client/hooks client/lib",
+    "test": "npm --workspace=@interviewpilot/server run test",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "prettier": "^3.5.2",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.25.0"
+  }
+}

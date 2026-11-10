@@ -1,0 +1,540 @@
+﻿<!DOCTYPE html>
+
+<html class="dark h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Interview Room | InterviewPilot</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-highest": "#31353e",
+            "outline-variant": "#424754",
+            "primary": "#adc6ff",
+            "on-tertiary-container": "#0d0096",
+            "on-primary-fixed": "#001a42",
+            "inverse-primary": "#005ac2",
+            "inverse-on-surface": "#2c3039",
+            "tertiary-fixed-dim": "#c0c1ff",
+            "surface-container-low": "#181c24",
+            "secondary-container": "#03b5d3",
+            "on-secondary-fixed-variant": "#004e5c",
+            "on-primary-fixed-variant": "#004395",
+            "on-surface": "#dfe2ee",
+            "surface-tint": "#adc6ff",
+            "error": "#ffb4ab",
+            "on-error": "#690005",
+            "background": "#0f131c",
+            "outline": "#8c909f",
+            "primary-fixed": "#d8e2ff",
+            "on-secondary": "#003640",
+            "on-error-container": "#ffdad6",
+            "error-container": "#93000a",
+            "on-primary": "#002e6a",
+            "tertiary": "#c0c1ff",
+            "primary-fixed-dim": "#adc6ff",
+            "surface-container-high": "#262a33",
+            "on-secondary-fixed": "#001f26",
+            "tertiary-container": "#8083ff",
+            "on-tertiary": "#1000a9",
+            "secondary-fixed-dim": "#4cd7f6",
+            "on-background": "#dfe2ee",
+            "tertiary-fixed": "#e1e0ff",
+            "on-tertiary-fixed": "#07006c",
+            "surface-container-lowest": "#0a0e16",
+            "secondary-fixed": "#acedff",
+            "on-surface-variant": "#c2c6d6",
+            "surface": "#0f131c",
+            "inverse-surface": "#dfe2ee",
+            "surface-variant": "#31353e",
+            "on-primary-container": "#00285d",
+            "primary-container": "#4d8eff",
+            "surface-dim": "#0f131c",
+            "surface-container": "#1c2028",
+            "on-tertiary-fixed-variant": "#2f2ebe",
+            "secondary": "#4cd7f6",
+            "on-secondary-container": "#00424e",
+            "surface-bright": "#353942"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-sm": "1rem",
+            "margin": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem"
+          },
+          "fontFamily": {
+            "label-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "title-md": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "label-caps": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"]
+          },
+          "fontSize": {
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.06em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 20;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.92); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes wave-bounce {
+      0%, 100% { height: 6px; }
+      50% { height: 26px; }
+    }
+    .wave-bar {
+      animation: wave-bounce 1.1s ease-in-out infinite;
+    }
+    .glow-cyan-card {
+      box-shadow: 0 0 24px -4px rgba(6, 182, 212, 0.22);
+    }
+    .glow-primary-btn {
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body-md text-body-md h-full flex flex-col overflow-hidden select-none antialiased">
+<!-- TOP HUD BAR (Cockpit Navigation Header) -->
+<header class="w-full h-16 bg-surface-container-low/90 backdrop-blur-md px-5 flex items-center justify-between z-30 shrink-0 border-b border-outline-variant/30">
+<!-- Left Cluster: Session Context & Brand -->
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 pr-3 border-r border-outline-variant/30">
+<img alt="InterviewPilot Logo" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCY7K_2p3VzmnmOMnQK5YKxvRVLCPJ85RIAnCQl72bRcXE7rvyO-m8u13i7pVq8jJs5jY__bPVPqPWyHP8un_nXjGobcb6_vP6oa71FBkEbkOHt-_OrHkfpUWxf26i4AEI0pFcfF-GlE5FT_cblx1_DUcTwQEp67QXmqDsAnEfJHNOVkepQYapO45WMUhYFzvyWFlXVj7i6VfiNAWt9DsWmueO308UxlhPxyaiPfnkl"/>
+</div>
+<div class="flex items-center gap-2.5">
+<h1 class="font-title-md text-title-md text-on-surface tracking-tight font-semibold flex items-center gap-2">
+          Senior Technical Product Manager - Mock Interview
+        </h1>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-caps text-label-caps uppercase bg-error-container/60 text-error border border-error/30 tracking-wider">
+          Hard
+        </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full font-label-caps text-label-caps bg-surface-container-high text-on-surface-variant border border-outline-variant/40">
+          Mode: CV + Job Description
+        </span>
+</div>
+</div>
+<!-- Center Cluster: Live Cockpit Status Telemetry -->
+<div class="flex items-center gap-4 bg-surface-container-lowest/80 px-4 py-1.5 rounded-full border border-outline-variant/40 shadow-inner">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+</span>
+<span class="font-label-caps text-label-caps text-secondary font-medium tracking-wide">
+          Live Audio Streaming
+        </span>
+</div>
+<span class="h-3 w-px bg-outline-variant/40"></span>
+<div class="flex items-center gap-1.5 font-label-lg text-label-lg text-on-surface font-semibold tracking-wide">
+<span class="material-symbols-outlined text-outline text-[16px]">schedule</span>
+<span>18:42</span>
+<span class="text-outline font-normal text-[12px]">/ 30:00</span>
+</div>
+<span class="h-3 w-px bg-outline-variant/40"></span>
+<div class="flex items-center gap-1 font-label-caps text-label-caps uppercase tracking-wider text-primary font-medium">
+<span class="material-symbols-outlined text-primary text-[15px]">quiz</span>
+<span>Question 3 of 8</span>
+</div>
+</div>
+<!-- Right Cluster: Telemetry & Safety Actions -->
+<div class="flex items-center gap-3">
+<!-- Network Latency Badge -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-container text-body-sm font-body-sm text-on-surface-variant border border-outline-variant/30">
+<span class="material-symbols-outlined text-secondary text-[16px]">wifi</span>
+<span class="font-label-md text-label-md text-on-surface font-medium">24ms ping</span>
+<span class="text-[10px] text-secondary font-semibold">(Optimal)</span>
+</div>
+<!-- Audio Meter Mini -->
+<div class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-container border border-outline-variant/30" title="Audio Input Peak Level">
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">graphic_eq</span>
+<div class="flex items-end gap-0.5 h-3 w-8">
+<span class="w-1 bg-secondary rounded-full h-1.5"></span>
+<span class="w-1 bg-secondary rounded-full h-2.5"></span>
+<span class="w-1 bg-secondary rounded-full h-3"></span>
+<span class="w-1 bg-primary rounded-full h-1"></span>
+</div>
+</div>
+<!-- Emergency Pause Button -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface hover:text-white border border-outline-variant/40 transition-all text-label-md font-label-md active:scale-95">
+<span class="material-symbols-outlined text-[16px]">pause_circle</span>
+<span>Emergency Pause</span>
+</button>
+</div>
+</header>
+<!-- MAIN VIEWPORT STAGE: 2-Panel Executive Split Layout -->
+<main class="flex-1 w-full p-4 overflow-hidden grid grid-cols-12 gap-4">
+<!-- ============================================== -->
+<!-- LEFT PANEL: 3D AI Recruiter Interactive Stage -->
+<!-- ============================================== -->
+<section class="col-span-12 lg:col-span-6 flex flex-col h-full bg-surface-container-low rounded-xl border border-outline-variant/30 overflow-hidden relative shadow-lg">
+<!-- Panel Header Bar: Recruiter Profile & State -->
+<div class="w-full px-4 py-3 bg-surface-container/70 border-b border-outline-variant/20 flex items-center justify-between z-10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center border border-primary/30 text-primary">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold tracking-tight">Dr. Marcus Vance</h2>
+<span class="font-label-caps text-label-caps text-outline bg-surface-container-high px-1.5 py-0.5 rounded border border-outline-variant/30">Head of Leadership Assessment</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline-variant">Simulated Executive Partner â€¢ Autonomous Agent</p>
+</div>
+</div>
+<!-- AI State Selector / Live Status Pill -->
+<div class="flex items-center gap-1.5 bg-surface-container-lowest/80 px-2.5 py-1 rounded-full border border-secondary/40 glow-cyan-card">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse-subtle"></span>
+<span class="font-label-caps text-label-caps text-secondary font-semibold uppercase tracking-wider">AI Recruiter: Speaking</span>
+</div>
+</div>
+<!-- 3D Human AI Recruiter Video Feed Viewport -->
+<div class="relative flex-1 w-full bg-surface-container-lowest flex items-center justify-center overflow-hidden">
+<!-- Recruiter Photorealistic Portrait Frame -->
+<div class="w-full h-full relative flex items-center justify-center">
+<img alt="AI Executive Recruiter Portrait Dr. Marcus Vance" class="w-full h-full object-cover object-top filter brightness-[0.96] contrast-[1.04]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUu_9qlyNKvP3Pq2iFAk1EQ9nYAoy2N73uomFDantMkqDhA82o7xbe4570XhsqbgN0UX0rlgK-LEkQqA-F6nDwX7K24JY3Gt7IJHikcaO9eP-Je3n5t8cRl7vejJ8BLs837NLhngUw3hfTws0o2ymzaHCiBPU5EjK0q7MvQi8ROAJdYvoBvixw9CrEyZOj1GXeNDxG61muP_S0U_s9kUbMdyevGg7yxRdEQA3BvRE"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-surface-container-lowest/30 pointer-events-none"></div>
+<!-- Subtle Inset Edge Glow -->
+<div class="absolute inset-0 pointer-events-none ring-1 ring-inset ring-white/5 rounded-xl"></div>
+<!-- Top-Right Ambient Watermark HUD -->
+<div class="absolute top-3 right-3 flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-lowest/70 backdrop-blur-md border border-outline-variant/30 font-label-caps text-label-caps text-outline">
+<span class="material-symbols-outlined text-[14px] text-secondary">videocam</span>
+<span>4K 60FPS SYNTH</span>
+</div>
+<!-- Pacing & Question Utilities Quick Action Overlay -->
+<div class="absolute top-3 left-3 flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-lowest/75 backdrop-blur-md border border-outline-variant/40 hover:border-primary/50 text-on-surface font-label-md text-label-md transition-all">
+<span class="material-symbols-outlined text-[15px] text-primary">replay</span>
+<span>Repeat Question</span>
+</button>
+<div class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-lowest/75 backdrop-blur-md border border-outline-variant/40 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[14px] text-secondary">speed</span>
+<span>Pacing: Natural</span>
+</div>
+</div>
+<!-- Floating Recruiter AI Speech Frequency Waveform Visualizer -->
+<div class="absolute bottom-28 w-11/12 max-w-md px-4 py-2 rounded-xl bg-surface-container-low/85 backdrop-blur-lg border border-secondary/30 flex items-center justify-between gap-2 shadow-2xl">
+<div class="flex items-center gap-2 text-secondary font-label-caps text-label-caps font-semibold">
+<span class="material-symbols-outlined text-[16px] text-secondary">graphic_eq</span>
+<span>AI Speech Audio Synthesizer</span>
+</div>
+<!-- Frequency Equalizer Bars -->
+<div class="flex items-center gap-1 h-5">
+<span class="w-1 bg-secondary rounded-full wave-bar" style="animation-delay: 0.1s;"></span>
+<span class="w-1 bg-primary rounded-full wave-bar" style="animation-delay: 0.3s;"></span>
+<span class="w-1 bg-secondary rounded-full wave-bar" style="animation-delay: 0.5s;"></span>
+<span class="w-1 bg-secondary-fixed-dim rounded-full wave-bar" style="animation-delay: 0.2s;"></span>
+<span class="w-1 bg-primary rounded-full wave-bar" style="animation-delay: 0.4s;"></span>
+<span class="w-1 bg-secondary rounded-full wave-bar" style="animation-delay: 0.6s;"></span>
+<span class="w-1 bg-tertiary-fixed-dim rounded-full wave-bar" style="animation-delay: 0.15s;"></span>
+<span class="w-1 bg-secondary rounded-full wave-bar" style="animation-delay: 0.35s;"></span>
+</div>
+<span class="font-label-caps text-label-caps text-outline">96.8 kHz</span>
+</div>
+</div>
+<!-- Prompter Question Subtitle Caption Box (Glassmorphic Bottom Overlay) -->
+<div class="absolute bottom-3 inset-x-3 bg-surface-container/90 backdrop-blur-xl border border-outline-variant/40 rounded-xl p-3.5 shadow-2xl">
+<div class="flex items-center justify-between mb-1.5">
+<span class="font-label-caps text-label-caps uppercase text-primary font-semibold tracking-wider flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">psychology</span>
+              Live Behavioral Inquiry (STAR Methodology)
+            </span>
+<span class="font-label-caps text-label-caps text-outline">Question 3 of 8</span>
+</div>
+<p class="font-title-md text-title-md text-on-surface font-medium leading-relaxed tracking-tight">
+            â€œTell me about a time you had to pivot your product roadmap due to unexpected regulatory constraints or competitive disruption. How did you realign engineering and stakeholder expectations?â€
+          </p>
+</div>
+</div>
+</section>
+<!-- ============================================================== -->
+<!-- RIGHT PANEL: Candidate Voice & Live Feedback Stage (No Webcam) -->
+<!-- ============================================================== -->
+<section class="col-span-12 lg:col-span-6 flex flex-col h-full bg-surface-container-low rounded-xl border border-outline-variant/30 overflow-hidden relative shadow-lg">
+<!-- Candidate Identity & Target Role Bar -->
+<div class="w-full px-4 py-3 bg-surface-container/70 border-b border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-label-lg border border-primary/40">
+            AM
+          </div>
+<div>
+<div class="flex items-center gap-2">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold tracking-tight">Alex Morgan</h2>
+<span class="font-label-caps text-label-caps text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">Candidate</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">Target Role: Staff TPM / Director of Product</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<!-- Voice Mode Telemetry Chip -->
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high border border-outline-variant/40 text-on-surface-variant font-label-md text-label-md">
+<span class="material-symbols-outlined text-[15px] text-secondary">mic</span>
+<span>Studio Voice Engine</span>
+</div>
+<!-- Noise Cancellation Pill -->
+<div class="flex items-center gap-1 px-2 py-1 rounded bg-secondary/10 border border-secondary/30 text-secondary font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[14px]">noise_aware</span>
+<span>AI Noise Suppress ON</span>
+</div>
+</div>
+</div>
+<!-- Stage Body: Interactive Voice Waveform, Live Transcription & Feedback HUD -->
+<div class="flex-1 p-4 flex flex-col gap-3.5 overflow-y-auto">
+<!-- 1. Interactive Large Voice Waveform Visualizer Stage -->
+<div class="w-full bg-surface-container rounded-xl border border-outline-variant/30 p-4 relative overflow-hidden flex flex-col justify-between">
+<!-- Decorative subtle gradient backdrop -->
+<div class="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/10 to-transparent pointer-events-none"></div>
+<!-- Waveform Header Telemetry -->
+<div class="flex items-center justify-between mb-2 z-10">
+<div class="flex items-center gap-2">
+<span class="flex h-2 w-2 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-caps text-label-caps uppercase text-secondary font-semibold tracking-wider">Candidate Audio Input Detected</span>
+</div>
+<div class="flex items-center gap-3 text-outline font-label-md text-label-md">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+                -12 dB (Nominal)
+              </span>
+<span>â€¢</span>
+<span class="text-secondary font-medium">Active Response in Progress</span>
+</div>
+</div>
+<!-- High-Fidelity Audio Soundwave Canvas Simulation -->
+<div class="h-20 w-full flex items-center justify-between gap-1 px-2 py-1 z-10">
+<!-- Simulated Waveform Bars representing real candidate speech -->
+<div class="h-4 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-7 w-1 bg-outline-variant/80 rounded-full"></div>
+<div class="h-12 w-1.5 bg-primary/70 rounded-full"></div>
+<div class="h-16 w-1.5 bg-primary rounded-full"></div>
+<div class="h-10 w-1 bg-secondary rounded-full"></div>
+<div class="h-14 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-18 w-2 bg-secondary rounded-full shadow-[0_0_8px_rgba(76,215,246,0.6)]"></div>
+<div class="h-12 w-1.5 bg-primary rounded-full"></div>
+<div class="h-8 w-1 bg-primary/80 rounded-full"></div>
+<div class="h-14 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-16 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-10 w-1 bg-primary/70 rounded-full"></div>
+<div class="h-6 w-1 bg-outline-variant/70 rounded-full"></div>
+<div class="h-12 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-18 w-2 bg-secondary rounded-full shadow-[0_0_8px_rgba(76,215,246,0.6)]"></div>
+<div class="h-14 w-1.5 bg-primary rounded-full"></div>
+<div class="h-8 w-1 bg-outline-variant/90 rounded-full"></div>
+<div class="h-16 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-12 w-1.5 bg-primary rounded-full"></div>
+<div class="h-6 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-9 w-1 bg-primary/60 rounded-full"></div>
+<div class="h-15 w-1.5 bg-secondary rounded-full"></div>
+<div class="h-10 w-1 bg-outline-variant/80 rounded-full"></div>
+<div class="h-5 w-1 bg-outline-variant/40 rounded-full"></div>
+</div>
+<!-- Bottom Waveform Indicators -->
+<div class="flex items-center justify-between text-body-sm font-body-sm text-outline z-10 pt-1 border-t border-outline-variant/20">
+<span class="flex items-center gap-1 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px] text-secondary">spatial_audio</span>
+              Vocal Clarity: Clear &amp; Articulate
+            </span>
+<span class="font-label-caps text-label-caps text-outline-variant">Sample Rate: 48,000 Hz Lossless</span>
+</div>
+</div>
+<!-- 2. Live Real-Time Transcription Feed -->
+<div class="w-full bg-surface-container rounded-xl border border-outline-variant/30 p-3.5 flex flex-col flex-1 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[16px]">transcribe</span>
+<span class="font-label-caps text-label-caps text-on-surface font-semibold uppercase tracking-wider">Live Speech-to-Text Transcription</span>
+</div>
+<span class="font-label-caps text-label-caps text-secondary bg-secondary/10 px-2 py-0.5 rounded border border-secondary/20">
+              Confidence: 99.2%
+            </span>
+</div>
+<div class="bg-surface-container-lowest/80 rounded-lg p-3 border border-outline-variant/30 font-body-md text-body-md text-on-surface flex-1 flex flex-col justify-start leading-relaxed overflow-y-auto max-h-44">
+<p class="text-on-surface-variant font-normal">
+<span class="text-secondary font-medium mr-1.5">[Speech recognized]:</span>
+              â€œIn my previous role at Stripe, we faced a sudden compliance mandate under the EU Digital Services Act. We had a three-month runway to redesign our merchant onboarding engine without stalling pending enterprise deals. I spearheaded a bi-weekly triage framework between legal engineering and executive stakeholders to systematically unblock high-impact dependencies...â€
+              <span class="inline-block w-2 h-4 ml-1 bg-secondary animate-pulse align-middle"></span>
+</p>
+</div>
+</div>
+<!-- 3. Real-Time Coaching Metrics Bento Row -->
+<div class="grid grid-cols-4 gap-2.5">
+<!-- Metric 1: Cadence -->
+<div class="bg-surface-container p-2.5 rounded-xl border border-outline-variant/30 flex flex-col">
+<div class="flex items-center justify-between text-outline mb-1">
+<span class="font-label-caps text-label-caps uppercase">Cadence</span>
+<span class="material-symbols-outlined text-[15px] text-primary">speed</span>
+</div>
+<div class="font-title-md text-title-md text-on-surface font-bold">138 <span class="text-[11px] font-normal text-outline">wpm</span></div>
+<div class="font-label-caps text-label-caps text-secondary font-medium mt-0.5">Optimal pace</div>
+</div>
+<!-- Metric 2: Filler Words -->
+<div class="bg-surface-container p-2.5 rounded-xl border border-outline-variant/30 flex flex-col">
+<div class="flex items-center justify-between text-outline mb-1">
+<span class="font-label-caps text-label-caps uppercase">Filler Words</span>
+<span class="material-symbols-outlined text-[15px] text-secondary">spellcheck</span>
+</div>
+<div class="font-title-md text-title-md text-on-surface font-bold">0 <span class="text-[11px] font-normal text-outline">detected</span></div>
+<div class="font-label-caps text-label-caps text-secondary font-medium mt-0.5">Zero hesitations</div>
+</div>
+<!-- Metric 3: Clarity -->
+<div class="bg-surface-container p-2.5 rounded-xl border border-outline-variant/30 flex flex-col">
+<div class="flex items-center justify-between text-outline mb-1">
+<span class="font-label-caps text-label-caps uppercase">Clarity Score</span>
+<span class="material-symbols-outlined text-[15px] text-tertiary">check_circle</span>
+</div>
+<div class="font-title-md text-title-md text-on-surface font-bold">94%</div>
+<div class="font-label-caps text-label-caps text-tertiary font-medium mt-0.5">Executive Tone</div>
+</div>
+<!-- Metric 4: Directness -->
+<div class="bg-surface-container p-2.5 rounded-xl border border-outline-variant/30 flex flex-col">
+<div class="flex items-center justify-between text-outline mb-1">
+<span class="font-label-caps text-label-caps uppercase">Sentiment</span>
+<span class="material-symbols-outlined text-[15px] text-primary">psychology_alt</span>
+</div>
+<div class="font-title-md text-title-md text-on-surface font-bold">Resolute</div>
+<div class="font-label-caps text-label-caps text-primary font-medium mt-0.5">Strong Ownership</div>
+</div>
+</div>
+<!-- 4. STAR Framework Coverage Tracker -->
+<div class="w-full bg-surface-container rounded-xl border border-outline-variant/30 px-3.5 py-2.5 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-primary">account_tree</span>
+<span class="font-label-caps text-label-caps uppercase text-on-surface font-semibold tracking-wider">STAR Framework Coverage:</span>
+</div>
+<div class="flex items-center gap-2">
+<!-- Situation Complete -->
+<div class="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary/15 border border-secondary/30 text-secondary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">done</span>
+<span>Situation</span>
+</div>
+<!-- Task Complete -->
+<div class="flex items-center gap-1 px-2.5 py-1 rounded bg-secondary/15 border border-secondary/30 text-secondary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[15px]">done</span>
+<span>Task</span>
+</div>
+<!-- Action (ACTIVE) -->
+<div class="flex items-center gap-1 px-2.5 py-1 rounded bg-primary-container text-on-primary-container font-label-md text-label-md font-semibold border border-primary animate-pulse">
+<span class="material-symbols-outlined text-[15px]">record_voice_over</span>
+<span>Action [Active]</span>
+</div>
+<!-- Result (Pending) -->
+<div class="flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-high border border-outline-variant/40 text-outline font-label-md text-label-md">
+<span class="material-symbols-outlined text-[15px]">hourglass_empty</span>
+<span>Result [Pending]</span>
+</div>
+</div>
+</div>
+<!-- 5. Workflow Stage Timeline Indicator -->
+<div class="w-full bg-surface-container-lowest/60 rounded-lg px-3 py-2 border border-outline-variant/20 flex items-center justify-between text-body-sm font-body-sm">
+<span class="text-outline font-label-caps text-label-caps">Pipeline:</span>
+<div class="flex items-center gap-2 font-label-md text-label-md text-outline">
+<span class="line-through text-outline/60">Preparing</span>
+<span class="text-outline/40">â†’</span>
+<span class="line-through text-outline/60">Recruiter Speaking</span>
+<span class="text-outline/40">â†’</span>
+<span class="text-secondary font-semibold bg-secondary/10 px-2 py-0.5 rounded border border-secondary/30">Listening to You [ACTIVE]</span>
+<span class="text-outline/40">â†’</span>
+<span class="text-outline/70">Processing Answer</span>
+<span class="text-outline/40">â†’</span>
+<span class="text-outline/70">Next Question</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ============================================== -->
+<!-- BOTTOM ACTION DOCK (Tactile Executive Control) -->
+<!-- ============================================== -->
+<footer class="w-full h-18 bg-surface-container-low/95 backdrop-blur-xl px-6 py-3 flex items-center justify-between shrink-0 border-t border-outline-variant/30 z-30">
+<!-- Dock Left: Audio Safety & Buffer Verification -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 text-outline-variant font-label-md text-label-md bg-surface-container px-3 py-1.5 rounded-lg border border-outline-variant/30">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface-variant font-medium">Audio buffer sync stable</span>
+<span class="text-outline">â€¢</span>
+<span class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+          256-bit Encrypted Voice Session
+        </span>
+</div>
+</div>
+<!-- Dock Center: High-Impact Tactile Action Control Group -->
+<div class="flex items-center gap-3">
+<!-- Mic Toggle (Shortcut Space) -->
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 text-on-surface font-label-lg text-label-lg transition-all active:scale-95 shadow-sm group">
+<span class="material-symbols-outlined text-secondary text-[20px] group-hover:scale-110 transition-transform">mic</span>
+<span class="font-medium">Mute Mic</span>
+<kbd class="px-1.5 py-0.5 rounded bg-surface-container-highest border border-outline-variant/50 font-label-caps text-label-caps text-outline">Space</kbd>
+</button>
+<!-- Primary Action: Finish Answer (Prominent Blue Glow) -->
+<button class="flex items-center gap-2.5 px-6 py-2.5 rounded-xl bg-primary text-on-primary-fixed font-title-md text-title-md font-semibold hover:bg-primary-fixed-dim transition-all active:scale-95 glow-primary-btn shadow-lg">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span>Finish Answer</span>
+<span class="material-symbols-outlined text-[16px] -ml-1">arrow_forward</span>
+</button>
+<!-- Secondary: Ask a Clarification / Question -->
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/50 text-on-surface font-label-lg text-label-lg transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary text-[20px]">help_center</span>
+<span>Ask a Question</span>
+</button>
+</div>
+<!-- Dock Right: Safe Session Termination Control -->
+<div class="flex items-center gap-2">
+<!-- Session Settings Dropdown Trigger -->
+<button class="p-2 rounded-xl bg-surface-container hover:bg-surface-container-high border border-outline-variant/40 text-on-surface-variant hover:text-on-surface transition-all active:scale-95" title="Hardware Settings">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<!-- End Interview Button (Destructive with Safe Confirmation trigger) -->
+<button class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-error-container/40 hover:bg-error-container text-error hover:text-on-error-container border border-error/40 transition-all font-label-lg text-label-lg active:scale-95">
+<span class="material-symbols-outlined text-[18px]">call_end</span>
+<span class="font-medium">End Interview</span>
+</button>
+</div>
+</footer>
+</body></html>

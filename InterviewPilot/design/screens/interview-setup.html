@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interview Setup - InterviewPilot</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-highest": "#31353e",
+            "outline-variant": "#424754",
+            "primary": "#adc6ff",
+            "on-tertiary-container": "#0d0096",
+            "on-primary-fixed": "#001a42",
+            "inverse-primary": "#005ac2",
+            "inverse-on-surface": "#2c3039",
+            "tertiary-fixed-dim": "#c0c1ff",
+            "surface-container-low": "#181c24",
+            "secondary-container": "#03b5d3",
+            "on-secondary-fixed-variant": "#004e5c",
+            "on-primary-fixed-variant": "#004395",
+            "on-surface": "#dfe2ee",
+            "surface-tint": "#adc6ff",
+            "error": "#ffb4ab",
+            "on-error": "#690005",
+            "background": "#0f131c",
+            "outline": "#8c909f",
+            "primary-fixed": "#d8e2ff",
+            "on-secondary": "#003640",
+            "on-error-container": "#ffdad6",
+            "error-container": "#93000a",
+            "on-primary": "#002e6a",
+            "tertiary": "#c0c1ff",
+            "primary-fixed-dim": "#adc6ff",
+            "surface-container-high": "#262a33",
+            "on-secondary-fixed": "#001f26",
+            "tertiary-container": "#8083ff",
+            "on-tertiary": "#1000a9",
+            "secondary-fixed-dim": "#4cd7f6",
+            "on-background": "#dfe2ee",
+            "tertiary-fixed": "#e1e0ff",
+            "on-tertiary-fixed": "#07006c",
+            "surface-container-lowest": "#0a0e16",
+            "secondary-fixed": "#acedff",
+            "on-surface-variant": "#c2c6d6",
+            "surface": "#0f131c",
+            "inverse-surface": "#dfe2ee",
+            "surface-variant": "#31353e",
+            "on-primary-container": "#00285d",
+            "primary-container": "#4d8eff",
+            "surface-dim": "#0f131c",
+            "surface-container": "#1c2028",
+            "on-tertiary-fixed-variant": "#2f2ebe",
+            "secondary": "#4cd7f6",
+            "on-secondary-container": "#00424e",
+            "surface-bright": "#353942"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-sm": "1rem",
+            "margin": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem"
+          },
+          "fontFamily": {
+            "label-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "title-md": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "label-caps": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"]
+          },
+          "fontSize": {
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.06em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .glow-cyan-subtle {
+      box-shadow: 0 0 24px -4px rgba(6, 182, 212, 0.28), 0 0 0 1px rgba(76, 215, 246, 0.6);
+    }
+    .hud-hairline {
+      border: 1px solid rgba(66, 71, 84, 0.35);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen selection:bg-secondary-container selection:text-on-secondary flex flex-col font-body-md text-body-md">
+<!-- TOP APP BAR -->
+<header class="w-full px-6 lg:px-12 flex justify-between items-center h-16 bg-surface/80 backdrop-blur-md docked full-width top-0 z-50 border-b border-outline-variant/30 shadow-sm sticky">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-3">
+<img alt="InterviewPilot Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCY7K_2p3VzmnmOMnQK5YKxvRVLCPJ85RIAnCQl72bRcXE7rvyO-m8u13i7pVq8jJs5jY__bPVPqPWyHP8un_nXjGobcb6_vP6oa71FBkEbkOHt-_OrHkfpUWxf26i4AEI0pFcfF-GlE5FT_cblx1_DUcTwQEp67QXmqDsAnEfJHNOVkepQYapO45WMUhYFzvyWFlXVj7i6VfiNAWt9DsWmueO308UxlhPxyaiPfnkl"/>
+</div>
+<div class="h-5 w-px bg-outline-variant/30 hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<span class="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-secondary tracking-widest">SETUP COCKPIT</span>
+</div>
+</div>
+<!-- Multi-Step Flow Indicator -->
+<nav class="hidden lg:flex items-center gap-3">
+<div class="flex items-center gap-2 text-primary font-label-lg text-label-lg">
+<span class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">1</span>
+<span>Select Mode</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-base" data-icon="chevron_right">chevron_right</span>
+<div class="flex items-center gap-2 text-secondary font-label-lg text-label-lg font-semibold">
+<span class="w-6 h-6 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-bold text-xs ring-4 ring-secondary/20">2</span>
+<span class="text-on-surface">Parameters &amp; Role</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-base" data-icon="chevron_right">chevron_right</span>
+<div class="flex items-center gap-2 text-on-surface-variant font-label-lg text-label-lg">
+<span class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-xs">3</span>
+<span>Documents &amp; Context</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant text-base" data-icon="chevron_right">chevron_right</span>
+<div class="flex items-center gap-2 text-outline font-label-lg text-label-lg opacity-60">
+<span class="w-6 h-6 rounded-full bg-surface-container-high text-outline flex items-center justify-center text-xs">4</span>
+<span>Device Check</span>
+</div>
+</nav>
+<!-- Header Actions -->
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors duration-150 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors duration-150">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full ring-1 ring-outline-variant/50 overflow-hidden bg-surface-container-high flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="Close-up professional studio portrait of an executive female candidate with subtle blue telemetry lighting reflections, high sharpness, dark studio background, refined corporate aesthetics." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4q3KSGVIDoK-KgfBNO9Q0y1SZu2rFpk3xh_rhZALlgeKY_4dZWDuoEGXzdSkGityYhxII8OD5iEleplmTJgT9jf3VHmRwB_WgZXX7Foyf11CpDKZEHppNQmr-bwbsrGly1KnXEesvWLEKMi04KpUyEKvaoOrD9kfJpgS7Q56GEf3oAauyslLPjHw2N1WfnHt9gCnaf55HhZRK9vTToVpUfdDid4IxjvMXlA66KLg"/>
+</div>
+</div>
+</header>
+<!-- MAIN VIEWPORT CONTAINER -->
+<main class="flex-1 w-full max-w-7xl mx-auto px-6 lg:px-12 py-8 space-y-8">
+<!-- PAGE HERO HEADER -->
+<div class="space-y-2 border-b border-outline-variant/20 pb-6">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-surface-container-low border border-outline-variant/30 text-secondary">
+<span class="material-symbols-outlined" data-icon="tune">tune</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-semibold tracking-tight">Configure Your Mock Interview</h1>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-3xl">
+        Customize the AI recruiter persona, question difficulty, and evaluation criteria.
+      </p>
+</div>
+<!-- 1. FOUR SELECTABLE MODE CARDS -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Step 1</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Select Simulation Mode</h2>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Choose assessment paradigm</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Card 1 -->
+<div class="relative p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 hover:border-outline hover:bg-surface-container transition-all duration-200 cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform mb-4">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mb-2">General Practice</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Curated standard industry question bank for standard roles.
+            </p>
+</div>
+<div class="mt-6 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<span>Adaptive baseline</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="relative p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 hover:border-outline hover:bg-surface-container transition-all duration-200 cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform mb-4">
+<span class="material-symbols-outlined" data-icon="badge">badge</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mb-2">CV-Based Interview</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Deep dive into your past experiences, projects, and career resume.
+            </p>
+</div>
+<div class="mt-6 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<span>Resume forensic</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="relative p-5 rounded-xl bg-surface-container-low border border-outline-variant/40 hover:border-outline hover:bg-surface-container transition-all duration-200 cursor-pointer flex flex-col justify-between group">
+<div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary group-hover:scale-105 transition-transform mb-4">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mb-2">Job Description-Based</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Target a specific company opening, matching questions to mandatory requirements.
+            </p>
+</div>
+<div class="mt-6 pt-3 border-t border-outline-variant/20 flex items-center justify-between text-on-surface-variant font-label-md text-label-md">
+<span>Vacancy aligned</span>
+<span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Card 4: Active / Recommended -->
+<div class="relative p-5 rounded-xl bg-surface-container-high border-2 border-secondary glow-cyan-subtle cursor-pointer flex flex-col justify-between">
+<div class="absolute -top-3 right-4 px-2.5 py-0.5 rounded-full bg-secondary text-on-secondary font-label-caps text-label-caps uppercase tracking-wider font-semibold shadow-sm">
+            Most Realistic
+          </div>
+<div>
+<div class="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center text-secondary mb-4">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface font-semibold mb-2 flex items-center gap-1.5">
+              CV + Job Description
+              <span class="font-label-md text-label-md text-secondary font-normal">(Recommended)</span>
+</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Full simulation testing resume fit against exact target vacancy.
+            </p>
+</div>
+<div class="mt-6 pt-3 border-t border-outline-variant/40 flex items-center justify-between text-secondary font-label-md text-label-md font-semibold">
+<span>Selected Environment</span>
+<span class="material-symbols-outlined text-sm" data-icon="check_circle" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</section>
+<!-- BENTO 2-COLUMN GRID: CONFIGURATION & DOCUMENTS -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- LEFT: CONFIGURATION FORM CARDS (7 Cols) -->
+<section class="lg:col-span-7 space-y-6">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Step 2</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Session Parameters &amp; Role</h2>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/30 space-y-6">
+<!-- Role & Title Input -->
+<div class="space-y-2">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Target Role &amp; Title</label>
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-outline-variant pointer-events-none">
+<span class="material-symbols-outlined text-lg" data-icon="search">search</span>
+</span>
+<input class="w-full bg-surface-container border border-outline-variant/50 focus:border-secondary focus:ring-1 focus:ring-secondary rounded-lg pl-10 pr-4 py-2.5 text-on-surface font-body-md text-body-md placeholder:text-outline transition-all duration-150" type="text" value="Senior Product Manager - Infrastructure"/>
+</div>
+<!-- Quick Suggestions -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="font-label-md text-label-md text-outline">Quick Suggestions:</span>
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md hover:text-on-surface transition-colors" type="button">Fullstack Engineer</button>
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md hover:text-on-surface transition-colors" type="button">Engineering Manager</button>
+<button class="px-2.5 py-1 rounded-full bg-surface-container hover:bg-surface-container-high border border-outline-variant/30 text-on-surface-variant font-label-md text-label-md hover:text-on-surface transition-colors" type="button">Product Lead</button>
+</div>
+</div>
+<!-- Experience Level Selector -->
+<div class="space-y-2.5">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Experience Level</label>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<button class="py-2.5 px-3 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:text-on-surface hover:border-outline font-label-md text-label-md text-center transition-all" type="button">
+                Beginner <span class="block text-outline text-[10px] mt-0.5">0-2 yrs</span>
+</button>
+<button class="py-2.5 px-3 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:text-on-surface hover:border-outline font-label-md text-label-md text-center transition-all" type="button">
+                Intermediate <span class="block text-outline text-[10px] mt-0.5">3-5 yrs</span>
+</button>
+<!-- Active Pill -->
+<button class="py-2.5 px-3 rounded-lg border border-secondary bg-secondary-container/10 text-secondary font-label-md text-label-md text-center ring-1 ring-secondary/40 font-semibold transition-all" type="button">
+                Experienced <span class="block text-secondary/80 text-[10px] mt-0.5">6-10+ yrs</span>
+</button>
+<button class="py-2.5 px-3 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:text-on-surface hover:border-outline font-label-md text-label-md text-center transition-all" type="button">
+                Executive <span class="block text-outline text-[10px] mt-0.5">C-Suite</span>
+</button>
+</div>
+</div>
+<!-- Interview Type Selector -->
+<div class="space-y-2.5">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Interview Type Focus</label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+<button class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:text-on-surface hover:border-outline font-label-md text-label-md transition-all" type="button">
+<span class="material-symbols-outlined text-base" data-icon="terminal">terminal</span>
+                Technical
+              </button>
+<button class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:text-on-surface hover:border-outline font-label-md text-label-md transition-all" type="button">
+<span class="material-symbols-outlined text-base" data-icon="psychology">psychology</span>
+                HR Screening
+              </button>
+<!-- Active Pill -->
+<button class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg border border-secondary bg-secondary-container/10 text-secondary font-label-md text-label-md ring-1 ring-secondary/40 font-semibold transition-all" type="button">
+<span class="material-symbols-outlined text-base" data-icon="groups">groups</span>
+                Behavioral &amp; Leadership
+              </button>
+</div>
+</div>
+<!-- Segmented Difficulty & Duration Matrix -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2 border-t border-outline-variant/20">
+<!-- Difficulty Level -->
+<div class="space-y-2">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Difficulty Level</label>
+<div class="grid grid-cols-3 gap-1 p-1 bg-surface-container rounded-lg border border-outline-variant/30">
+<button class="py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface text-center" type="button">Easy</button>
+<button class="py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface text-center" type="button">Medium</button>
+<!-- Active Difficulty -->
+<button class="py-1.5 rounded font-label-md text-label-md bg-secondary text-on-secondary font-semibold text-center shadow-sm" type="button">
+                  Hard
+                </button>
+</div>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="info">info</span>
+                Stricter follow-ups, counter-arguments &amp; edge cases
+              </p>
+</div>
+<!-- Session Duration -->
+<div class="space-y-2">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Session Duration</label>
+<div class="grid grid-cols-3 gap-1 p-1 bg-surface-container rounded-lg border border-outline-variant/30">
+<button class="py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface text-center" type="button">15 Min</button>
+<!-- Active Duration -->
+<button class="py-1.5 rounded font-label-md text-label-md bg-secondary text-on-secondary font-semibold text-center shadow-sm" type="button">30 Min</button>
+<button class="py-1.5 rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface text-center" type="button">45 Min</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Standard Loop with debrief (~6-8 questions)</p>
+</div>
+</div>
+<!-- Optional Question Count Override -->
+<div class="pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+<div>
+<span class="font-label-lg text-label-lg text-on-surface font-medium block">Question Count Override</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Let the AI dynamically pace queries within time slot</span>
+</div>
+<span class="px-3 py-1.5 rounded-lg bg-surface-container border border-outline-variant/40 text-on-surface font-label-md text-label-md font-semibold">
+              Default (6-8 Questions)
+            </span>
+</div>
+</div>
+</section>
+<!-- RIGHT: CONTEXT DOCUMENT UPLOAD ZONE (5 Cols) -->
+<section class="lg:col-span-5 space-y-6">
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-wider">Step 3</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Documents &amp; Context</h2>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border border-outline-variant/30 space-y-6">
+<!-- Drag and Drop Resume Area -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Candidate CV / Resume</label>
+<span class="font-label-md text-label-md text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-xs" data-icon="check_circle">check_circle</span>
+                Parsed
+              </span>
+</div>
+<!-- Upload Container with dashed blue border -->
+<div class="border-2 border-dashed border-secondary/40 hover:border-secondary rounded-xl p-5 bg-surface-container/40 text-center transition-all duration-200 cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-secondary-container/10 text-secondary mx-auto flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-2xl" data-icon="upload_file">upload_file</span>
+</div>
+<p class="font-label-lg text-label-lg text-on-surface font-medium">
+                Drop your CV / Resume here or <span class="text-secondary underline underline-offset-4">Browse files</span>
+</p>
+<p class="font-body-sm text-body-sm text-outline mt-1">PDF, DOCX up to 10MB</p>
+<!-- Uploaded Chip Indicator -->
+<div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-high border border-outline-variant/50 text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-secondary text-base" data-icon="description">description</span>
+<span class="font-medium text-on-surface truncate max-w-[190px]">Alex_Morgan_Resume_2025.pdf</span>
+<span class="text-outline text-xs">(1.4MB)</span>
+<span class="material-symbols-outlined text-secondary text-base ml-1" data-icon="check" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check</span>
+<span class="text-xs text-secondary font-medium">Ready</span>
+</div>
+</div>
+</div>
+<!-- Job Description Area -->
+<div class="space-y-3 pt-2 border-t border-outline-variant/20">
+<div class="flex items-center justify-between">
+<label class="block font-label-lg text-label-lg text-on-surface font-medium">Target Job Description</label>
+<div class="flex items-center gap-1 p-0.5 bg-surface-container rounded-lg border border-outline-variant/30 text-xs">
+<button class="px-2 py-1 rounded text-on-surface-variant hover:text-on-surface" type="button">Upload JD File</button>
+<button class="px-2 py-1 rounded bg-secondary text-on-secondary font-medium" type="button">Paste Text</button>
+</div>
+</div>
+<!-- Expandable Paste Textarea -->
+<div class="relative">
+<textarea class="w-full bg-surface-container border border-outline-variant/40 focus:border-secondary focus:ring-1 focus:ring-secondary rounded-lg p-3 text-on-surface font-body-sm text-body-sm placeholder:text-outline/70 resize-none transition-all leading-relaxed" placeholder="Paste full Job Description here...
+
+Key Responsibilities:
+â€¢ Lead technical strategy for core cloud services and resilience.
+â€¢ Manage cross-functional stakeholder roadmaps across 4 distributed pods.
+â€¢ Deep understanding of microservices, distributed caching, and zero-downtime migrations." rows="5"></textarea>
+<div class="absolute bottom-2.5 right-3 text-right">
+<span class="font-label-caps text-label-caps text-outline bg-surface-container px-1.5 py-0.5 rounded">384 words detected</span>
+</div>
+</div>
+<!-- AI Parsing Assurance Card -->
+<div class="p-3 rounded-lg bg-surface-container/60 border border-outline-variant/20 flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary text-lg mt-0.5" data-icon="bolt">bolt</span>
+<div>
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Semantic Match Synthesis</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The AI engine will cross-reference CV bullet points with mandatory JD competencies to tailor behavioral drills.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- ACTION FOOTER: DOCKED BOTTOM TELEMETRY & PRIMARY ACTIONS -->
+<footer class="w-full bg-surface-container-lowest/90 backdrop-blur-lg border-t border-outline-variant/30 px-6 lg:px-12 py-4 mt-auto sticky bottom-0 z-40">
+<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<!-- Left: Estimated Prep Telemetry -->
+<div class="flex items-center gap-3 w-full sm:w-auto">
+<div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-secondary-container/20 text-secondary">
+<span class="material-symbols-outlined text-lg animate-spin" data-icon="progress_activity" style="animation-duration: 3s;">progress_activity</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Neural Persona Engine</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-caps text-label-caps text-secondary">STANDBY</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            AI Recruiter analyzes context in <span class="text-on-surface font-semibold">~12 seconds</span>
+</p>
+</div>
+</div>
+<!-- Right: Action Buttons -->
+<div class="flex items-center justify-end gap-3 w-full sm:w-auto">
+<button class="px-5 py-2.5 rounded-lg border border-outline-variant/40 bg-surface-container text-on-surface hover:bg-surface-container-high hover:border-outline font-label-lg text-label-lg transition-all duration-150 active:scale-95" type="button">
+          Cancel
+        </button>
+<button class="px-6 py-2.5 rounded-lg bg-secondary text-on-secondary font-label-lg text-label-lg font-semibold hover:bg-secondary-fixed transition-all duration-150 active:scale-95 flex items-center gap-2 shadow-lg shadow-secondary/20 hover:shadow-secondary/40" type="button">
+<span>Continue to Device Check</span>
+<span class="material-symbols-outlined text-lg font-bold" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</footer>
+</body></html>

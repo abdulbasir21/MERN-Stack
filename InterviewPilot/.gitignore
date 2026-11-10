@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment variables (NEVER COMMIT REAL .ENV FILES)
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+client/.env
+client/.env.*
+!client/.env.example
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Logs & OS
+logs/
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Temp uploads
+tmp/
+uploads/

@@ -1,0 +1,690 @@
+﻿<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>InterviewPilot - Executive Evaluation Report</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-highest": "#31353e",
+            "outline-variant": "#424754",
+            "primary": "#adc6ff",
+            "on-tertiary-container": "#0d0096",
+            "on-primary-fixed": "#001a42",
+            "inverse-primary": "#005ac2",
+            "inverse-on-surface": "#2c3039",
+            "tertiary-fixed-dim": "#c0c1ff",
+            "surface-container-low": "#181c24",
+            "secondary-container": "#03b5d3",
+            "on-secondary-fixed-variant": "#004e5c",
+            "on-primary-fixed-variant": "#004395",
+            "on-surface": "#dfe2ee",
+            "surface-tint": "#adc6ff",
+            "error": "#ffb4ab",
+            "on-error": "#690005",
+            "background": "#0f131c",
+            "outline": "#8c909f",
+            "primary-fixed": "#d8e2ff",
+            "on-secondary": "#003640",
+            "on-error-container": "#ffdad6",
+            "error-container": "#93000a",
+            "on-primary": "#002e6a",
+            "tertiary": "#c0c1ff",
+            "primary-fixed-dim": "#adc6ff",
+            "surface-container-high": "#262a33",
+            "on-secondary-fixed": "#001f26",
+            "tertiary-container": "#8083ff",
+            "on-tertiary": "#1000a9",
+            "secondary-fixed-dim": "#4cd7f6",
+            "on-background": "#dfe2ee",
+            "tertiary-fixed": "#e1e0ff",
+            "on-tertiary-fixed": "#07006c",
+            "surface-container-lowest": "#0a0e16",
+            "secondary-fixed": "#acedff",
+            "on-surface-variant": "#c2c6d6",
+            "surface": "#0f131c",
+            "inverse-surface": "#dfe2ee",
+            "surface-variant": "#31353e",
+            "on-primary-container": "#00285d",
+            "primary-container": "#4d8eff",
+            "surface-dim": "#0f131c",
+            "surface-container": "#1c2028",
+            "on-tertiary-fixed-variant": "#2f2ebe",
+            "secondary": "#4cd7f6",
+            "on-secondary-container": "#00424e",
+            "surface-bright": "#353942"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "gutter-sm": "1rem",
+            "gutter": "1.5rem",
+            "space-xs": "0.25rem",
+            "margin-sm": "1rem",
+            "margin": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem",
+            "space-xl": "2.5rem"
+          },
+          "fontFamily": {
+            "label-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "title-md": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-lg-mobile": ["Inter"],
+            "label-caps": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-sm": ["Inter"]
+          },
+          "fontSize": {
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "22px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "18px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-xl": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.06em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.005em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex selection:bg-primary selection:text-on-primary">
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-full w-64 flex flex-col justify-between p-4 bg-surface-container-low border-r border-outline-variant/30 shadow-md z-40 hidden lg:flex">
+<div class="flex flex-col gap-6">
+<!-- Brand Header -->
+<div class="flex items-center gap-3 px-2 pt-2">
+<img alt="InterviewPilot Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCY7K_2p3VzmnmOMnQK5YKxvRVLCPJ85RIAnCQl72bRcXE7rvyO-m8u13i7pVq8jJs5jY__bPVPqPWyHP8un_nXjGobcb6_vP6oa71FBkEbkOHt-_OrHkfpUWxf26i4AEI0pFcfF-GlE5FT_cblx1_DUcTwQEp67QXmqDsAnEfJHNOVkepQYapO45WMUhYFzvyWFlXVj7i6VfiNAWt9DsWmueO308UxlhPxyaiPfnkl"/>
+<div>
+<span class="block font-title-md text-title-md font-bold text-on-surface tracking-tight leading-none">InterviewPilot</span>
+<span class="font-body-sm text-body-sm text-outline">AI Executive Prep</span>
+</div>
+</div>
+<!-- Quick CTA -->
+<button class="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-primary-container text-on-primary-container font-label-lg text-label-lg font-semibold hover:opacity-95 transition-all active:scale-[0.98] shadow-sm">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>New Mock Interview</span>
+</button>
+<!-- Nav Links List -->
+<nav class="flex flex-col gap-1.5">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant font-label-lg text-label-lg transition-colors hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Mock Interviews (Active Parent Context) -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-container-high text-primary font-label-lg text-label-lg border-l-2 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+<span>Mock Interviews</span>
+</a>
+<!-- Question Bank -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant font-label-lg text-label-lg transition-colors hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]">menu_book</span>
+<span>Question Bank</span>
+</a>
+<!-- Analytics -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant font-label-lg text-label-lg transition-colors hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]">query_stats</span>
+<span>Analytics</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant font-label-lg text-label-lg transition-colors hover:bg-surface-container hover:text-on-surface" href="#">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<!-- SideNav Footer -->
+<div class="pt-4 border-t border-outline-variant/30 flex flex-col gap-1.5">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+<span>Help &amp; Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant font-label-md text-label-md hover:bg-surface-container hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+<span>Log Out</span>
+</a>
+<!-- Executive Profile Chip -->
+<div class="mt-2 flex items-center gap-3 p-2 bg-surface-container rounded-lg">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant flex items-center justify-center font-label-lg text-primary font-bold">
+          EA
+        </div>
+<div class="flex flex-col truncate">
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate">Elena Vance</span>
+<span class="font-body-sm text-body-sm text-outline truncate">Staff TPM Candidate</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Container -->
+<div class="flex-1 lg:pl-64 flex flex-col min-w-0">
+<!-- Top Navigation Anchor (Full Width) -->
+<header class="w-full px-6 lg:px-12 flex justify-between items-center h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/30 sticky top-0 z-30">
+<!-- Breadcrumbs Anchor -->
+<nav class="flex items-center gap-2 font-body-sm text-body-sm text-outline truncate">
+<span class="hover:text-primary transition-colors cursor-pointer">Interviews</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-primary transition-colors cursor-pointer">Staff TPM Mock</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-on-surface font-medium truncate">Performance Assessment Report</span>
+</nav>
+<!-- Action Items & Notifications -->
+<div class="flex items-center gap-3">
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="p-2 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container transition-colors" title="Settings">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="h-4 w-px bg-outline-variant/50 mx-1"></div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/60 flex items-center justify-center text-primary font-label-md text-label-md font-semibold">
+            EV
+          </div>
+</div>
+</div>
+</header>
+<!-- Main Content Area: 12-Column Dashboard Canvas -->
+<main class="flex-1 px-6 lg:px-12 py-8 max-w-7xl w-full mx-auto space-y-8">
+<!-- Executive Session Header -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-outline-variant/20">
+<div class="space-y-2">
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-secondary border border-outline-variant font-label-caps text-label-caps">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+              SESSION AUDIT COMPLETE
+            </span>
+<span class="font-label-caps text-label-caps text-outline">CONFIDENTIAL EVALUATION</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Executive Evaluation Report - Session #IP-8942</h1>
+<p class="font-body-md text-body-md text-on-surface-variant flex flex-wrap items-center gap-x-3 gap-y-1">
+<span>Role: <strong class="text-on-surface font-semibold">Staff Technical Product Manager</strong></span>
+<span class="text-outline-variant">â€¢</span>
+<span>Mode: <strong class="text-on-surface font-semibold">CV + Job Description</strong></span>
+<span class="text-outline-variant">â€¢</span>
+<span>Date: <strong class="text-on-surface font-semibold">Today, 14:30</strong></span>
+<span class="text-outline-variant">â€¢</span>
+<span>Duration: <strong class="text-on-surface font-semibold">29m 14s</strong></span>
+<span class="text-outline-variant">â€¢</span>
+<span><strong class="text-secondary font-semibold">7 Questions Analyzed</strong></span>
+</p>
+</div>
+<!-- Action Button Trio -->
+<div class="flex items-center gap-3 self-start md:self-end">
+<button class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container border border-outline-variant/50 text-on-surface font-label-lg text-label-lg hover:border-outline hover:bg-surface-container-high transition-colors active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Download PDF Report</span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container border border-outline-variant/50 text-on-surface font-label-lg text-label-lg hover:border-outline hover:bg-surface-container-high transition-colors active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">share</span>
+<span>Share with Mentor</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary-container font-label-lg text-label-lg font-semibold hover:opacity-95 transition-all active:scale-95 shadow-[0_0_16px_rgba(59,130,246,0.3)]">
+<span class="material-symbols-outlined text-[18px]">restart_alt</span>
+<span>Retake Interview</span>
+</button>
+</div>
+</section>
+<!-- TOP PERFORMANCE SCORECARD (Hero Bento Grid) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Hero Card: Overall Score & Assessment -->
+<div class="lg:col-span-5 bg-surface-container-low border border-outline-variant/40 rounded-xl p-6 relative overflow-hidden flex flex-col justify-between shadow-md">
+<!-- Subtle Top Gradient Glow Accent -->
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-secondary to-transparent"></div>
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-caps text-label-caps tracking-wider text-outline uppercase">Overall Assessment Index</span>
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary border border-secondary/30 font-label-caps text-label-caps font-bold">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+                STRONG HIRE
+              </span>
+</div>
+<div class="flex items-baseline gap-3 my-2">
+<span class="font-headline-xl text-headline-xl font-bold text-on-surface tracking-tight">89</span>
+<span class="font-title-md text-title-md text-outline">/ 100</span>
+<span class="ml-auto inline-flex items-center gap-1 text-secondary font-label-md text-label-md font-semibold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                Top 4% of Candidates
+              </span>
+</div>
+<!-- Visual Progress Arc Indicator -->
+<div class="w-full bg-surface-container-highest rounded-full h-2 my-4 overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full" style="width: 89%"></div>
+</div>
+</div>
+<div class="p-4 bg-surface-container/70 rounded-lg border border-outline-variant/30 mt-4 backdrop-blur-sm">
+<div class="flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">psychology</span>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                Demonstrated outstanding technical vision and cross-functional leadership under regulatory constraints. Minor improvements needed in quantitative metrics quantification.
+              </p>
+</div>
+</div>
+</div>
+<!-- 4 Key Metric Tiles Grid -->
+<div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Tile 1: Technical Depth -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between hover:border-outline-variant transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-outline font-medium">Technical Depth</span>
+<span class="material-symbols-outlined text-primary text-[18px]">terminal</span>
+</div>
+<div class="my-3 flex items-baseline justify-between">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">92<span class="text-body-sm font-normal text-outline">/100</span></span>
+<span class="font-label-caps text-label-caps text-secondary font-semibold">Exceptional</span>
+</div>
+<div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-2 block">System scalability &amp; cloud architecture</span>
+</div>
+</div>
+<!-- Tile 2: Communication & Structure -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between hover:border-outline-variant transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-outline font-medium">Communication &amp; Structure (STAR)</span>
+<span class="material-symbols-outlined text-secondary text-[18px]">account_tree</span>
+</div>
+<div class="my-3 flex items-baseline justify-between">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">88<span class="text-body-sm font-normal text-outline">/100</span></span>
+<span class="font-label-caps text-label-caps text-primary font-semibold">Structured</span>
+</div>
+<div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-secondary h-1.5 rounded-full" style="width: 88%"></div>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-2 block">High situational clarity; crisp framing</span>
+</div>
+</div>
+<!-- Tile 3: Strategic Alignment -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between hover:border-outline-variant transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-outline font-medium">Strategic Alignment</span>
+<span class="material-symbols-outlined text-tertiary text-[18px]">flag</span>
+</div>
+<div class="my-3 flex items-baseline justify-between">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">91<span class="text-body-sm font-normal text-outline">/100</span></span>
+<span class="font-label-caps text-label-caps text-tertiary font-semibold">Executive Level</span>
+</div>
+<div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-tertiary-container h-1.5 rounded-full" style="width: 91%"></div>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-2 block">Business impact prioritization</span>
+</div>
+</div>
+<!-- Tile 4: Voice Clarity & Delivery -->
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-5 flex flex-col justify-between hover:border-outline-variant transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-outline font-medium">Voice Clarity &amp; Delivery</span>
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[18px]">graphic_eq</span>
+</div>
+<div class="my-3 flex items-baseline justify-between">
+<span class="font-headline-md text-headline-md font-bold text-on-surface">85<span class="text-body-sm font-normal text-outline">/100</span></span>
+<span class="font-label-caps text-label-caps text-on-surface-variant font-semibold">136 WPM</span>
+</div>
+<div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-secondary-fixed-dim h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-2 block">Optimal cadence &amp; low filler word density</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SKILL BREAKDOWN & QUALITATIVE ANALYSIS (2-Columns) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Column Left: Competency Radar & Skill Heatmap -->
+<div class="lg:col-span-6 bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 shadow-md flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-outline-variant/20 mb-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">equalizer</span>
+<h2 class="font-title-md text-title-md text-on-surface font-semibold">Competency Radar &amp; Skill Heatmap</h2>
+</div>
+<div class="flex items-center gap-3 font-label-caps text-label-caps">
+<span class="flex items-center gap-1.5 text-on-surface">
+<span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span> Candidate
+                </span>
+<span class="flex items-center gap-1.5 text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-outline-variant inline-block"></span> Staff TPM Avg
+                </span>
+</div>
+</div>
+<!-- Heatmap / Competency Benchmark Bars -->
+<div class="space-y-5">
+<!-- Item 1 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-1.5">
+<span class="text-on-surface font-medium">Cross-Functional Leadership</span>
+<span class="text-primary font-semibold">94% <span class="text-outline font-normal">/ 78% avg</span></span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute h-full bg-outline-variant rounded-full" style="width: 78%"></div>
+<div class="absolute h-full bg-primary rounded-full" style="width: 94%"></div>
+</div>
+</div>
+<!-- Item 2 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-1.5">
+<span class="text-on-surface font-medium">Technical Architecture Breakdown</span>
+<span class="text-primary font-semibold">92% <span class="text-outline font-normal">/ 74% avg</span></span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute h-full bg-outline-variant rounded-full" style="width: 74%"></div>
+<div class="absolute h-full bg-primary rounded-full" style="width: 92%"></div>
+</div>
+</div>
+<!-- Item 3 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-1.5">
+<span class="text-on-surface font-medium">Regulatory &amp; Compliance Tradeoffs</span>
+<span class="text-secondary font-semibold">89% <span class="text-outline font-normal">/ 69% avg</span></span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute h-full bg-outline-variant rounded-full" style="width: 69%"></div>
+<div class="absolute h-full bg-secondary rounded-full" style="width: 89%"></div>
+</div>
+</div>
+<!-- Item 4 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-1.5">
+<span class="text-on-surface font-medium">Business Impact &amp; ROI Framing</span>
+<span class="text-outline font-semibold">76% <span class="text-outline font-normal">/ 81% avg</span></span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute h-full bg-outline-variant rounded-full" style="width: 81%"></div>
+<div class="absolute h-full bg-outline rounded-full" style="width: 76%"></div>
+</div>
+</div>
+<!-- Item 5 -->
+<div>
+<div class="flex justify-between font-label-md text-label-md mb-1.5">
+<span class="text-on-surface font-medium">Conflict Resolution &amp; Executive Decisiveness</span>
+<span class="text-primary font-semibold">88% <span class="text-outline font-normal">/ 72% avg</span></span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden relative">
+<div class="absolute h-full bg-outline-variant rounded-full" style="width: 72%"></div>
+<div class="absolute h-full bg-primary rounded-full" style="width: 88%"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6 pt-4 border-t border-outline-variant/20 flex items-center justify-between text-body-sm font-body-sm text-outline">
+<span>Benchmark Dataset: 1,420 FAANG+ Staff TPM Interviews</span>
+<span class="text-primary hover:underline cursor-pointer flex items-center gap-1">
+              Full Breakdown
+              <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</span>
+</div>
+</div>
+<!-- Column Right: Strengths & Critical Growth Areas -->
+<div class="lg:col-span-6 bg-surface-container-low border border-outline-variant/30 rounded-xl p-6 shadow-md flex flex-col justify-between">
+<div>
+<div class="pb-3 border-b border-outline-variant/20 mb-5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">assignment_turned_in</span>
+                Strengths &amp; Critical Growth Areas
+              </h2>
+</div>
+<!-- Key Strengths (3 bullets) -->
+<div class="mb-5">
+<span class="font-label-caps text-label-caps text-secondary font-bold uppercase tracking-wider block mb-2.5">Key Strengths</span>
+<ul class="space-y-2.5">
+<li class="flex items-start gap-2.5 font-body-md text-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span><strong class="text-on-surface">Precise architectural decomposition:</strong> Distinct separation of distributed control-plane versus data-plane layers when explaining system pivots.</span>
+</li>
+<li class="flex items-start gap-2.5 font-body-md text-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span><strong class="text-on-surface">Empathy in engineering conflicts:</strong> Articulated constructive mediation techniques between infrastructure and product squads without friction.</span>
+</li>
+<li class="flex items-start gap-2.5 font-body-md text-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span><strong class="text-on-surface">Crisp framing:</strong> Maintained disciplined situational clarity by stating constraints before diving into technical solutions.</span>
+</li>
+</ul>
+</div>
+<!-- Weaknesses to Address (2 bullets) -->
+<div class="mb-5">
+<span class="font-label-caps text-label-caps text-error font-bold uppercase tracking-wider block mb-2.5">Areas for Growth</span>
+<ul class="space-y-2.5">
+<li class="flex items-start gap-2.5 font-body-md text-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">warning</span>
+<span><strong class="text-on-surface">Missed explicit ROI calculation:</strong> In Question 4, omitted specific monetary risk modeling and resource cost reallocation percentages.</span>
+</li>
+<li class="flex items-start gap-2.5 font-body-md text-body-md text-on-surface-variant">
+<span class="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">warning</span>
+<span><strong class="text-on-surface">Minor filler hesitancy:</strong> 2.8s hesitation gap and repeated verbal crutches ("basically", "you know") during edge-case scalability pushback.</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- High-Impact AI Recommendations Callout Card -->
+<div class="p-3.5 bg-surface-container rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent flex items-start gap-3">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">auto_awesome</span>
+<div class="space-y-1">
+<span class="font-label-md text-label-md text-primary font-semibold">High-Impact AI Recommendation</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Run the <strong>Executive Metrics Framing Drill</strong>: Practice anchoring every technical architectural concession to direct customer dollar risk and quarterly EBITDA impact.
+              </p>
+</div>
+</div>
+</div>
+</section>
+<!-- EXPANDABLE QUESTION-BY-QUESTION DEEP DIVE SECTION -->
+<section class="space-y-4">
+<div class="flex items-center justify-between pb-2">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">Question-by-Question Deep Dive</h2>
+<p class="font-body-sm text-body-sm text-outline">Audio transcripts, tactical missing elements, and optimal executive answer benchmarks.</p>
+</div>
+<span class="font-label-md text-label-md text-outline">Showing 3 of 7 Prompts</span>
+</div>
+<!-- QUESTION 1: Fully Expanded State -->
+<article class="bg-surface-container-low border border-outline-variant/50 rounded-xl overflow-hidden shadow-md transition-all">
+<!-- Accordion Header -->
+<div class="p-5 flex items-start justify-between bg-surface-container cursor-pointer border-b border-outline-variant/30">
+<div class="flex items-start gap-3.5 max-w-4xl">
+<span class="flex items-center justify-center w-7 h-7 rounded-md bg-primary-container text-on-primary-container font-label-md text-label-md font-bold shrink-0">
+                Q1
+              </span>
+<div>
+<span class="font-label-caps text-label-caps text-primary tracking-wide block mb-1">STRATEGIC PIVOT &amp; CRISIS LEADERSHIP</span>
+<h3 class="font-title-md text-title-md text-on-surface font-medium leading-snug">
+                  "Tell me about a time you had to pivot your product roadmap due to unexpected regulatory constraints..."
+                </h3>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface-container-high border border-outline-variant text-primary font-label-md text-label-md font-semibold">
+                93 / 100 - Strong
+              </span>
+<button aria-label="Collapse Question 1" class="text-outline-variant hover:text-on-surface transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">expand_less</span>
+</button>
+</div>
+</div>
+<!-- Accordion Body -->
+<div class="p-6 space-y-6">
+<!-- Audio Transcript Playback Widget -->
+<div class="p-4 bg-surface-container-lowest border border-outline-variant/30 rounded-lg">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<span class="font-label-md text-label-md text-on-surface font-medium">Candidate Audio Snippet</span>
+<span class="font-body-sm text-body-sm text-outline">(01:42 / 03:15)</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-caps text-label-caps text-outline">138 WPM</span>
+<span class="font-label-caps text-label-caps text-secondary font-semibold">STAR Format Detected</span>
+</div>
+</div>
+<!-- Audio Scrub Bar / Simulated Waveform -->
+<div class="h-8 flex items-center gap-1 px-1 my-2">
+<div class="h-3 w-1 bg-secondary rounded-full"></div>
+<div class="h-5 w-1 bg-secondary rounded-full"></div>
+<div class="h-7 w-1 bg-secondary rounded-full"></div>
+<div class="h-4 w-1 bg-secondary rounded-full"></div>
+<div class="h-6 w-1 bg-secondary rounded-full"></div>
+<div class="h-8 w-1 bg-secondary rounded-full"></div>
+<div class="h-5 w-1 bg-secondary rounded-full"></div>
+<div class="h-3 w-1 bg-secondary rounded-full"></div>
+<!-- Played line point -->
+<div class="h-8 w-1.5 bg-primary-container rounded-full shadow-[0_0_8px_#3b82f6]"></div>
+<!-- Remaining Waveform -->
+<div class="h-6 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-4 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-7 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-3 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-5 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-4 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-6 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-3 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-5 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-2 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-4 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-6 w-1 bg-outline-variant/60 rounded-full"></div>
+<div class="h-2 w-1 bg-outline-variant/60 rounded-full"></div>
+</div>
+<!-- Transcript Snippet -->
+<blockquote class="font-body-sm text-body-sm text-on-surface-variant italic pl-3 border-l-2 border-primary/50 mt-3 leading-relaxed">
+                "...When the EU data residency mandate was pushed forward by 6 months, our core telemetry ingestion pipeline faced a total non-compliance block. I immediately isolated the ingestion queues, rallied the privacy and infrastructure leads, and devised a geo-fenced hybrid buffer..."
+              </blockquote>
+</div>
+<!-- Two-Column Evaluative Breakdown: What Was Missing vs Suggested Answer -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+<!-- What Was Missing -->
+<div class="md:col-span-4 p-4 rounded-lg bg-surface-container border border-error/20 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2 text-error">
+<span class="material-symbols-outlined text-[18px]">error</span>
+<span class="font-label-caps text-label-caps font-bold uppercase tracking-wider">What Was Missing</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                    Could have explicitly quantified the financial risk or headcount reallocation percentage. Stating: <em class="text-on-surface">"Avoided an estimated â‚¬2.4M compliance penalty while reallocating 18% of sprint velocity"</em> would transform a strong answer into an undisputed principal-level delivery.
+                  </p>
+</div>
+<div class="mt-4 pt-2 border-t border-outline-variant/20">
+<span class="font-label-caps text-label-caps text-outline">IMPACT SCORE: -4 PTS</span>
+</div>
+</div>
+<!-- AI Suggested Optimal Answer Model -->
+<div class="md:col-span-8 p-4 rounded-lg bg-surface-container-high border border-primary/30 relative overflow-hidden">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="font-label-caps text-label-caps font-bold uppercase tracking-wider">AI Suggested Optimal Answer Model (STAR)</span>
+</div>
+<button class="font-label-caps text-label-caps text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Model
+                  </button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface leading-relaxed font-mono text-[13px] bg-surface-container-lowest/60 p-3 rounded border border-outline-variant/20">
+<strong class="text-secondary font-semibold">[Situation]</strong> "In Q3, an unannounced European banking mandate reduced our compliance window from 9 to 3 months, jeopardizing â‚¬14M in enterprise ARR.<br/>
+<strong class="text-secondary font-semibold">[Task]</strong> As Staff TPM, I was tasked with pivoting our real-time messaging pipeline without slipping our flagship v2.0 release date.<br/>
+<strong class="text-secondary font-semibold">[Action]</strong> I decoupled client-side payload caching, re-budgeted 22% of infrastructure capacity to localized Frankfurt pods, and instituted twice-weekly risk triage sprints.<br/>
+<strong class="text-secondary font-semibold">[Result]</strong> Delivered full regulatory compliance 11 days ahead of statutory deadline with zero enterprise client churn."
+                </p>
+</div>
+</div>
+</div>
+</article>
+<!-- QUESTION 2: Collapsed State -->
+<article class="bg-surface-container-low border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm hover:border-outline-variant/60 transition-all">
+<div class="p-5 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-3.5 max-w-4xl truncate">
+<span class="flex items-center justify-center w-7 h-7 rounded-md bg-surface-container-highest text-on-surface font-label-md text-label-md font-bold shrink-0">
+                Q2
+              </span>
+<div class="truncate">
+<span class="font-label-caps text-label-caps text-outline block mb-0.5">DISTRIBUTED SYSTEMS COLLABORATION</span>
+<h3 class="font-title-md text-title-md text-on-surface font-medium truncate">
+                  "How do you resolve architectural disagreements between Principal Engineers and Security Architects?"
+                </h3>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface-container-high border border-outline-variant/50 text-secondary font-label-md text-label-md font-semibold">
+                86 / 100 - Strong
+              </span>
+<button aria-label="Expand Question 2" class="text-outline-variant hover:text-on-surface transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+</div>
+</div>
+</article>
+<!-- QUESTION 3: Collapsed State -->
+<article class="bg-surface-container-low border border-outline-variant/30 rounded-xl overflow-hidden shadow-sm hover:border-outline-variant/60 transition-all">
+<div class="p-5 flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-3.5 max-w-4xl truncate">
+<span class="flex items-center justify-center w-7 h-7 rounded-md bg-surface-container-highest text-on-surface font-label-md text-label-md font-bold shrink-0">
+                Q3
+              </span>
+<div class="truncate">
+<span class="font-label-caps text-label-caps text-outline block mb-0.5">INCIDENT COMMAND &amp; RECOVERY</span>
+<h3 class="font-title-md text-title-md text-on-surface font-medium truncate">
+                  "Walk me through a high-severity production outage where you served as Incident Commander."
+                </h3>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 ml-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-surface-container-high border border-outline-variant/50 text-primary font-label-md text-label-md font-semibold">
+                88 / 100 - Strong
+              </span>
+<button aria-label="Expand Question 3" class="text-outline-variant hover:text-on-surface transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+</div>
+</div>
+</article>
+</section>
+<!-- Bottom Executive Sign-off Footer -->
+<footer class="pt-8 pb-12 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-4 font-body-sm text-body-sm text-outline">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified</span>
+<span>InterviewPilot Neural Evaluation Model v4.2 â€¢ Certified by Senior FAANG Panel</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="hover:text-primary transition-colors" href="#">Assessment Methodology</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy &amp; Data Retention</a>
+<a class="hover:text-primary transition-colors" href="#">Export Raw Telemetry</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>
