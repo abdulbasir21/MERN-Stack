@@ -623,7 +623,7 @@ export async function withAiUsage<T>(
 
         return usageRecord.id;
       },
-      { maxWait: 30000, timeout: 30000 }
+      { maxWait: 60000, timeout: 60000 }
     );
   } catch (err) {
     if (err instanceof AppError && PASS_THROUGH_ERROR_CODES.has(err.code)) {

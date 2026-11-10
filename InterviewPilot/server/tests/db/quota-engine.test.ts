@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { createApp } from '../../src/app.js';
-import { prisma } from '../../src/db/prisma.js';
+import { prisma, ensureDatabaseConnected } from '../../src/db/prisma.js';
 import { env } from '../../src/config/env.js';
 import { AppError } from '../../src/lib/errors.js';
 import { resetAllRateLimits } from '../../src/middleware/rateLimit.js';
@@ -19,6 +19,7 @@ describe('Phase 3 (b) — Quota and AI Budget Engine Database & Concurrency (QTA
   const app = createApp({ allowedOrigin: 'http://localhost:3000' });
 
   beforeAll(async () => {
+    await ensureDatabaseConnected();
     await seedDatabase(prisma);
   });
 

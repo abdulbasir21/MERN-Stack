@@ -257,3 +257,92 @@ export const PrivacyControlEnum = z.enum([
   'DELETE_ACCOUNT',
 ]);
 export type PrivacyControl = z.infer<typeof PrivacyControlEnum>;
+
+// Phase 4 — Documents (DOC-1 to DOC-9)
+export const DocumentTypeEnum = z.enum(['CV', 'JD']);
+export type DocumentType = z.infer<typeof DocumentTypeEnum>;
+
+export const DocumentSourceKindEnum = z.enum(['FILE', 'PASTED']);
+export type DocumentSourceKind = z.infer<typeof DocumentSourceKindEnum>;
+
+export const DocumentStatusEnum = z.enum([
+  'UPLOADED',
+  'PROCESSING',
+  'READY',
+  'FAILED',
+]);
+export type DocumentStatus = z.infer<typeof DocumentStatusEnum>;
+
+export const DocumentFailureReasonEnum = z.enum([
+  'INVALID_FILE',
+  'NO_TEXT',
+  'EXTRACTION_FAILED',
+  'PROCESSING_FAILED',
+]);
+export type DocumentFailureReason = z.infer<typeof DocumentFailureReasonEnum>;
+
+export const CvSummarySchema = z.object({
+  name: z.string().nullable().optional(),
+  education: z.array(z.string()).default([]),
+  skills: z.array(z.string()).default([]),
+  technologies: z.array(z.string()).default([]),
+  projects: z
+    .array(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        technologies: z.array(z.string()).optional(),
+      })
+    )
+    .default([]),
+  workExperience: z
+    .array(
+      z.object({
+        company: z.string(),
+        role: z.string(),
+        duration: z.string().optional(),
+        responsibilities: z.array(z.string()).optional(),
+      })
+    )
+    .default([]),
+  certifications: z.array(z.string()).default([]),
+});
+export type CvSummary = z.infer<typeof CvSummarySchema>;
+
+export const JdSummarySchema = z.object({
+  title: z.string().nullable().optional(),
+  requiredSkills: z.array(z.string()).default([]),
+  responsibilities: z.array(z.string()).default([]),
+  technologies: z.array(z.string()).default([]),
+  experienceRequirements: z.array(z.string()).default([]),
+  expectations: z.array(z.string()).default([]),
+});
+export type JdSummary = z.infer<typeof JdSummarySchema>;
+
+// DOC-1: Pasted JD max 15,000 characters
+export const PasteJdInputSchema = z
+  .object({
+    pastedText: z
+      .string()
+      .trim()
+      .min(10, 'Job description must be at least 10 characters long')
+      .max(15000, 'Pasted job description must not exceed 15,000 characters'),
+    originalName: z.string().trim().max(100).optional(),
+  })
+  .strict();
+
+export type PasteJdInput = z.infer<typeof PasteJdInputSchema>;
+
+export interface DocumentResponseDto {
+  id: string;
+  type: DocumentType;
+  sourceKind: DocumentSourceKind;
+  originalName: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  status: DocumentStatus;
+  failureReason: DocumentFailureReason | null;
+  summary: CvSummary | JdSummary | null;
+  createdAt: string;
+  updatedAt: string;
+}

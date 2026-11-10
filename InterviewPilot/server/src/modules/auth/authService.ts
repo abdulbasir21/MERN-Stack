@@ -72,27 +72,30 @@ export async function registerUser(
 
   // MASTER_PROMPT §9 item 1: Register user + profile in ONE transaction.
   // AUTH-1: role, status, isDemo, tokenVersion are server-assigned only.
-  const created = await prisma.$transaction(async (tx) => {
-    return tx.user.create({
-      data: {
-        email,
-        passwordHash,
-        role: 'USER',
-        status: 'ACTIVE',
-        isDemo: false,
-        tokenVersion: 0,
-        lastLoginAt: new Date(),
-        profile: {
-          create: {
-            preferredCategories: [],
+  const created = await prisma.$transaction(
+    async (tx) => {
+      return tx.user.create({
+        data: {
+          email,
+          passwordHash,
+          role: 'USER',
+          status: 'ACTIVE',
+          isDemo: false,
+          tokenVersion: 0,
+          lastLoginAt: new Date(),
+          profile: {
+            create: {
+              preferredCategories: [],
+            },
           },
         },
-      },
-      include: {
-        profile: true,
-      },
-    });
-  });
+        include: {
+          profile: true,
+        },
+      });
+    },
+    { maxWait: 15000, timeout: 30000 }
+  );
 
   const sessionToken = signSessionToken({
     userId: created.id,

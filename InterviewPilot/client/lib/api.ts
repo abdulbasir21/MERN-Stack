@@ -199,3 +199,60 @@ export async function deleteMyAccount(
     body: JSON.stringify(input),
   });
 }
+
+// Phase 4 — Documents
+import type {
+  DocumentResponseDto,
+  DocumentType,
+  PasteJdInput,
+} from '@interviewpilot/shared';
+
+export async function uploadDocument(
+  file: File,
+  type: DocumentType
+): Promise<ApiSuccessResponse<{ document: DocumentResponseDto }>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', type);
+
+  return apiRequest<{ document: DocumentResponseDto }>('/api/documents/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function pasteJdDocument(
+  input: PasteJdInput
+): Promise<ApiSuccessResponse<{ document: DocumentResponseDto }>> {
+  return apiRequest<{ document: DocumentResponseDto }>('/api/documents/paste-jd', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchDocuments(
+  type?: DocumentType
+): Promise<ApiSuccessResponse<{ documents: DocumentResponseDto[] }>> {
+  const query = type ? `?type=${type}` : '';
+  return apiRequest<{ documents: DocumentResponseDto[] }>(`/api/documents${query}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchDocumentById(
+  id: string
+): Promise<ApiSuccessResponse<{ document: DocumentResponseDto }>> {
+  return apiRequest<{ document: DocumentResponseDto }>(`/api/documents/${id}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function deleteDocument(
+  id: string
+): Promise<ApiSuccessResponse<{ deleted: boolean }>> {
+  return apiRequest<{ deleted: boolean }>(`/api/documents/${id}`, {
+    method: 'DELETE',
+  });
+}
