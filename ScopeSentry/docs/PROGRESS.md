@@ -736,3 +736,66 @@ Path: `docs/PROGRESS.md`
 ### 5. Suggestions (Not Built — Out of Scope for MVP)
 - Pre-cached investigation replays for instant zero-latency demo runs (out of scope for MVP).
 - Custom visitor upload sandbox in demo mode (spec section 13: visitors select from pre-loaded scenarios only).
+
+
+---
+
+## Phase 9 — Tests Hardening, Security Review, Docs, Deployment
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Route-by-Route Authorization Matrix Security Audit (`server/tests/security/authMatrix.test.js`):**
+  - Systematic route-by-route security test exercising all 3 principal actors (Visitor, User A [Owner], and User B [Wrong User / Attacker]):
+    - **Visitor (Unauthenticated):** Asserts HTTP 401 across all protected routes (`/auth/me`, `/projects`, `/documents`, `/investigations`, `/findings`, `/reports`, `/dashboard`) while preserving HTTP 200 public access to `/demo/projects`.
+    - **User B (Wrong User / Attacker):** Asserts HTTP 404 for all User A resources (`GET/PATCH/DELETE /projects/:A_id`, `/documents/:A_id`, `/documents/:A_id/download`, `/investigations/:A_id`, `/findings/:A_id`, `/reports/:A_id/download`), strictly validating owner-scoped queries (Rule 5.3).
+    - **CSRF Protection Matrix:** Asserts HTTP 403 Forbidden on state-changing operations (`POST /projects`, `PATCH /projects/:id`, `PATCH /findings/:id/review`) without the `x-csrf-token` header, and confirms HTTP 200/201 when valid CSRF tokens are supplied.
+- **End-to-End Full Flow Integration Suite (`server/tests/api/fullFlow.test.js`):**
+  - Exercises the full customer lifecycle end-to-end across 10 discrete steps:
+    1. Visitor browses demo projects.
+    2. User registers new account, receives session cookie and CSRF token.
+    3. User creates a commercial project.
+    4. User creates and indexes original and revised specification documents.
+    5. User executes an investigation through the LangGraph engine and receives grounded findings (+12 window quantity change, $5,400 cost difference).
+    6. User reviews finding, approves it with justification, and appends an audit comment.
+    7. User overrides unit price ($500) and verifies dynamic cost difference recalculation ($6,000) on read.
+    8. User generates a 12-section PDF executive report and verifies authenticated signed download.
+    9. User queries live dashboard metrics dynamically computed from the database.
+    10. User deletes the project and verifies cascade deletion cleans up project, documents, chunks, investigations, findings, reviews, and reports.
+- **Git History Secrets Audit:**
+  - Full history search (`git log --all --full-history -- "**/server/env" "**/frontend/env" "**/.env*"`) confirmed 0 secrets or env files committed.
+  - `.gitignore` enforces exclusion of `server/env`, `frontend/env`, and `.env*`.
+- **Documentation & Deployment Guides (`README.md`):**
+  - Updated comprehensive `README.md` with architecture details, business rules, environment variable names only (no secrets), local development instructions, testing commands, MongoDB Atlas Vector Search / Atlas Search JSON index specifications, and production deployment instructions for Render (backend) and Vercel (frontend).
+
+### 2. Real Test & Verification Counts
+- **Server Vitest (Phase 9 Suites):**
+  - `tests/security/authMatrix.test.js`: 17 passed (55.49s)
+    - Visitor 401 matrix across all routes
+    - Public demo 200 access
+    - User B 404 cross-tenant isolation matrix across projects, documents, investigations, findings, reports
+    - CSRF 403 enforcement on state-changing routes
+  - `tests/api/fullFlow.test.js`: 10 passed (26.03s)
+    - 10-step complete end-to-end lifecycle verification
+  - **Total Phase 9 Tests:** 27 passed
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1601 modules transformed, production bundle built cleanly in 9.11s
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking upgrade not auto-applied.
+  - `frontend/`: 8 vulnerabilities in dev/nested packages (vitest/tinypool, react-router <7.18); breaking upgrade not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- Supertest 7.0.0
+- Vitest 2.1.9
+- Express 4.21.1
+
+### 4. Decisions Made
+- **Transactional Cascade Audit Verification:** Step 10 of `fullFlow.test.js` verifies that cascade deletion cleanly removes all child records across all 7 collections, leaving no orphaned data.
+- **Render Cold-Start Transparency:** Documented cold-start behavior and health check ping configuration in `README.md` per Phase 9 spec.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Multi-region database replication monitoring (out of scope for MVP).
+- Automated CI/CD pipeline configuration (GitHub Actions workflow) with encrypted secrets (spec: owner sets production values in dashboards).
