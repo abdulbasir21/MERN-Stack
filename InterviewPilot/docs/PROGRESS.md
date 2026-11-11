@@ -434,3 +434,51 @@
   - **Total**: 20 passed in Phase 10 suites; monorepo `type-check` passed (0 errors across shared, server, client); monorepo `lint` passed (0 errors).
 - **Incomplete items**: None for Phase 10.
 - **Assumptions**: Decision D-5: default applied (empty answers receive 0 score on every criterion, zero AI calls, and count in overall score averages).
+
+## Phase 11 — User Dashboard & Demo Experience (RPT-8, DEM-1 to DEM-7)
+- **Status**: COMPLETE
+- **Tag**: `phase-11-done`
+- **What was built**:
+  - **Prisma Schema & Migrations (`server/prisma/`)**:
+    - Created `DemoSession` table (`id`, `userId` foreign key to `User` with cascade delete, `ipHash` with index, `expiresAt`, `createdAt`). Applied migration `20261112003000_phase11_demo_sessions` across both `public` and `test_suite` schemas.
+  - **Demo Management Service & Limits (`server/src/services/demo/demoService.ts`)**:
+    - `hashClientIp`: HMAC SHA-256 with `DEMO_IP_HASH_SECRET`, strictly ensuring raw IP addresses are never persisted (`DEM-3`).
+    - `purgeExpiredDemoUsers`: Lazily purges up to 50 expired demo users per demo session creation without requiring any background cron jobs (`DEM-7`).
+    - `createDemoSession`: Checks `demoEnabled` (503 `DEMO_DISABLED`), validates IP daily limit (1/day) and global daily limit (20/day) throwing 429 `DEMO_RESTRICTED`, and creates an isolated ephemeral User + Profile + DemoSession in one database transaction (`DEM-1`, `DEM-2`, `DEM-3`).
+    - `getSampleDemoFixtures`: Returns read-only sample fixtures explicitly labeled `"Sample data — read-only demo preview"` (`DEM-5`).
+  - **Enforced Demo Restrictions across Modules (`DEM-4`, `DEM-2`)**:
+    - In `documentController.ts`: `req.actor.isDemo` throws 403 `DEMO_RESTRICTED` on document upload or paste (`DEM-4`).
+    - In `interviewService.ts` & `interviewEngineService.ts`: checks `liveDemoEnabled` setting (throws 403 `DEMO_LIVE_DISABLED` if false), and restricts interview mode strictly to `GENERAL` (`DEM-2`, `DEM-4`).
+  - **Candidate Dashboard Controller & Route (`server/src/modules/users/userDashboardController.ts`, `userRoutes.ts`)**:
+    - `GET /api/users/dashboard` & `GET /api/users/me/dashboard` (`RPT-8`, Section 7):
+      - Zero AI calls strictly enforced (`RPT-8`).
+      - All statistics dynamically calculated: `totalInterviews`, `completedInterviews`, `averageScore`, `recentTrend` (last 10 completed interviews, oldest to newest), `recentInterviews` (last 5), and recommendations from the latest saved report (`RPT-8`).
+  - **Client Dashboard UI & API Helpers (`client/`)**:
+    - `client/app/(app)/dashboard/page.tsx`:
+      - Bento layout matching `/design/screens/candidate-dashboard.html`.
+      - Demo notice banner when `isDemo` is active with upgrade link.
+      - Hero card, 4 computed stat cards, recent sessions list, and AI executive coaching digest box.
+    - `client/lib/api.ts`: added `fetchUserDashboardApi`, `createDemoSessionApi`, and `fetchDemoSamplesApi`.
+- **Files created/changed**:
+  - `server/prisma/schema.prisma`
+  - `server/prisma/migrations/20261112003000_phase11_demo_sessions/migration.sql`
+  - `server/src/services/demo/demoService.ts`
+  - `server/src/modules/demo/demoController.ts`
+  - `server/src/modules/demo/demoRoutes.ts`
+  - `server/src/modules/users/userDashboardController.ts`
+  - `server/src/modules/users/userRoutes.ts`
+  - `server/src/modules/documents/documentController.ts`
+  - `server/src/modules/interviews/interviewService.ts`
+  - `server/src/modules/interviews/interviewEngineService.ts`
+  - `server/src/app.ts`
+  - `shared/src/index.ts`
+  - `client/lib/api.ts`
+  - `client/app/(app)/dashboard/page.tsx`
+  - `server/tests/api/dashboard-demo.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/dashboard-demo.test.ts`: 8 passed
+  - Full workspace `type-check`: passed (0 errors across shared, server, client)
+  - Full workspace `lint`: passed (0 errors)
+- **Incomplete items**: None for Phase 11.
+- **Assumptions**: Demo limits default to 1 session/day per IP and 20 sessions/day globally; 24-hour expiry on demo sessions.
