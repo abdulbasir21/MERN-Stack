@@ -322,3 +322,104 @@ export async function fetchQuotaMe(): Promise<
     cache: 'no-store',
   });
 }
+
+// Phase 7: Interview Engine API Methods (ENG-1 to ENG-10)
+import type {
+  InterviewStateDto,
+  SubmitAnswerInput,
+  SubmitInquiryInput,
+  AnswerEvaluation,
+  EngineDecision,
+} from '@interviewpilot/shared';
+
+export async function startInterviewApi(
+  interviewId: string,
+  clientRequestId?: string
+): Promise<ApiSuccessResponse<{ state: InterviewStateDto }>> {
+  const headers: Record<string, string> = {};
+  if (clientRequestId) {
+    headers['client-request-id'] = clientRequestId;
+  }
+  return apiRequest<{ state: InterviewStateDto }>(`/api/interviews/${interviewId}/start`, {
+    method: 'POST',
+    headers,
+  });
+}
+
+export async function fetchInterviewStateApi(
+  interviewId: string
+): Promise<ApiSuccessResponse<{ state: InterviewStateDto }>> {
+  return apiRequest<{ state: InterviewStateDto }>(`/api/interviews/${interviewId}/state`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function submitAnswerApi(
+  interviewId: string,
+  input: SubmitAnswerInput,
+  clientRequestId?: string
+): Promise<
+  ApiSuccessResponse<{
+    state: InterviewStateDto;
+    evaluation: AnswerEvaluation;
+    decision: EngineDecision;
+    nextQuestionText: string | null;
+  }>
+> {
+  const headers: Record<string, string> = {};
+  if (clientRequestId) {
+    headers['client-request-id'] = clientRequestId;
+  }
+  return apiRequest<{
+    state: InterviewStateDto;
+    evaluation: AnswerEvaluation;
+    decision: EngineDecision;
+    nextQuestionText: string | null;
+  }>(`/api/interviews/${interviewId}/answer`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function submitInquiryApi(
+  interviewId: string,
+  input: SubmitInquiryInput,
+  clientRequestId?: string
+): Promise<
+  ApiSuccessResponse<{
+    state: InterviewStateDto;
+    reply: string;
+  }>
+> {
+  const headers: Record<string, string> = {};
+  if (clientRequestId) {
+    headers['client-request-id'] = clientRequestId;
+  }
+  return apiRequest<{
+    state: InterviewStateDto;
+    reply: string;
+  }>(`/api/interviews/${interviewId}/inquiry`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(input),
+  });
+}
+
+export async function endInterviewApi(
+  interviewId: string
+): Promise<ApiSuccessResponse<{ state: InterviewStateDto }>> {
+  return apiRequest<{ state: InterviewStateDto }>(`/api/interviews/${interviewId}/end`, {
+    method: 'POST',
+  });
+}
+
+export async function retryInterviewApi(
+  interviewId: string
+): Promise<ApiSuccessResponse<{ state: InterviewStateDto }>> {
+  return apiRequest<{ state: InterviewStateDto }>(`/api/interviews/${interviewId}/retry`, {
+    method: 'POST',
+  });
+}
+

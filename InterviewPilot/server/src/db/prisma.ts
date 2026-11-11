@@ -4,18 +4,14 @@ import { env, getActiveDatabaseUrl } from '../config/env.js';
 const activeUrl = getActiveDatabaseUrl(env, process.env.NODE_ENV);
 
 function ensureConnectTimeout(urlString: string): string {
-  try {
-    const url = new URL(urlString);
-    if (!url.searchParams.has('connect_timeout')) {
-      url.searchParams.set('connect_timeout', '30');
-    }
-    if (!url.searchParams.has('pool_timeout')) {
-      url.searchParams.set('pool_timeout', '60');
-    }
-    return url.toString();
-  } catch {
-    return urlString;
+  let result = urlString;
+  if (!result.includes('connect_timeout=')) {
+    result += (result.includes('?') ? '&' : '?') + 'connect_timeout=30';
   }
+  if (!result.includes('pool_timeout=')) {
+    result += (result.includes('?') ? '&' : '?') + 'pool_timeout=60';
+  }
+  return result;
 }
 
 export const prisma = new PrismaClient({

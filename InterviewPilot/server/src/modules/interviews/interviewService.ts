@@ -173,8 +173,9 @@ export async function createInterview(params: {
   const firstQuestionTopic = plan.topics[0] || 'General Introduction';
   const textHash = computeTextHash(firstQuestionText);
 
-  const interview = await prisma.$transaction(async (tx) => {
-    const newInterview = await tx.interview.create({
+  const interview = await prisma.$transaction(
+    async (tx) => {
+      const newInterview = await tx.interview.create({
       data: {
         userId,
         mode: input.mode,
@@ -225,7 +226,9 @@ export async function createInterview(params: {
     });
 
     return newInterview;
-  });
+    },
+    { maxWait: 20000, timeout: 30000 }
+  );
 
   const config = interview.configuration!;
   const firstQuestion = interview.questions[0]!;

@@ -361,6 +361,8 @@ model Interview {
   user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   configuration  InterviewConfiguration?
   questions      InterviewQuestion[]
+  answers        CandidateAnswer[]
+  inquiries      CandidateInquiry[]
   aiUsageRecords AIUsageRecord[]
 
   @@index([userId, createdAt])
@@ -397,9 +399,66 @@ model InterviewQuestion {
   textHash    String
   createdAt   DateTime            @default(now())
 
-  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  interview Interview          @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  answer    CandidateAnswer?
+  inquiries CandidateInquiry[]
 
   @@unique([interviewId, orderIndex])
   @@unique([interviewId, textHash])
   @@index([interviewId, kind])
 }
+
+model CandidateAnswer {
+  id              String            @id @default(cuid())
+  interviewId     String
+  questionId      String            @unique
+  transcript      String            @db.Text
+  isEmpty         Boolean           @default(false)
+  durationSeconds Int?
+  clientRequestId String?
+  createdAt       DateTime          @default(now())
+
+  interview  Interview         @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question   InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  evaluation AnswerEvaluation?
+
+  @@unique([interviewId, clientRequestId])
+  @@index([interviewId, createdAt])
+}
+
+model AnswerEvaluation {
+  id                     String          @id @default(cuid())
+  answerId               String          @unique
+  overallScore           Int             @default(0)
+  criteriaScores         Json
+  correct                String?         @db.Text
+  missing                String?         @db.Text
+  strengths              Json?
+  weaknesses             Json?
+  improvements           Json?
+  idealAnswer            String?         @db.Text
+  followUpRecommendation String?
+  reasoning              String?         @db.Text
+  createdAt              DateTime        @default(now())
+
+  answer CandidateAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@index([answerId])
+}
+
+model CandidateInquiry {
+  id              String            @id @default(cuid())
+  interviewId     String
+  questionId      String?
+  transcript      String            @db.Text
+  reply           String            @db.Text
+  clientRequestId String?
+  createdAt       DateTime          @default(now())
+
+  interview Interview          @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  question  InterviewQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+
+  @@unique([interviewId, clientRequestId])
+  @@index([interviewId, createdAt])
+}
+

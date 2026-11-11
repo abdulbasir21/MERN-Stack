@@ -74,3 +74,177 @@ export async function handleListInterviews(
     next(err);
   }
 }
+
+// Phase 7 Engine Controller Handlers (ENG-1 to ENG-10)
+import {
+  startInterviewEngine,
+  submitCandidateAnswer,
+  submitCandidateInquiry,
+  endInterviewEarly,
+  retryInterviewErrorState,
+  getInterviewOrThrow,
+  formatInterviewStateDto,
+} from './interviewEngineService.js';
+import {
+  SubmitAnswerInputSchema,
+  SubmitInquiryInputSchema,
+} from '@interviewpilot/shared';
+
+function extractClientRequestId(req: Request): string | undefined {
+  const headerVal = req.headers['client-request-id'] || req.headers['x-client-request-id'];
+  if (typeof headerVal === 'string' && headerVal.trim().length > 0) {
+    return headerVal.trim();
+  }
+  if (req.body && typeof req.body.clientRequestId === 'string' && req.body.clientRequestId.trim().length > 0) {
+    return req.body.clientRequestId.trim();
+  }
+  return undefined;
+}
+
+export async function handleStartInterview(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const clientRequestId = extractClientRequestId(req);
+    const state = await startInterviewEngine({
+      interviewId: req.params.id as string,
+      userId: req.actor.id,
+      clientRequestId,
+    });
+
+    res.status(200).json({
+      data: { state },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function handleSubmitAnswer(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const validatedInput = SubmitAnswerInputSchema.parse(req.body);
+    const clientRequestId = extractClientRequestId(req);
+
+    const result = await submitCandidateAnswer({
+      interviewId: req.params.id as string,
+      userId: req.actor.id,
+      input: validatedInput,
+      clientRequestId,
+    });
+
+    res.status(200).json({
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function handleSubmitInquiry(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const validatedInput = SubmitInquiryInputSchema.parse(req.body);
+    const clientRequestId = extractClientRequestId(req);
+
+    const result = await submitCandidateInquiry({
+      interviewId: req.params.id as string,
+      userId: req.actor.id,
+      input: validatedInput,
+      clientRequestId,
+    });
+
+    res.status(200).json({
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function handleEndInterview(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const state = await endInterviewEarly({
+      interviewId: req.params.id as string,
+      userId: req.actor.id,
+    });
+
+    res.status(200).json({
+      data: { state },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function handleRetryInterview(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const state = await retryInterviewErrorState({
+      interviewId: req.params.id as string,
+      userId: req.actor.id,
+    });
+
+    res.status(200).json({
+      data: { state },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function handleGetInterviewState(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    if (!req.actor) {
+      throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    const interview = await getInterviewOrThrow(req.params.id as string, req.actor.id);
+    const state = formatInterviewStateDto(interview);
+
+    res.status(200).json({
+      data: { state },
+    });
+  } catch (err) {
+    next(err);
+  }
+}

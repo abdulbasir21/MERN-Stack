@@ -7,5 +7,8 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 90000,
     hookTimeout: 90000,
+    env: {
+      TEST_USE_SCHEMA_ISOLATION: 'true',
+    },
   },
 });

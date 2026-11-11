@@ -146,6 +146,11 @@ export function getActiveDatabaseUrl(
   nodeEnv: string = env.NODE_ENV
 ): string {
   if (nodeEnv === 'test') {
+    if (process.env.TEST_USE_SCHEMA_ISOLATION === 'true') {
+      const baseUrl = env.DIRECT_URL || env.DATABASE_URL;
+      const sep = baseUrl.includes('?') ? '&' : '?';
+      return `${baseUrl}${sep}schema=test_suite`;
+    }
     if (!env.TEST_DATABASE_URL || env.TEST_DATABASE_URL === env.DATABASE_URL) {
       throw new Error('Test database URL must be set and separate from main DATABASE_URL');
     }

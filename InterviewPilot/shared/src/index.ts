@@ -456,3 +456,69 @@ export interface InterviewResponseDto {
   createdAt: string;
 }
 
+// Phase 7: LangGraph Interview Engine Types and Schemas (ENG-1 to ENG-10)
+export const EngineDecisionEnum = z.enum([
+  'FOLLOW_UP_DEEPER',
+  'CLARIFY_SIMPLER',
+  'NEXT_TOPIC',
+  'CLOSE',
+]);
+export type EngineDecision = z.infer<typeof EngineDecisionEnum>;
+
+export const ListeningModeEnum = z.enum(['ANSWER', 'QUESTION']);
+export type ListeningMode = z.infer<typeof ListeningModeEnum>;
+
+export const CriterionScoreSchema = z.object({
+  criterion: z.string(),
+  score: z.number().min(0).max(100),
+  feedback: z.string(),
+});
+export type CriterionScore = z.infer<typeof CriterionScoreSchema>;
+
+export const AnswerEvaluationSchema = z.object({
+  overallScore: z.number().min(0).max(100),
+  criterionScores: z.array(CriterionScoreSchema),
+  summaryFeedback: z.string(),
+  isEmpty: z.boolean().default(false),
+});
+export type AnswerEvaluation = z.infer<typeof AnswerEvaluationSchema>;
+
+export const SubmitAnswerInputSchema = z
+  .object({
+    transcript: z.string().default(''),
+    isEmpty: z.boolean().default(false),
+    durationSeconds: z.number().min(0).optional(),
+  })
+  .strict();
+export type SubmitAnswerInput = z.infer<typeof SubmitAnswerInputSchema>;
+
+export const SubmitInquiryInputSchema = z
+  .object({
+    inquiry: z
+      .string()
+      .trim()
+      .min(1, 'Inquiry text cannot be empty')
+      .max(1000, 'Inquiry cannot exceed 1000 characters'),
+  })
+  .strict();
+export type SubmitInquiryInput = z.infer<typeof SubmitInquiryInputSchema>;
+
+export interface InterviewStateDto {
+  id: string;
+  status: InterviewStatus;
+  runtimeState: InterviewRuntimeState;
+  listeningMode: ListeningMode;
+  elapsedSeconds: number;
+  remainingSeconds: number;
+  currentQuestion: InterviewQuestionDto | null;
+  questionsAsked: number;
+  maxQuestions: number;
+  inquiriesCount: number;
+  maxInquiries: number;
+  topicsCovered: string[];
+  currentDifficulty: InterviewDifficulty;
+  recruiterUtterance: string | null;
+  isTerminal: boolean;
+}
+
+

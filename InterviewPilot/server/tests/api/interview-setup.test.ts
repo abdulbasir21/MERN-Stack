@@ -33,7 +33,7 @@ describe('Phase 6 — Interview Setup & Plan Generation (SET-1 to SET-5, QTA-9, 
   beforeAll(async () => {
     await ensureDatabaseConnected();
     await seedDatabase(prisma);
-  });
+  }, 60000);
 
   beforeEach(async () => {
     resetAllRateLimits();

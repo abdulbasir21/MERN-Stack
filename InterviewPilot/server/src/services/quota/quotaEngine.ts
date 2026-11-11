@@ -331,23 +331,17 @@ export async function withAiUsage<T>(
   }> = [];
 
   try {
-    // Parallelize read-only user + settings + quotaConfig lookup (never touches UsageCounter)
-    const [fetchedUser, fetchedSettings, fetchedConfigs] = await Promise.all([
-      db.user.findUnique({
-        where: { id: params.actorUserId },
-        select: {
-          id: true,
-          status: true,
-          isDemo: true,
-          quota: true,
-        },
-      }),
-      loadPlatformAiSettings(db),
-      db.quotaConfiguration.findMany(),
-    ]);
-    user = fetchedUser;
-    settings = fetchedSettings;
-    profileConfigs = fetchedConfigs;
+    user = await db.user.findUnique({
+      where: { id: params.actorUserId },
+      select: {
+        id: true,
+        status: true,
+        isDemo: true,
+        quota: true,
+      },
+    });
+    settings = await loadPlatformAiSettings(db);
+    profileConfigs = await db.quotaConfiguration.findMany();
   } catch {
     throw new AppError(
       'AI_UNAVAILABLE',
