@@ -1,34 +1,50 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './features/auth/AuthContext';
+import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
 import AppLayout from './layouts/AppLayout';
 import HomePage from './pages/public/HomePage';
+import LoginPage from './pages/public/LoginPage';
+import RegisterPage from './pages/public/RegisterPage';
+import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
+import ResetPasswordPage from './pages/public/ResetPasswordPage';
 import DashboardPage from './pages/app/DashboardPage';
+import SettingsPage from './pages/app/SettingsPage';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<PublicLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="demo" element={<div className="p-8 text-center">Interactive Demo (Phase 8)</div>} />
-          <Route path="login" element={<div className="p-8 text-center">Login (Phase 2)</div>} />
-          <Route path="register" element={<div className="p-8 text-center">Register (Phase 2)</div>} />
-          <Route path="forgot-password" element={<div className="p-8 text-center">Forgot Password (Phase 2)</div>} />
-        </Route>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Website Routes */}
+          <Route path="/" element={<PublicLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="demo" element={<div className="p-8 text-center text-sm font-mono text-secondary">Interactive Demo (Phase 8)</div>} />
 
-        {/* Authenticated App Routes */}
-        <Route path="/app" element={<AppLayout />}>
-          <Route index element={<DashboardPage />} />
-          <Route path="projects" element={<div className="p-8 text-center">Projects Module (Phase 3)</div>} />
-          <Route path="investigations" element={<div className="p-8 text-center">Investigations Module (Phase 6)</div>} />
-          <Route path="reports" element={<div className="p-8 text-center">Reports Module (Phase 7)</div>} />
-          <Route path="settings" element={<div className="p-8 text-center">Settings (Phase 2b)</div>} />
-        </Route>
+            {/* Public-only Auth Routes */}
+            <Route element={<PublicOnlyRoute />}>
+              <Route path="login" element={<LoginPage />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route path="forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="reset-password" element={<ResetPasswordPage />} />
+            </Route>
+          </Route>
 
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Authenticated App Routes */}
+          <Route path="/app" element={<ProtectedRoute />}>
+            <Route element={<AppLayout />}>
+              <Route index element={<DashboardPage />} />
+              <Route path="projects" element={<div className="p-8 text-center text-sm font-mono text-secondary">Projects Workspace (Phase 3)</div>} />
+              <Route path="investigations" element={<div className="p-8 text-center text-sm font-mono text-secondary">Investigations Module (Phase 6)</div>} />
+              <Route path="reports" element={<div className="p-8 text-center text-sm font-mono text-secondary">Change Intelligence Reports (Phase 7)</div>} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

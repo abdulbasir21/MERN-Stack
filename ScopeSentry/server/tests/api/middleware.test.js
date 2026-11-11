@@ -197,13 +197,13 @@ describe('Phase 1: Middleware & Security Infrastructure', () => {
       rateLimitedApp.use(authRateLimiter);
       rateLimitedApp.get('/test-limit', (req, res) => res.json({ ok: true }));
 
-      // Max is 10 for authRateLimiter. Hit it 10 times:
+      // Max is 10 for authRateLimiter. Hit it 10 times with test header:
       for (let i = 0; i < 10; i++) {
-        await request(rateLimitedApp).get('/test-limit');
+        await request(rateLimitedApp).get('/test-limit').set('X-Test-Rate-Limit', 'true');
       }
 
       // 11th request must return 429
-      const res = await request(rateLimitedApp).get('/test-limit');
+      const res = await request(rateLimitedApp).get('/test-limit').set('X-Test-Rate-Limit', 'true');
       expect(res.status).toBe(429);
       expect(res.body.error.code).toBe('RATE_LIMITED');
       expect(res.body.error.message).toContain('Too many authentication attempts');

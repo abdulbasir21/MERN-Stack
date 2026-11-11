@@ -1,8 +1,20 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Shield, LayoutDashboard, FolderGit2, SearchCode, FileSpreadsheet, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../features/auth/AuthContext';
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   const navItems = [
     { label: 'Dashboard', path: '/app', icon: LayoutDashboard },
@@ -55,11 +67,16 @@ export default function AppLayout() {
           </nav>
         </div>
 
-        {/* User profile & logout stub */}
+        {/* User profile & logout */}
         <div className="p-3 border-t border-white/10">
+          <div className="px-3 py-2 mb-2 bg-white/5 rounded-lg border border-white/5">
+            <p className="text-xs font-semibold text-white truncate">{user?.name || 'Authorized User'}</p>
+            <p className="text-[10px] text-slate-400 font-mono truncate">{user?.email}</p>
+          </div>
           <button
             type="button"
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
           >
             <LogOut className="w-4 h-4 shrink-0 text-slate-400" />
             <span>Sign Out</span>
@@ -75,8 +92,8 @@ export default function AppLayout() {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>SYSTEM OPERATIONAL</span>
           </div>
-          <div className="text-xs text-secondary">
-            User Workspace
+          <div className="flex items-center gap-4 text-xs text-secondary">
+            <span>Workspace: <strong className="text-primary font-mono">{user?.role || 'PROJECT_OWNER'}</strong></span>
           </div>
         </header>
 

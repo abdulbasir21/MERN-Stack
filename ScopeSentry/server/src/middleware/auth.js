@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { config } from '../config/env.js';
 import { AppError } from './errorHandler.js';
 import { ERROR_CODES, PERMISSIONS } from '../config/constants.js';
+import { User } from '../models/User.js';
 
 // Role-to-Permissions Mapping (Source: MASTER_PROMPT section 5 & ARCHITECTURE section 7)
 export const ROLE_PERMISSIONS = {
@@ -30,7 +32,7 @@ export const ROLE_PERMISSIONS = {
   ]
 };
 
-export function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   const token = req.cookies?.scopesentry_session ||
     (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')
       ? req.headers.authorization.split(' ')[1]
@@ -42,8 +44,18 @@ export function authenticate(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
+    const userId = decoded.userId || decoded.id;
+
+    // Check tokenVersion for immediate session revocation on password reset
+    if (mongoose.connection.readyState === 1 && mongoose.Types.ObjectId.isValid(userId)) {
+      const user = await User.findById(userId).select('email role tokenVersion');
+      if (user && decoded.tokenVersion !== undefined && user.tokenVersion !== decoded.tokenVersion) {
+        return next(new AppError(ERROR_CODES.UNAUTHENTICATED, 'Session has expired or been revoked', 401));
+      }
+    }
+
     req.user = {
-      id: decoded.userId || decoded.id,
+      id: userId,
       email: decoded.email,
       role: decoded.role || 'user'
     };

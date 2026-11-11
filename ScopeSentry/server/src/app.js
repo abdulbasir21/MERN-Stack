@@ -4,6 +4,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { config } from './config/env.js';
 import healthRouter from './routes/health.js';
+import authRouter from './routes/auth.js';
+import settingsRouter from './routes/settings.js';
 import { notFoundHandler, centralErrorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -25,9 +27,14 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '2mb' }));
   app.use(cookieParser());
 
-  // Health routes (root and versioned)
+  // Mount API Routes
   app.use(healthRouter);
+  app.use('/auth', authRouter);
+  app.use('/settings', settingsRouter);
+
   app.use('/api/v1', healthRouter);
+  app.use('/api/v1/auth', authRouter);
+  app.use('/api/v1/settings', settingsRouter);
 
   // Catch-all 404
   app.use(notFoundHandler);

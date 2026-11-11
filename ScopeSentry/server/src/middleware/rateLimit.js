@@ -5,6 +5,7 @@ function createLimiter({ windowMs, max, message }) {
   return rateLimit({
     windowMs,
     max,
+    skip: (req) => process.env.NODE_ENV === 'test' && !req.headers['x-test-rate-limit'],
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {

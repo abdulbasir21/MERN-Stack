@@ -36,7 +36,9 @@ export const config = {
   mongoUri: process.env.NODE_ENV === 'test' && process.env.MONGODB_TEST_URI
     ? process.env.MONGODB_TEST_URI
     : process.env.MONGODB_URI,
-  mongoDbName: process.env.MONGODB_DB_NAME || 'scopesentry',
+  mongoDbName: process.env.NODE_ENV === 'test'
+    ? (process.env.MONGODB_TEST_DB_NAME || 'scopesentry_test')
+    : (process.env.MONGODB_DB_NAME || 'scopesentry'),
   jwtSecret: process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET || 'fallback-dev-secret-min-32-chars-long',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || process.env.ACCESS_TOKEN_EXPIRES_IN || '15m',
   csrfSecret: process.env.CSRF_SECRET || 'fallback-csrf-secret-min-32-chars-long',
