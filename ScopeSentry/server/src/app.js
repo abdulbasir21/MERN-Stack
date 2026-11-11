@@ -7,6 +7,7 @@ import healthRouter from './routes/health.js';
 import authRouter from './routes/auth.js';
 import settingsRouter from './routes/settings.js';
 import projectsRouter from './routes/projects.js';
+import { documentsRouter, projectDocumentsRouter } from './routes/documents.js';
 import { notFoundHandler, centralErrorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -33,11 +34,15 @@ export function createApp() {
   app.use('/auth', authRouter);
   app.use('/settings', settingsRouter);
   app.use('/projects', projectsRouter);
+  app.use('/projects/:projectId/documents', projectDocumentsRouter);
+  app.use('/documents', documentsRouter);
 
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/settings', settingsRouter);
   app.use('/api/v1/projects', projectsRouter);
+  app.use('/api/v1/projects/:projectId/documents', projectDocumentsRouter);
+  app.use('/api/v1/documents', documentsRouter);
 
   // Catch-all 404
   app.use(notFoundHandler);

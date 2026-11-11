@@ -293,3 +293,92 @@ Path: `docs/PROGRESS.md`
 ### 5. Suggestions (Not Built — Out of Scope for MVP)
 - Multi-currency conversion rates (spec explicitly mandates project-level currency label with no conversion).
 - Project templates / cloning functionality (out of MVP scope).
+
+---
+
+## Phase 4 — Documents and Text Extraction
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Backend Storage & Extraction Engine (`server/`):**
+  - `server/src/integrations/storage.js`: Official `@imagekit/nodejs` integration (v7.14.0) supporting private file uploads (`isPrivateFile: true`), short-lived signed download URLs (`getPrivateDownloadUrl`), and file deletions (`deletePrivateFile`), with complete in-memory mock isolation for automated tests per AGENTS.md rule 4.
+  - `server/src/utils/sanitizer.js`: Filename sanitization function enforcing BR-D6 (strips directory traversal sequences `../`, HTML/script tags, and control characters; preserves file extension).
+  - `server/src/middleware/upload.js`: Multipart memory storage upload middleware enforcing BR-D1:
+    - File extension check (`.pdf`, `.docx` only)
+    - MIME type validation (`application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`)
+    - Binary magic bytes / file signature validation (`%PDF` for PDF, `PK\x03\x04` for DOCX)
+    - File size limit (`MAX_UPLOAD_MB`, 413 `PAYLOAD_TOO_LARGE` on violation)
+  - `server/src/services/textExtractionService.js`:
+    - PDF text and page-count extraction via `pdf-parse` (v2.4.5)
+    - DOCX text extraction via `mammoth` (v1.8.0)
+    - Scanned/empty document detection throwing safe `no_extractable_text` error (BR-D9)
+  - `server/src/services/documentService.js`:
+    - `uploadDocument`: Implements strict BR-D3 sequence (validate -> upload private file -> create DB record -> extract text -> update status). Includes compensation hook: deletes uploaded cloud file if database record saving throws.
+    - `listDocuments`: Scoped by `ownerId` and `projectId`.
+    - `getDocumentById`: Enforces 404 on foreign document access (BR-D5).
+    - `getDocumentDownloadUrl`: Generates short-lived signed download URL (BR-D5).
+    - `deleteDocument`: Enforces BR-D7 (blocks deletion with 409 `CONFLICT` if document is referenced in any investigation). Deletes chunks and document record in one transaction, with post-commit cloud file cleanup.
+    - `reprocessDocument`: Re-runs extraction machine for failed documents (BR-D4).
+  - `server/src/controllers/documentController.js` & Routes (`server/src/routes/documents.js`):
+    - `POST /projects/:projectId/documents` (upload with rate limiting and CSRF protection)
+    - `GET /projects/:projectId/documents` (list project documents)
+    - `GET /documents/:id` (fetch metadata and plain text)
+    - `GET /documents/:id/download` (authenticated signed download link)
+    - `DELETE /documents/:id` (transactional cascade delete with 409 investigation reference guard)
+    - `POST /documents/:id/reprocess` (document retry endpoint)
+- **Frontend Document Management (`frontend/`):**
+  - `frontend/src/features/documents/DocumentsManager.jsx`:
+    - Responsive document table showing document name, category badge, status badge (`ready`, `extracting`, `failed`), page count, and formatted file size.
+    - Upload modal supporting PDF and DOCX files, category selection (`original_specification`, `revised_specification`, `original_contract`, `change_request`, `meeting_notes`, `supporting_document`), client-side 10MB size validation, and upload spinner.
+    - Authenticated download action opening signed URL in a secure new tab.
+    - Plain text preview modal (BR-D8: untrusted document text rendered strictly as plain text, never evaluated as HTML).
+    - Cascade deletion confirmation dialog with conflict banner if referenced in investigations.
+    - Empty and loading skeleton states.
+  - `frontend/src/pages/app/ProjectDetailsPage.jsx`: Embedded `DocumentsManager` directly into the "Documents" tab shell.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest:**
+  - `tests/api/documents.test.js`: 9 passed
+    - BR-D6: sanitizes malicious filenames stripping path traversal and script tags
+    - BR-D1: rejects unsupported file extension, invalid MIME, and fake magic bytes
+    - BR-D2: rejects invalid document category
+    - BR-D3: compensation logic deletes uploaded ImageKit file if DB record creation fails
+    - BR-D4 & BR-D8: uploads valid PDF, extracts text, and sets ready status
+    - BR-D1 & BR-D4: uploads valid DOCX, extracts text, and sets ready status
+    - BR-D9: scanned PDF with no extractable text sets failed status with reason no_extractable_text
+    - BR-D5: authenticated download route returns signed URL; foreign user access returns 404
+    - BR-D7: deleting a document referenced by an investigation is BLOCKED with 409
+  - `tests/api/projects.test.js`: 9 passed
+  - `tests/api/auth.test.js`: 12 passed
+  - `tests/api/middleware.test.js`: 11 passed
+  - `tests/unit/math.test.js`: 17 passed
+  - `tests/unit/ownership.test.js`: 7 passed
+  - `tests/api/health.test.js`: 4 passed
+  - `tests/unit/dates.test.js`: 8 passed
+  - `tests/unit/env.test.js`: 2 passed
+  - **Total Server:** 79 tests passed across 9 test suites (duration: 100.63s)
+- **Frontend Vitest:**
+  - `src/App.test.jsx`: 1 passed (duration: 282ms)
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1594 modules transformed, production bundle built in 13.75s (`dist/assets/index-Creia_2s.js`)
+- **Audit Reports:**
+  - `server/`: 7 reported in dev/nested packages (vitest/tinypool, zod <4); breaking changes not auto-applied per AGENTS.md.
+  - `frontend/`: 8 reported in dev/nested packages (vitest/tinypool, react-router <7.18); breaking changes not auto-applied per AGENTS.md.
+
+### 3. Documentation & Package Versions Used
+- `@imagekit/nodejs` v7.14.0 (official modern Node SDK for private upload and signed URLs)
+- `pdf-parse` v2.4.5 (official PDFParse class for plain text and page metadata)
+- `mammoth` v1.8.0 (official DOCX raw text extraction)
+- `multer` v1.4.5-lts.1 (memory storage multipart upload handler)
+
+### 4. Decisions Made
+- **Test ImageKit Mocking:** Configured `storage.js` to automatically isolate ImageKit calls when `NODE_ENV === 'test'` unless `USE_REAL_IMAGEKIT` is explicitly enabled, fulfilling AGENTS.md rule 4.
+- **Vitest Timeout Tolerance for Atlas:** Increased `testTimeout` and `hookTimeout` to 60000ms in `server/vitest.config.js` to ensure resilient test execution under Atlas network conditions during multi-file test suites.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- OCR text recognition for scanned PDFs and drawings (explicitly out of scope for MVP per MASTER_PROMPT section 14).
+- In-browser visual PDF annotation / side-by-side highlighting (out of scope for MVP).

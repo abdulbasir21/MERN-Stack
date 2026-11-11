@@ -46,5 +46,8 @@ export const config = {
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
   maxUploadMb: parseInt(process.env.MAX_UPLOAD_MB || process.env.MAX_FILE_SIZE_MB || '10', 10),
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
-  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10)
+  rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
+  imagekitPublicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
+  imagekitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
+  imagekitUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_URL_ENDPOINT || ''
 };
