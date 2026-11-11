@@ -16,6 +16,11 @@ import {
   setDocumentSummarizer,
   resetDocumentSummarizer,
 } from '../../src/services/documents/documentSummaryService.js';
+import {
+  MockEmbeddingGenerator,
+  setEmbeddingGenerator,
+  resetEmbeddingGenerator,
+} from '../../src/services/rag/embeddingService.js';
 
 const CSRF_HEADER = { 'X-Requested-With': 'InterviewPilot' };
 
@@ -99,6 +104,7 @@ describe('Phase 4 — Documents (upload, storage, extraction, summaries) (DOC-1 
   const app = createApp({ allowedOrigin: 'http://localhost:3000' });
   const mockStorage = new InMemoryStorageAdapter();
   const mockSummarizer = new MockDocumentSummarizer();
+  const mockEmbeddingGen = new MockEmbeddingGenerator();
 
   beforeAll(async () => {
     await ensureDatabaseConnected();
@@ -109,6 +115,7 @@ describe('Phase 4 — Documents (upload, storage, extraction, summaries) (DOC-1 
     resetAllRateLimits();
     setStorageAdapter(mockStorage);
     setDocumentSummarizer(mockSummarizer);
+    setEmbeddingGenerator(mockEmbeddingGen);
     mockStorage.clear();
 
     await prisma.$transaction([
@@ -125,6 +132,7 @@ describe('Phase 4 — Documents (upload, storage, extraction, summaries) (DOC-1 
   afterEach(() => {
     resetStorageAdapter();
     resetDocumentSummarizer();
+    resetEmbeddingGenerator();
   });
 
   it('DOC-2 & SEC-5: rejects wrong file type, invalid signature, or oversized files > 5 MB', async () => {

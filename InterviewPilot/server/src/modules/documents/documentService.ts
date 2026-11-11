@@ -11,6 +11,7 @@ import { validateUploadedDocumentFile } from '../../lib/fileValidation.js';
 import { getStorageAdapter } from '../../services/storage/imagekitAdapter.js';
 import { extractTextFromBuffer } from '../../services/documents/textExtractor.js';
 import { executeDocumentSummary } from '../../services/documents/documentSummaryService.js';
+import { indexDocumentChunks } from '../../services/rag/ragService.js';
 
 export const MAX_DOCUMENTS_PER_TYPE = 5;
 
@@ -123,6 +124,9 @@ export async function uploadUserDocument(params: {
       type: params.type,
     });
 
+    // RAG-6: Chunk and embed document once at processing time
+    await indexDocumentChunks(initialDoc.id, params.userId, extraction.text);
+
     const readyDoc = await prisma.uploadedDocument.update({
       where: { id: initialDoc.id },
       data: {
@@ -215,6 +219,9 @@ export async function pasteJdDocument(params: {
       text: trimmedText,
       type: 'JD',
     });
+
+    // RAG-6: Chunk and embed document once at processing time
+    await indexDocumentChunks(initialDoc.id, params.userId, trimmedText);
 
     const readyDoc = await prisma.uploadedDocument.update({
       where: { id: initialDoc.id },
