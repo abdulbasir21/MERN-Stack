@@ -49,5 +49,8 @@ export const config = {
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   imagekitPublicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
   imagekitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-  imagekitUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_URL_ENDPOINT || ''
+  imagekitUrlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_URL_ENDPOINT || '',
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
+  geminiEmbeddingModel: process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004',
+  embeddingDimensions: parseInt(process.env.EMBEDDING_DIMENSIONS || '768', 10)
 };

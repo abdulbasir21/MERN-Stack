@@ -5,6 +5,7 @@ import { Investigation } from '../models/Investigation.js';
 import { Project } from '../models/Project.js';
 import { uploadPrivateFile, getPrivateDownloadUrl, deletePrivateFile } from '../integrations/storage.js';
 import { extractDocumentText } from './textExtractionService.js';
+import { indexDocumentChunks } from './indexingService.js';
 import { sanitizeFilename } from '../utils/sanitizer.js';
 import { AppError } from '../middleware/errorHandler.js';
 import { ERROR_CODES, DOCUMENT_CATEGORIES } from '../config/constants.js';
@@ -84,9 +85,13 @@ export async function uploadDocument(ownerId, projectId, { file, category, simul
 
     documentRecord.extractedText = extraction.text;
     documentRecord.pageCount = extraction.pageCount;
-    documentRecord.processingStatus = 'ready';
-    documentRecord.failureReason = null;
     await documentRecord.save();
+
+    // Step 4: Index chunks atomically in a transaction (BR-C1, BR-C2, BR-C3)
+    await indexDocumentChunks(ownerId, projectId, documentRecord._id, {
+      text: extraction.text,
+      pages: extraction.pages
+    });
   } catch (extractErr) {
     // BR-D4, BR-D9: Save safe failure reason
     const failureReason =

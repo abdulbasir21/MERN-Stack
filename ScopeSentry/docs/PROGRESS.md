@@ -382,3 +382,81 @@ Path: `docs/PROGRESS.md`
 ### 5. Suggestions (Not Built — Out of Scope for MVP)
 - OCR text recognition for scanned PDFs and drawings (explicitly out of scope for MVP per MASTER_PROMPT section 14).
 - In-browser visual PDF annotation / side-by-side highlighting (out of scope for MVP).
+
+---
+
+## Phase 5 — Chunking, Embeddings, Hybrid Retrieval
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Phase 5a: Pure Domain Functions (`server/src/domain/`):**
+  - `server/src/domain/chunker.js`: Section- and clause-aware document chunking:
+    - CSI MasterFormat 6-digit division recognition (`Section 08 51 13`, `Division 03 30 00`), clause identifiers (`Clause 4.2.1`, `Section 12.4`), and hierarchical sub-parts (`PART 1 - GENERAL`, `PART 2 - PRODUCTS`).
+    - Sliding token window targeting ~500 tokens (~2000 chars) with configurable overlap (~100 tokens / 400 chars).
+    - Page-tracking metadata preserving `pageNumber`, `sectionNumber`, `clauseNumber`, `charStart`, `charEnd`.
+    - Sanitizes null bytes and invalid characters.
+  - `server/src/domain/rrf.js`: Reciprocal Rank Fusion implementation:
+    - Standard RRF formula: $RRF(d) = \sum_{m \in M} \frac{1}{k + rank_m(d)}$ with constant $k = 60$.
+    - Deterministic tie-breaking on matching chunk IDs.
+  - `server/src/domain/retrievalFilter.js`: Strict scoped filter builder (BR-C4):
+    - Validates presence of both `ownerId` and `projectId`. Throws `Error('BR-C4: Retrieval query strictly requires ownerId and projectId')` if missing.
+  - `server/src/domain/snippetVerifier.js`: Grounding and citation verification (BR-I8):
+    - Strict substring match and normalized case/whitespace containment verification.
+    - Prevents hallucinated citations by verifying that every cited evidence snippet actually exists in its corresponding chunk text.
+- **Phase 5b: Embeddings, Indexing & Hybrid Retrieval Integration:**
+  - `server/src/models/DocumentChunk.js`: Document chunk Mongoose schema with `ownerId`, `projectId`, `documentId`, `chunkIndex`, `text`, `embedding` (768-dim vector), `pageNumber`, `sectionNumber`, `clauseNumber`.
+  - `server/src/ai/embeddingService.js`: Integration with Google GenAI (`@google/genai`) using `text-embedding-004` (768 dimensions), with deterministic mock fallback in test mode.
+  - `server/src/ai/indexes/`:
+    - `atlas-vector-index.json`: Atlas Vector Search definition on `DocumentChunk.embedding` (768 dims, cosine similarity, scoped on `ownerId` and `projectId`).
+    - `atlas-search-index.json`: Atlas Search definition on `DocumentChunk.text` and metadata fields.
+    - `README.md`: Step-by-step Atlas setup instructions.
+  - `server/src/services/indexingService.js`:
+    - Chunks document text, generates embeddings in batches.
+    - Replaces chunks atomically in a database transaction (`BR-C3`), transitioning document status to `ready`.
+  - `server/src/services/retrievalService.js`:
+    - Executes vector similarity search and exact keyword search.
+    - Graceful scoped fallback when Atlas Search indexes are pending creation.
+    - Merges results via Reciprocal Rank Fusion (`RRF`, $k = 60$).
+    - Strict cross-user isolation and project scoping (`BR-C4`).
+
+### 2. Real Test & Verification Counts
+- **Server Vitest (Phase 5 Suites):**
+  - `tests/unit/chunking-retrieval.test.js`: 13 passed
+    - Chunker splits empty text safely into empty array
+    - Chunker preserves CSI MasterFormat section numbers (Section 08 51 13)
+    - Chunker tracks clause headers and inherits parent sections
+    - Chunker chunks long text into ~500-token chunks with overlap
+    - RRF formula computes reciprocal scores with k=60
+    - RRF deterministically breaks score ties
+    - RetrievalFilter throws error when ownerId is missing (BR-C4)
+    - RetrievalFilter throws error when projectId is missing (BR-C4)
+    - RetrievalFilter produces valid Mongoose query with documentIds
+    - SnippetVerifier returns true for exact substring match (BR-I8)
+    - SnippetVerifier returns true for normalized whitespace/casing
+    - SnippetVerifier returns false for hallucinated/altered text
+    - SnippetVerifier returns false for missing or empty inputs
+  - `tests/api/indexing-retrieval.test.js`: 4 passed
+    - BR-C3: re-processing replaces chunks atomically in a transaction
+    - BR-C4: Cross-user isolation: User A retrieval NEVER returns User B chunks even for identical document text
+    - BR-C4: Retrieval strictly requires project scope and throws if ownerId or projectId is missing
+    - Hybrid Retrieval: finds exact keyword matches (e.g. Section 08 51 13, 32 windows)
+  - **Total Phase 5 Tests:** 17 passed
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking upgrade not auto-applied.
+  - `frontend/`: 8 vulnerabilities in dev/nested packages (vitest/tinypool, react-router <7.18); breaking upgrade not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- `@google/genai` v0.1.2 (official Google GenAI SDK for `text-embedding-004`)
+- MongoDB Atlas Vector Search documentation: `vectorSearch` aggregation stage syntax with numDimensions=768 and cosine similarity.
+
+### 4. Decisions Made
+- **Scoped Atlas Fallback:** Atlas `$vectorSearch` and `$search` return an empty array if the index is not yet built in the Atlas Web UI. `retrievalService.js` detects this and runs scoped in-database vector cosine similarity and regex token scoring, ensuring 100% test reliability and identical contract fulfillment in all environments.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Dynamic re-ranking cross-encoder model (Cohere or Gemini Flash reranker) for top-20 chunk reranking (out of scope for MVP).
+

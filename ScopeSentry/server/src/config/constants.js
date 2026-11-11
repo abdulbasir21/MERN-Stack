@@ -68,6 +68,13 @@ export const CONFIDENCE_LEVELS = ['high', 'medium', 'low'];
 
 export const AUDIT_ACTION_TYPES = ['status_change', 'comment', 'price_override'];
 
+export const CHUNK_CONSTANTS = {
+  TARGET_CHARS: 2400, // ~600-800 tokens
+  OVERLAP_CHARS: 300, // ~75-100 tokens
+  MAX_CHARS: 3200,
+  RRF_K: 60
+};
+
 export const PERMISSIONS = {
   DEMO_READ: 'demo:read',
   DEMO_RUN: 'demo:run',
