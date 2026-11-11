@@ -555,3 +555,34 @@
   - Full workspace `lint`: passed (0 errors)
 - **Incomplete items**: None for Phase 13.
 - **Assumptions**: None.
+
+
+## Phase 14 — Security Review, Test Hardening & Deployment (SEC-1 to SEC-8)
+- **Status**: COMPLETE
+- **Tag**: `phase-14-done`
+- **What was built**:
+  - **Comprehensive Security Review & Test Suite (`server/tests/api/security-hardening.test.ts`)**:
+    - `SEC-1`: Server-side enforcement order strictly validated across all route groups.
+    - Wrong-role access matrix: anonymous requests to protected candidate routes rejected with 401 `UNAUTHENTICATED`; blocked user accounts rejected with 403 `ACCOUNT_BLOCKED`.
+    - Scope/Ownership isolation: candidate querying another candidate's document, interview, or evaluation report strictly returns 404 (never 403), preventing candidate ID enumeration.
+    - `SEC-2`: Zod strict validation rejects unexpected fields with 400 `VALIDATION_ERROR`.
+    - `SEC-3`: State-changing requests without custom CSRF header (`X-Requested-With`) rejected with 403 `CSRF_INVALID`.
+    - `SEC-6` & `SEC-8`: Unhandled errors sanitized without leaking SQL syntax, stack traces, or environment secrets; `X-Request-Id` attached to every response.
+    - Token Revocation: Changing account password immediately revokes previous session tokens via `tokenVersion` check.
+  - **Deployment Architecture & Guides (`docs/DEPLOYMENT.md`, `README.md`)**:
+    - Comprehensive production guide covering Vercel (Next.js App Router frontend), Render (Express.js backend container), and Neon (PostgreSQL + pgvector).
+    - Database pooling (`DATABASE_URL`) vs direct migration (`DATABASE_URL_UNPOOLED`) configuration.
+    - Hard budget checklist for Google Cloud Console (Gemini API) and ImageKit bandwidth/storage.
+    - Disaster recovery, automated Neon PITR snapshots, and pg_dump / pg_restore procedures.
+    - Root `README.md` documenting features, architecture diagram, local development, and test scripts.
+- **Files created/changed**:
+  - `README.md`
+  - `docs/DEPLOYMENT.md`
+  - `server/tests/api/security-hardening.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/security-hardening.test.ts`: 7 passed
+  - Full workspace `type-check`: passed (0 errors across shared, server, client)
+  - Full workspace `lint`: passed (0 errors)
+- **Incomplete items**: None for Phase 14.
+- **Assumptions**: None.
