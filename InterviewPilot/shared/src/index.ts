@@ -542,6 +542,7 @@ export const SynthesizeSpeechResponseSchema = z.object({
 export type SynthesizeSpeechResponse = z.infer<typeof SynthesizeSpeechResponseSchema>;
 
 export * from './voiceMath.js';
+export * from './roomRules.js';
 
 
 
