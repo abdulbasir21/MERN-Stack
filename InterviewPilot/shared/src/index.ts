@@ -346,3 +346,113 @@ export interface DocumentResponseDto {
   createdAt: string;
   updatedAt: string;
 }
+
+// ==========================================
+// Phase 6 — Interview Setup & Plan Generation (SET-1 to SET-5)
+// ==========================================
+
+export const InterviewModeEnum = z.enum(['GENERAL', 'CV_BASED', 'JD_BASED', 'CV_JD']);
+export type InterviewMode = z.infer<typeof InterviewModeEnum>;
+
+export const InterviewTypeEnum = z.enum(['TECHNICAL', 'HR', 'BEHAVIORAL']);
+export type InterviewType = z.infer<typeof InterviewTypeEnum>;
+
+export const InterviewDifficultyEnum = z.enum(['EASY', 'MEDIUM', 'HARD']);
+export type InterviewDifficulty = z.infer<typeof InterviewDifficultyEnum>;
+
+export const InterviewStatusEnum = z.enum([
+  'CREATED',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'ENDED_EARLY',
+  'TIMED_OUT',
+  'FAILED',
+]);
+export type InterviewStatus = z.infer<typeof InterviewStatusEnum>;
+
+export const InterviewRuntimeStateEnum = z.enum([
+  'INITIALIZING',
+  'RECRUITER_SPEAKING',
+  'WAITING_FOR_CANDIDATE',
+  'CANDIDATE_LISTENING',
+  'PROCESSING_ANSWER',
+  'AI_THINKING',
+  'GENERATING_NEXT_QUESTION',
+  'GENERATING_FEEDBACK',
+  'INTERVIEW_COMPLETED',
+  'ERROR',
+]);
+export type InterviewRuntimeState = z.infer<typeof InterviewRuntimeStateEnum>;
+
+export const InterviewEndReasonEnum = z.enum([
+  'USER_ENDED',
+  'TIME_LIMIT',
+  'QUESTIONS_COMPLETED',
+  'ABANDONED',
+  'ERROR',
+]);
+export type InterviewEndReason = z.infer<typeof InterviewEndReasonEnum>;
+
+export const QuestionKindEnum = z.enum(['MAIN', 'FOLLOW_UP', 'CLARIFICATION']);
+export type QuestionKind = z.infer<typeof QuestionKindEnum>;
+
+export const InterviewPlanSchema = z.object({
+  greeting: z.string().min(5),
+  topics: z.array(z.string().min(2)).min(1),
+  evaluationCriteria: z.array(z.string().min(2)).min(1),
+  firstQuestion: z.string().min(5),
+});
+export type InterviewPlan = z.infer<typeof InterviewPlanSchema>;
+
+export const CreateInterviewInputSchema = z
+  .object({
+    mode: InterviewModeEnum,
+    role: z
+      .string()
+      .trim()
+      .min(2, 'Role must be at least 2 characters')
+      .max(100, 'Role must not exceed 100 characters'),
+    experienceLevel: ExperienceLevelEnum,
+    type: InterviewTypeEnum,
+    difficulty: InterviewDifficultyEnum,
+    durationMinutes: z.union([z.literal(15), z.literal(30), z.literal(45)]),
+    questionCount: z.number().int().min(3, 'Question count must be at least 3').optional(),
+    cvDocumentId: z.string().optional().nullable(),
+    jdDocumentId: z.string().optional().nullable(),
+  })
+  .strict();
+
+export type CreateInterviewInput = z.infer<typeof CreateInterviewInputSchema>;
+
+export interface InterviewConfigurationDto {
+  role: string;
+  experienceLevel: ExperienceLevel;
+  type: InterviewType;
+  startDifficulty: InterviewDifficulty;
+  durationMinutes: number;
+  maxQuestions: number;
+  cvDocumentId?: string | null;
+  jdDocumentId?: string | null;
+}
+
+export interface InterviewQuestionDto {
+  id: string;
+  orderIndex: number;
+  kind: QuestionKind;
+  topic: string;
+  difficulty: InterviewDifficulty;
+  text: string;
+}
+
+export interface InterviewResponseDto {
+  id: string;
+  userId: string;
+  mode: InterviewMode;
+  status: InterviewStatus;
+  runtimeState: InterviewRuntimeState;
+  configuration: InterviewConfigurationDto;
+  plan: InterviewPlan;
+  firstQuestion: InterviewQuestionDto;
+  createdAt: string;
+}
+

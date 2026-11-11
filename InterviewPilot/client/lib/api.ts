@@ -256,3 +256,69 @@ export async function deleteDocument(
     method: 'DELETE',
   });
 }
+
+// Phase 6 — Interviews
+import type {
+  CreateInterviewInput,
+  InterviewResponseDto,
+} from '@interviewpilot/shared';
+
+export async function createInterviewApi(
+  input: CreateInterviewInput
+): Promise<ApiSuccessResponse<{ interview: InterviewResponseDto }>> {
+  return apiRequest<{ interview: InterviewResponseDto }>('/api/interviews', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function fetchInterviewById(
+  id: string
+): Promise<ApiSuccessResponse<{ interview: InterviewResponseDto }>> {
+  return apiRequest<{ interview: InterviewResponseDto }>(`/api/interviews/${id}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchInterviews(): Promise<
+  ApiSuccessResponse<{
+    interviews: Array<{
+      id: string;
+      mode: string;
+      status: string;
+      runtimeState: string;
+      role: string;
+      type: string;
+      durationMinutes: number;
+      maxQuestions: number;
+      createdAt: string;
+    }>;
+  }>
+> {
+  return apiRequest('/api/interviews', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchQuotaMe(): Promise<
+  ApiSuccessResponse<{
+    effectiveQuota: {
+      interviewsPerDay: number;
+      maxDurationMinutes: number;
+      maxQuestionsPerInterview: number;
+      maxInquiriesPerInterview: number;
+      documentAnalysesPerDay: number;
+    };
+    usageToday: {
+      interviewsCreated: number;
+      documentAnalyses: number;
+    };
+  }>
+> {
+  return apiRequest('/api/quota/me', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}

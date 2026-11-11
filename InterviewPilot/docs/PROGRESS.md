@@ -208,3 +208,45 @@
 
 
 ---
+
+## Phase 6 — Interview Setup & Plan Generation
+
+- **What was built**:
+  - **Data Models & Migration (`20261110050000_phase6_interview_setup`)**:
+    - Created `Interview`, `InterviewConfiguration`, and `InterviewQuestion` Prisma models.
+    - Added partial unique index `CREATE UNIQUE INDEX "Interview_active_user_idx" ON "Interview" ("userId") WHERE "status" = 'IN_PROGRESS';` (`QTA-11`).
+    - Successfully migrated both primary and test Neon databases.
+  - **Shared Schemas & DTOs (`shared/src/index.ts`)**:
+    - Enums: `InterviewModeEnum`, `InterviewTypeEnum`, `InterviewDifficultyEnum`, `InterviewStatusEnum`, `InterviewRuntimeStateEnum`, `InterviewEndReasonEnum`, `QuestionKindEnum`.
+    - `CreateInterviewInputSchema`: strict validation of mode, role, experience level, interview type, difficulty, duration (15, 30, 45), optional question count, and document IDs.
+    - `InterviewPlanSchema`: greeting, topics, evaluation criteria, and first question.
+  - **AI Plan Generation (`server/src/services/interview/interviewPlanService.ts`)**:
+    - Structured prompt generation with Gemini (`@google/genai` SDK) wrapped in `withAiUsage` (`consumeInterview: true`, `QTA-14`).
+    - `MockInterviewPlanGenerator` for deterministic mock plan generation in automated tests.
+    - Verified plan rules: no pre-generated follow-ups (`SET-4`), and CV grounding in CV modes (`SET-5`).
+  - **Interview Management Module (`server/src/modules/interviews/`)**:
+    - `interviewService.ts`: validates document prerequisites per mode (`SET-1`), validates duration against effective user quota (`QTA-9`), calculates question count defaults `floor(duration / 3)` capped by quota (`SET-3`), blocks second active interview with `409 INTERVIEW_ALREADY_ACTIVE` (`QTA-11`), and persists interview + configuration + initial question in one atomic transaction.
+    - `interviewController.ts` & `interviewRoutes.ts`: mounted at `/api/interviews` with JWT authentication and CSRF protection.
+  - **Frontend Interview Setup Screen (`client/app/(app)/interviews/setup/page.tsx`)**:
+    - Mode selector (General, Resume-Based, Job Description, Targeted Role Fit).
+    - Document selectors with real-time status indicators (CV / JD pickers).
+    - Target role, experience level, category, starting difficulty, and duration buttons reflecting real quota limits.
+    - Loading states with spinner while AI generates interview plan and initial question.
+  - **Client API Client (`client/lib/api.ts`)**:
+    - Added `createInterviewApi`, `fetchInterviewById`, `fetchInterviews`, and `fetchQuotaMe`.
+- **Files created/changed**:
+  - `shared/src/index.ts`
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261110050000_phase6_interview_setup/migration.sql`
+  - `server/src/modules/interviews/interviewController.ts`, `interviewService.ts`, `interviewRoutes.ts`
+  - `server/src/services/interview/interviewPlanService.ts`, `server/src/app.ts`
+  - `client/app/(app)/interviews/setup/page.tsx`, `client/components/ui/card.tsx`, `client/lib/api.ts`
+  - `server/tests/api/interview-setup.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/interview-setup.test.ts`: 6 passed
+  - Unit suites (`rag-chunking`, `quota-math`, `file-validation`, `env`): 20 passed
+  - **Total**: 59 passed, `type-check` passed (0 errors), `lint` passed (0 errors).
+- **Incomplete items**: None for Phase 6.
+- **Assumptions**: None.
+
+---

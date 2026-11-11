@@ -14,6 +14,7 @@ import { authRouter } from './modules/auth/authRoutes.js';
 import { userRouter } from './modules/users/userRoutes.js';
 import { quotaRouter } from './modules/quota/quotaRoutes.js';
 import { documentRouter } from './modules/documents/documentRoutes.js';
+import { interviewRouter } from './modules/interviews/interviewRoutes.js';
 
 export interface CreateAppOptions {
   allowedOrigin?: string;
@@ -71,6 +72,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.use('/api/users', userRouter);
   app.use('/api/quota', quotaRouter);
   app.use('/api/documents', documentRouter);
+  app.use('/api/interviews', interviewRouter);
 
   // Admin role check endpoint (ADM-1, SEC-1)
   app.get(
