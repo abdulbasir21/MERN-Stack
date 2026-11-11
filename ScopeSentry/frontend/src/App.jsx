@@ -4,6 +4,7 @@ import { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
 import AppLayout from './layouts/AppLayout';
 import HomePage from './pages/public/HomePage';
+import DemoPage from './pages/public/DemoPage';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
@@ -24,7 +25,7 @@ export default function App() {
           {/* Public Website Routes */}
           <Route path="/" element={<PublicLayout />}>
             <Route index element={<HomePage />} />
-            <Route path="demo" element={<div className="p-8 text-center text-sm font-mono text-secondary">Interactive Demo (Phase 8)</div>} />
+            <Route path="demo" element={<DemoPage />} />
 
             {/* Public-only Auth Routes */}
             <Route element={<PublicOnlyRoute />}>

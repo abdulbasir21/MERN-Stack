@@ -665,3 +665,74 @@ Path: `docs/PROGRESS.md`
 
 
 
+
+
+---
+
+## Phase 8 — Public Interactive Demo
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Idempotent Demo Data Seed (`server/src/db/seedDemo.js`):**
+  - Seeds the 3 canonical fictional construction projects (Section 13):
+    1. *Commercial Plaza Tower (Demo)*: Commercial office tower (32 stories). Documents: `Plaza_Spec_Rev0_Original.pdf` (20 standard aluminum windows @ $450/unit), `Plaza_Spec_Rev1_Revised.pdf` (32 premium insulated aluminum windows @ $450/unit), `OAC_Meeting_Minutes_Week12.docx` (supporting change order discussion).
+    2. *Riverside Residential Estates (Demo)*: 48-unit master planned townhome community. Documents: `Riverside_Prime_Contract.pdf` (48 Douglas Fir framing packages @ $12,000/frame), `Change_Request_02_Framing_Material.pdf` (substitution to cold-formed steel @ $14,500/frame).
+    3. *Metro Tech Hub Renovation (Demo)*: Corporate HQ tenant improvement. Documents: `TechHub_Interior_Fitout_Spec.pdf` (16 acoustic panels @ $2,200/room), `TechHub_Fitout_Addendum_1.pdf` (emergency generator installation, decorative acoustic panel removal).
+  - All demo entities marked `isDemo: true` and `ownerId: null`. Chunks chunked and indexed in parallel. Idempotent cleanup and re-creation ensures zero duplication on rerun. Never modifies user data.
+- **Demo Service & Controllers (`server/src/services/demoService.js`, `server/src/controllers/demoController.js`):**
+  - `listDemoProjects`: Unauthenticated retrieval of demo projects.
+  - `getDemoProject`: Unauthenticated retrieval of single demo project with demo document summaries.
+  - `listDemoDocuments`: Scoped demo documents listing.
+  - `runDemoInvestigation`: Executes the real investigation engine on demo documents, attaches anonymous `demoSessionId` cookie, and stores demo investigation and findings.
+  - `getDemoFindings`: Retrieves findings for a demo investigation, with complete Section 7 decimal calculations.
+- **Demo Routes & Rate Limiting (`server/src/routes/demo.js`):**
+  - `GET /demo/projects`
+  - `GET /demo/projects/:id`
+  - `GET /demo/projects/:projectId/documents`
+  - `POST /demo/investigations` (rate-limited via standard demo rate limiter, bypassable in tests with header)
+  - `GET /demo/investigations/:id/findings`
+  - Strict isolation: mutating user endpoints reject demo entities (`ownerId: null`), demo endpoints never query or return non-demo data.
+- **Frontend Interactive Demo Experience (`frontend/src/pages/public/DemoPage.jsx`):**
+  - Full-featured interactive public demo page at `/demo` accessible without login.
+  - 3 selectable sample project cards with metadata, badges, and document inventories.
+  - Single-click "Run Live Investigation" button triggering real backend analysis.
+  - Animated progress indicator showing investigation stages.
+  - Interactive findings breakdown with 3-tier certainty badges (Confirmed vs Estimate vs AI-interpreted).
+  - Evidence snippet drawer displaying ground-truth excerpts and CSI section references.
+  - Prominent Call to Action ("Start Free Trial", "Register Free Account") to convert visitors.
+  - Banner indicating read-only demo status.
+- **Navigation Integration:**
+  - Route `/demo` configured in `frontend/src/App.jsx`.
+  - "Interactive Demo" button added to Landing Page hero and header nav.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest (Phase 8 Suite):**
+  - `tests/api/demo.test.js`: 5 passed (48.01s)
+    - Seed Idempotency: seeds exactly 3 projects without duplicating on rerun
+    - Visitor Access: lists demo projects and documents without authentication
+    - Read-Only Guard: user mutating routes reject demo entities (401/404)
+    - Demo Investigation Runner: executes real investigation and returns grounded findings (e.g. +12 qty diff, $5,400 cost diff)
+    - Demo Rate Limiting: enforces limits when rate limit threshold is reached
+  - **Total Phase 8 Tests:** 5 passed
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1601 modules transformed, production bundle built cleanly in 7.14s
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking upgrade not auto-applied.
+  - `frontend/`: 8 vulnerabilities in dev/nested packages (vitest/tinypool, react-router <7.18); breaking upgrade not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- Express 4.21.1
+- Vitest 2.1.9
+- Lucide React 1.16.0
+
+### 4. Decisions Made
+- **Parallel Chunk Indexing in Seed:** Concurrently indexing the 7 sample documents using `Promise.all` reduced demo seeding time from ~35s to ~5s.
+- **Anonymous Session Isolation:** Demo investigations use a session cookie (`scopesentry_demo_session`) ensuring visitors only view their own demo runs while preventing persistent pollution.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Pre-cached investigation replays for instant zero-latency demo runs (out of scope for MVP).
+- Custom visitor upload sandbox in demo mode (spec section 13: visitors select from pre-loaded scenarios only).

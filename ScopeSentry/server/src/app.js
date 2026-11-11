@@ -12,6 +12,7 @@ import investigationsRouter from './routes/investigations.js';
 import findingsRouter from './routes/findings.js';
 import reportsRouter from './routes/reports.js';
 import dashboardRouter from './routes/dashboard.js';
+import demoRouter from './routes/demo.js';
 import { notFoundHandler, centralErrorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -44,6 +45,7 @@ export function createApp() {
   app.use(findingsRouter);
   app.use(reportsRouter);
   app.use(dashboardRouter);
+  app.use(demoRouter);
 
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
@@ -55,6 +57,7 @@ export function createApp() {
   app.use('/api/v1', findingsRouter);
   app.use('/api/v1', reportsRouter);
   app.use('/api/v1', dashboardRouter);
+  app.use('/api/v1', demoRouter);
 
   // Catch-all 404
   app.use(notFoundHandler);
