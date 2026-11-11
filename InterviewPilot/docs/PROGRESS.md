@@ -176,3 +176,35 @@
 - **Assumptions**: None.
 
 ---
+
+## Phase 5 — RAG (Embeddings and Retrieval) ★
+
+- **What was built**:
+  - **Part (a) Pure functions (`server/src/lib/chunking.ts`)**:
+    - Pure deterministic chunking function `chunkText` (`RAG-1`, `1,200` chars max, `150` char overlap) with boundary awareness (paragraph `\n\n`, newline `\n`, sentence `. `, and space).
+    - Result shaper `shapeRetrievalResults` (`RAG-4`) sorting by cosine distance ascending, capping top-k (`4`), and enforcing global character budget (`3,000` chars max).
+    - Embedding vector dimension validator `validateEmbeddingDimensions` and startup dimension mismatch checker `validateStartupEmbeddingConfig` (`RAG-3`, `768` dimensions).
+  - **Part (b) Database + Vector Search Services (`server/src/services/rag/`)**:
+    - Prisma schema update and migration (`20261110040000_phase5_rag_chunks`) adding `DocumentChunk` with `Unsupported("vector(768)")` and HNSW cosine index `CREATE INDEX "DocumentChunk_embedding_hnsw_idx" ON "DocumentChunk" USING hnsw ("embedding" vector_cosine_ops)`, deployed to both main and test databases.
+    - Embedding generator service (`embeddingService.ts`) with production `GeminiEmbeddingGenerator` (`@google/genai` SDK) wrapped in `withAiUsage` (`RAG-6`) and `MockEmbeddingGenerator` for deterministic, zero-cost automated tests.
+    - RAG indexing service `indexDocumentChunks` (`ragService.ts`) replacing chunks atomically in a transaction when a document is processed (`RAG-6`).
+    - Semantic retrieval service `retrieveRelevantChunks` strictly filtering by `userId = actorId` AND `documentId = ANY(interviewDocIds)` (`RAG-2`), preventing cross-user chunk leakage even with identical text.
+    - Document readiness validator `validateDocumentsReady` enforcing that all interview documents are `READY` with non-null summaries, blocking non-ready documents with `422 DOCUMENT_NOT_READY` (`RAG-8`) and foreign documents with `404 NOT_FOUND` (`SEC-1`).
+    - Wired chunk indexing into document upload and pasted JD processing in `documentService.ts`.
+- **Files created/changed**:
+  - `server/package.json`, `package-lock.json`
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261110040000_phase5_rag_chunks/migration.sql`, `server/scripts/migrate-all.ts`
+  - `server/src/config/constants.ts`, `server/src/index.ts`
+  - `server/src/lib/chunking.ts`, `server/src/services/rag/embeddingService.ts`, `server/src/services/rag/ragService.ts`, `server/src/modules/documents/documentService.ts`
+  - `server/tests/unit/rag-chunking.test.ts`, `server/tests/db/rag-retrieval.test.ts`, `server/tests/api/documents.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/rag-chunking.test.ts`: 7 passed
+  - `tests/db/rag-retrieval.test.ts`: 7 passed
+  - Prior suites: 39 passed
+  - **Total**: 53 passed (11 test files), `type-check` passed, `lint` passed.
+- **Incomplete items**: None for Phase 5.
+- **Assumptions**: Applied D-2 DEFAULT: candidate's own CV/JD only (no curated question bank).
+
+
+---
