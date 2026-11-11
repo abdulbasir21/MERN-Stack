@@ -20,6 +20,7 @@ import {
   handleUpdateMeProfile,
   handleUpdateUserByIdProfile,
 } from './userController.js';
+import { getUserDashboardHandler } from './userDashboardController.js';
 
 export const userRouter = Router();
 
@@ -102,6 +103,18 @@ userRouter.get(
   authenticate,
   requirePermission('profile:read:own'),
   handleGetMeProfile
+);
+
+userRouter.get(
+  '/me/dashboard',
+  authenticate,
+  getUserDashboardHandler
+);
+
+userRouter.get(
+  '/dashboard',
+  authenticate,
+  getUserDashboardHandler
 );
 
 userRouter.put(

@@ -182,6 +182,7 @@ model User {
   documents           UploadedDocument[]
   documentChunks      DocumentChunk[]
   interviews          Interview[]
+  demoSession         DemoSession?
 
   @@index([status, role, isDemo])
 }
@@ -487,5 +488,18 @@ model InterviewReport {
   interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
   @@index([interviewId, status])
+}
+
+model DemoSession {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  ipHash    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ipHash, createdAt])
+  @@index([expiresAt])
 }
 

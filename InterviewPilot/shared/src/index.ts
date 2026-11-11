@@ -415,7 +415,7 @@ export const CreateInterviewInputSchema = z
     experienceLevel: ExperienceLevelEnum,
     type: InterviewTypeEnum,
     difficulty: InterviewDifficultyEnum,
-    durationMinutes: z.union([z.literal(15), z.literal(30), z.literal(45)]),
+    durationMinutes: z.union([z.literal(5), z.literal(15), z.literal(30), z.literal(45)]),
     questionCount: z.number().int().min(3, 'Question count must be at least 3').optional(),
     cvDocumentId: z.string().optional().nullable(),
     jdDocumentId: z.string().optional().nullable(),

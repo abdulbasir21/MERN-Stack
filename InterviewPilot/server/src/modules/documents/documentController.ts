@@ -20,6 +20,11 @@ export async function handleUploadDocument(
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
     }
 
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
+    }
+
     const file = req.file;
     if (!file) {
       throw new AppError('INVALID_FILE', 'No file was provided for upload.', 400);
@@ -63,6 +68,11 @@ export async function handlePasteJdDocument(
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
     }
 
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
+    }
+
     const document = await pasteJdDocument({
       userId: req.actor.id,
       isDemo: req.actor.isDemo,
@@ -87,6 +97,11 @@ export async function handleListDocuments(
   try {
     if (!req.actor) {
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
     }
 
     const queryType = req.query.type ? String(req.query.type).toUpperCase() : undefined;
@@ -114,6 +129,11 @@ export async function handleGetDocumentById(
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
     }
 
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
+    }
+
     const document = await getUserDocumentById(
       req.actor.id,
       String(req.params.id || ''),
@@ -137,6 +157,11 @@ export async function handleGetDocumentContent(
   try {
     if (!req.actor) {
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
     }
 
     const content = await getDocumentContentStream(
@@ -164,6 +189,11 @@ export async function handleDeleteDocument(
   try {
     if (!req.actor) {
       throw new AppError('UNAUTHENTICATED', 'Authentication required.', 401);
+    }
+
+    // DEM-4: Document uploads are strictly forbidden for demo users
+    if (req.actor.isDemo) {
+      throw new AppError('DEMO_RESTRICTED', 'Document uploads are disabled in demo mode.', 403);
     }
 
     await deleteUserDocument(

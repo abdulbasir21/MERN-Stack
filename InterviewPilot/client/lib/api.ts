@@ -618,3 +618,64 @@ export async function compareInterviewsApi(
     cache: 'no-store',
   });
 }
+
+export interface UserDashboardData {
+  isDemo: boolean;
+  statistics: {
+    totalInterviews: number;
+    completedInterviews: number;
+    averageScore: number | null;
+    recentTrend: number[];
+  };
+  recentInterviews: Array<{
+    id: string;
+    role: string;
+    type: string;
+    date: string;
+    durationSeconds: number;
+    overallScore: number | null;
+    status: string;
+    hasReport: boolean;
+  }>;
+  recommendations: {
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
+    studyTopics: string[];
+  } | null;
+}
+
+export async function fetchUserDashboardApi(): Promise<ApiSuccessResponse<UserDashboardData>> {
+  return apiRequest<UserDashboardData>('/api/users/dashboard', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function createDemoSessionApi(): Promise<
+  ApiSuccessResponse<{ user: AuthUserDto; expiresAt: string; limits: { maxInterviews: number; maxMinutes: number; maxQuestions: number } }>
+> {
+  return apiRequest<{
+    user: AuthUserDto;
+    expiresAt: string;
+    limits: { maxInterviews: number; maxMinutes: number; maxQuestions: number };
+  }>('/api/demo/session', {
+    method: 'POST',
+  });
+}
+
+export async function fetchDemoSamplesApi(): Promise<
+  ApiSuccessResponse<{
+    sampleInterview: any;
+    sampleReport: any;
+  }>
+> {
+  return apiRequest<{
+    sampleInterview: any;
+    sampleReport: any;
+  }>('/api/demo/samples', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}

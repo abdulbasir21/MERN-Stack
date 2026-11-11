@@ -20,7 +20,20 @@ export async function createInterview(params: {
   isDemo: boolean;
   input: CreateInterviewInput;
 }): Promise<InterviewResponseDto> {
-  const { userId, input } = params;
+  const { userId, isDemo, input } = params;
+
+  // DEM-2 & DEM-4: Enforce demo mode rules
+  if (isDemo) {
+    const liveDemoSetting = await prisma.applicationSetting.findUnique({
+      where: { key: 'liveDemoEnabled' },
+    });
+    if (liveDemoSetting && liveDemoSetting.value === false) {
+      throw new AppError('DEMO_LIVE_DISABLED', 'Live demo interviews are currently disabled by administrator.', 403);
+    }
+    if (input.mode !== 'GENERAL') {
+      throw new AppError('DEMO_RESTRICTED', 'Only GENERAL interview mode is allowed in demo mode.', 403);
+    }
+  }
 
   // 1. Validate Mode vs Documents (SET-1)
   const docIdsToValidate: string[] = [];

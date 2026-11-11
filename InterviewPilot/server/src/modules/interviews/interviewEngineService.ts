@@ -155,6 +155,17 @@ export async function startInterviewEngine(params: {
     );
   }
 
+  // DEM-2: Verify live demo is enabled if user is demo
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (user?.isDemo) {
+    const liveDemoSetting = await prisma.applicationSetting.findUnique({
+      where: { key: 'liveDemoEnabled' },
+    });
+    if (liveDemoSetting && liveDemoSetting.value === false) {
+      throw new AppError('DEMO_LIVE_DISABLED', 'Live demo interviews are currently disabled by administrator.', 403);
+    }
+  }
+
   // QTA-11: Verify user has NO OTHER active interview in IN_PROGRESS status
   const existingActive = await prisma.interview.findFirst({
     where: {
