@@ -586,3 +586,48 @@
   - Full workspace `lint`: passed (0 errors)
 - **Incomplete items**: None for Phase 14.
 - **Assumptions**: None.
+
+## Phase 15 — Animation, Polish & End-to-End Verification (Last)
+- **Status**: COMPLETE
+- **Tag**: `phase-15-done`
+- **What was built**:
+  - **Framer Motion Integration & Motion Wrappers (`client/components/animations/MotionWrappers.tsx`)**:
+    - Installed `framer-motion` in `@interviewpilot/client`.
+    - Created reusable animated wrappers: `FadeIn`, `CardHover`, `AnimatedProgressBar`, and `ToastNotification`.
+    - Integrated `useReducedMotion()` from `framer-motion` into all animated components to strictly honor user OS-level accessibility preferences (`prefers-reduced-motion`) without any layout shift.
+  - **Visual Polish & Interactive Feedback (`client/`)**:
+    - AI Recruiter avatar (`RecruiterAvatar.tsx`): subtle speaking pulse, active speaking waves, and animated status transitions (`Speaking...`, `Evaluating turn...`, `Listening...`).
+    - Comprehensive Report page (`ComprehensiveReportPage`): animated progress bars for overall score and skill competencies, smooth entrance transitions.
+    - Candidate Dashboard (`CandidateDashboardPage`): interactive card hover micro-interactions, animated entrance, and smooth stat card loading.
+    - Spacing, contrast, and typography pass aligned strictly with `/design/tokens.css` and executive synthetic aesthetic.
+  - **End-to-End User Flow Integration Suite (`server/tests/api/e2e-user-flow.test.ts`)**:
+    - Fully tests complete user lifecycle without mocks of real business logic:
+      1. Candidate registration (`/api/auth/register`) with secure cookie issuance.
+      2. Profile onboarding (`/api/users/me/profile`).
+      3. CV upload with local text extraction and storage adapter (`/api/documents/upload`).
+      4. Interview setup with grounded AI plan generation (`/api/interviews`).
+      5. Room start & state verification (`/api/interviews/:id/start`, `/api/interviews/:id/state`).
+      6. Candidate answer submission (`/api/interviews/:id/answer`) with turn score evaluation.
+      7. Interview completion (`/api/interviews/:id/end`).
+      8. Evaluation report generation (`/api/interviews/:id/report/generate`).
+      9. Report retrieval (`/api/interviews/:id/report`).
+      10. Candidate dashboard retrieval (`/api/users/dashboard`) with dynamically calculated statistics and personalized coaching study recommendations (zero AI calls).
+      11. Isolation verification: cross-user access to documents, interviews, or reports strictly returns 404.
+- **Files created/changed**:
+  - `client/package.json`
+  - `package-lock.json`
+  - `client/components/animations/MotionWrappers.tsx`
+  - `client/components/interview/RecruiterAvatar.tsx`
+  - `client/app/(app)/dashboard/page.tsx`
+  - `client/app/(app)/interviews/[id]/report/page.tsx`
+  - `server/src/modules/users/userDashboardController.ts`
+  - `server/tests/api/e2e-user-flow.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/e2e-user-flow.test.ts`: 1 passed (full end-to-end user lifecycle)
+  - `tests/api/dashboard-demo.test.ts`: 8 passed
+  - `tests/unit/`: 92 passed across 9 test files
+  - Full workspace `type-check`: passed (0 errors across shared, server, client)
+  - Full workspace `lint`: passed (0 errors)
+- **Incomplete items**: None.
+- **Assumptions**: None. All phases 0 through 15 are complete.

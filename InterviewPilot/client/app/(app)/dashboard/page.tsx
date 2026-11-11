@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchUserDashboardApi, type UserDashboardData } from '@/lib/api';
+import { FadeIn, CardHover } from '@/components/animations/MotionWrappers';
 
 export default function CandidateDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -154,73 +155,81 @@ export default function CandidateDashboardPage() {
             {error}
           </div>
         ) : data ? (
-          <>
+          <FadeIn className="space-y-8">
             {/* Stat Cards Grid (RPT-8: Zero AI calls, computed numbers) */}
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Practice Sessions */}
-              <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#94A3B8]">Total Practice Sessions</span>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-[#F8FAFC]">
-                    {data.statistics.totalInterviews}
-                  </span>
-                  <span className="text-xs text-[#64748B]">interviews</span>
+              <CardHover className="h-full">
+                <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between h-full">
+                  <span className="text-xs font-medium text-[#94A3B8]">Total Practice Sessions</span>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-[#F8FAFC]">
+                      {data.statistics.totalInterviews}
+                    </span>
+                    <span className="text-xs text-[#64748B]">interviews</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
+                    All recorded attempts
+                  </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
-                  All recorded attempts
-                </div>
-              </div>
+              </CardHover>
 
               {/* Completed Interviews */}
-              <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#94A3B8]">Completed Sessions</span>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-cyan-400">
-                    {data.statistics.completedInterviews}
-                  </span>
-                  <span className="text-xs text-[#64748B]">finished</span>
+              <CardHover className="h-full">
+                <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between h-full">
+                  <span className="text-xs font-medium text-[#94A3B8]">Completed Sessions</span>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-cyan-400">
+                      {data.statistics.completedInterviews}
+                    </span>
+                    <span className="text-xs text-[#64748B]">finished</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
+                    Evaluations generated
+                  </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
-                  Evaluations generated
-                </div>
-              </div>
+              </CardHover>
 
               {/* Average Score */}
-              <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#94A3B8]">Average Overall Score</span>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-[#F8FAFC]">
-                    {data.statistics.averageScore !== null ? `${data.statistics.averageScore}%` : '—'}
-                  </span>
-                  <span className="text-xs text-[#64748B]">/ 100</span>
+              <CardHover className="h-full">
+                <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between h-full">
+                  <span className="text-xs font-medium text-[#94A3B8]">Average Overall Score</span>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-[#F8FAFC]">
+                      {data.statistics.averageScore !== null ? `${data.statistics.averageScore}%` : '—'}
+                    </span>
+                    <span className="text-xs text-[#64748B]">/ 100</span>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
+                    Across completed sessions
+                  </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
-                  Across completed sessions
-                </div>
-              </div>
+              </CardHover>
 
               {/* Recent Trend */}
-              <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between">
-                <span className="text-xs font-medium text-[#94A3B8]">Recent Score Trend</span>
-                <div className="mt-4 flex items-center gap-1.5 overflow-x-auto py-1">
-                  {data.statistics.recentTrend.length > 0 ? (
-                    data.statistics.recentTrend.map((score, i) => (
-                      <div
-                        key={i}
-                        className="px-2 py-1 rounded-md bg-[#0B0F17] border border-[#1E293B] text-[11px] font-mono text-cyan-400 font-semibold"
-                        title={`Session ${i + 1}: ${score}%`}
-                      >
-                        {score}
-                      </div>
-                    ))
-                  ) : (
-                    <span className="text-xs text-[#64748B]">No completed sessions yet</span>
-                  )}
+              <CardHover className="h-full">
+                <div className="p-5 rounded-2xl bg-[#111827] border border-[#1E293B] flex flex-col justify-between h-full">
+                  <span className="text-xs font-medium text-[#94A3B8]">Recent Score Trend</span>
+                  <div className="mt-4 flex items-center gap-1.5 overflow-x-auto py-1">
+                    {data.statistics.recentTrend.length > 0 ? (
+                      data.statistics.recentTrend.map((score, i) => (
+                        <div
+                          key={i}
+                          className="px-2 py-1 rounded-md bg-[#0B0F17] border border-[#1E293B] text-[11px] font-mono text-cyan-400 font-semibold"
+                          title={`Session ${i + 1}: ${score}%`}
+                        >
+                          {score}
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-xs text-[#64748B]">No completed sessions yet</span>
+                    )}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
+                    Last 10 sessions (oldest to newest)
+                  </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#1E293B] text-[11px] text-[#64748B]">
-                  Last 10 sessions (oldest to newest)
-                </div>
-              </div>
+              </CardHover>
             </section>
 
             {/* Bento Layout: Recent Interviews & Recommendations */}
@@ -374,7 +383,7 @@ export default function CandidateDashboardPage() {
                 </div>
               </div>
             </div>
-          </>
+          </FadeIn>
         ) : null}
       </main>
     </div>

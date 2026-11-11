@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface RecruiterAvatarProps {
   behavior?: 'listening' | 'thinking';
@@ -120,32 +121,42 @@ export const RecruiterAvatar = forwardRef<RecruiterAvatarHandle, RecruiterAvatar
         <div ref={containerRef} className="w-full h-full absolute inset-0 z-10" />
 
         {/* Polished avatar status and placeholder overlay */}
-        {(!isLoaded || loadError) && (
-          <div className="flex flex-col items-center justify-center p-6 text-center z-0">
-            <div className="relative mb-4">
-              <div
-                className={`w-28 h-28 rounded-full border-2 flex items-center justify-center text-3xl font-semibold transition-all duration-300 ${
-                  isSpeaking
-                    ? 'border-indigo-500 bg-indigo-950/40 text-indigo-400 shadow-lg shadow-indigo-500/20 animate-pulse'
-                    : behavior === 'thinking'
-                    ? 'border-amber-500 bg-amber-950/40 text-amber-400'
-                    : 'border-slate-700 bg-slate-900 text-slate-300'
-                }`}
-              >
-                AI
+        <AnimatePresence>
+          {(!isLoaded || loadError) && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col items-center justify-center p-6 text-center z-0"
+            >
+              <div className="relative mb-4">
+                <motion.div
+                  animate={isSpeaking ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+                  transition={isSpeaking ? { repeat: Infinity, duration: 1.5 } : {}}
+                  className={`w-28 h-28 rounded-full border-2 flex items-center justify-center text-3xl font-semibold transition-all duration-300 ${
+                    isSpeaking
+                      ? 'border-cyan-500 bg-cyan-950/40 text-cyan-400 shadow-xl shadow-cyan-500/20'
+                      : behavior === 'thinking'
+                      ? 'border-amber-500 bg-amber-950/40 text-amber-400'
+                      : 'border-slate-700 bg-slate-900 text-slate-300'
+                  }`}
+                >
+                  AI
+                </motion.div>
+                <span
+                  className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-slate-950 ${
+                    isSpeaking ? 'bg-cyan-500' : behavior === 'thinking' ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                />
               </div>
-              <span
-                className={`absolute bottom-1 right-1 w-4 h-4 rounded-full border-2 border-slate-950 ${
-                  isSpeaking ? 'bg-indigo-500' : behavior === 'thinking' ? 'bg-amber-500' : 'bg-emerald-500'
-                }`}
-              />
-            </div>
-            <p className="text-sm font-medium text-slate-200">Sarah (AI Technical Recruiter)</p>
-            <p className="text-xs text-slate-400 mt-1 capitalize">
-              {isSpeaking ? 'Speaking...' : behavior === 'thinking' ? 'Thinking...' : 'Listening...'}
-            </p>
-          </div>
-        )}
+              <p className="text-sm font-medium text-slate-200">Sarah (AI Technical Recruiter)</p>
+              <p className="text-xs text-slate-400 mt-1 capitalize font-mono">
+                {isSpeaking ? 'Speaking...' : behavior === 'thinking' ? 'Evaluating turn...' : 'Listening...'}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }

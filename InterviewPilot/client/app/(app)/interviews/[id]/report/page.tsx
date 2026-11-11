@@ -8,6 +8,7 @@ import {
   generateInterviewReportApi,
   type InterviewReportDto,
 } from '@/lib/api';
+import { AnimatedProgressBar, FadeIn } from '@/components/animations/MotionWrappers';
 
 export default function ComprehensiveReportPage() {
   const params = useParams();
@@ -121,7 +122,8 @@ export default function ComprehensiveReportPage() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
-        {/* Session Header Banner */}
+        <FadeIn className="space-y-8">
+          {/* Session Header Banner */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#1E293B]">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -207,11 +209,11 @@ export default function ComprehensiveReportPage() {
                   </div>
 
                   {/* Progress Arc */}
-                  <div className="w-full bg-[#1E293B] rounded-full h-2 my-4 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-blue-500 to-cyan-400 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${metrics.overallScore || 0}%` }}
-                    ></div>
+                  <div className="my-4">
+                    <AnimatedProgressBar
+                      value={metrics.overallScore || 0}
+                      colorClass="bg-gradient-to-r from-blue-500 to-cyan-400"
+                    />
                   </div>
                 </div>
 
@@ -260,12 +262,10 @@ export default function ComprehensiveReportPage() {
                           <span className="text-xs font-medium text-[#94A3B8] truncate mr-2">{skill}</span>
                           <span className="text-xs font-bold font-mono text-cyan-400">{data.meanScore}/100</span>
                         </div>
-                        <div className="w-full bg-[#1E293B] rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-cyan-500 h-1.5 rounded-full"
-                            style={{ width: `${data.meanScore}%` }}
-                          ></div>
-                        </div>
+                        <AnimatedProgressBar
+                          value={data.meanScore}
+                          colorClass="bg-cyan-500"
+                        />
                       </div>
                     ))}
                   </div>
@@ -470,6 +470,7 @@ export default function ComprehensiveReportPage() {
             ))}
           </section>
         )}
+        </FadeIn>
       </main>
     </div>
   );

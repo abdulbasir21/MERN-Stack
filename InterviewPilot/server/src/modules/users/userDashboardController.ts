@@ -43,7 +43,9 @@ export async function getUserDashboardHandler(
 
     // 2. Metrics (Section 7 definitions)
     const totalInterviews = interviews.length;
-    const completedList = interviews.filter((i) => i.status === 'COMPLETED');
+    const completedList = interviews.filter(
+      (i) => i.status === 'COMPLETED' || i.status === 'ENDED_EARLY'
+    );
     const completedInterviews = completedList.length;
 
     // Helper to calculate overall score of an interview
