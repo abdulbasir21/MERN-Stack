@@ -12,6 +12,8 @@ import DashboardPage from './pages/app/DashboardPage';
 import SettingsPage from './pages/app/SettingsPage';
 import ProjectsPage from './pages/app/ProjectsPage';
 import ProjectDetailsPage from './pages/app/ProjectDetailsPage';
+import InvestigationsPage from './pages/app/InvestigationsPage';
+import InvestigationDetailsPage from './pages/app/InvestigationDetailsPage';
 
 export default function App() {
   return (
@@ -38,7 +40,8 @@ export default function App() {
               <Route index element={<DashboardPage />} />
               <Route path="projects" element={<ProjectsPage />} />
               <Route path="projects/:id" element={<ProjectDetailsPage />} />
-              <Route path="investigations" element={<div className="p-8 text-center text-sm font-mono text-secondary">Investigations Module (Phase 6)</div>} />
+              <Route path="investigations" element={<InvestigationsPage />} />
+              <Route path="investigations/:id" element={<InvestigationDetailsPage />} />
               <Route path="reports" element={<div className="p-8 text-center text-sm font-mono text-secondary">Change Intelligence Reports (Phase 7)</div>} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>

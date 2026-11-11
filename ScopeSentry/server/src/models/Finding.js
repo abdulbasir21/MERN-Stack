@@ -69,7 +69,7 @@ const findingSchema = new mongoose.Schema(
       }
     ],
     approvalEvidence: {
-      status: { type: String, enum: ['found', 'not_found'], default: 'not_found' },
+      status: { type: String, enum: ['approved_in_writing', 'pending_signature', 'found', 'not_found'], default: 'not_found' },
       evidence: [
         {
           documentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Document' },

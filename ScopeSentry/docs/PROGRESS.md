@@ -460,3 +460,103 @@ Path: `docs/PROGRESS.md`
 ### 5. Suggestions (Not Built — Out of Scope for MVP)
 - Dynamic re-ranking cross-encoder model (Cohere or Gemini Flash reranker) for top-20 chunk reranking (out of scope for MVP).
 
+---
+
+## Phase 6 — Investigation Engine
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Phase 6a: Pure Domain Functions (`server/src/domain/`):**
+  - `server/src/domain/inputHash.js`: Deterministic order-independent input hash function (`computeInvestigationInputHash`) calculating SHA-256 over `(projectId, originalDocumentId, revisedDocumentId, sorted supportingDocumentIds)` (BR-I3).
+  - `server/src/domain/itemMatcher.js`: Item normalization (`normalizeItemKey`) and deterministic comparison (`matchItems`, `hasDeterministicChanges`). Strips common prefix keywords (`Section`, `Clause`, `Division`), normalizes alphanumeric identifiers, and compares quantities, materials, specs, dates, and prices deterministically.
+  - `server/src/domain/changeClassifier.js`: Category classification (`classifyChange`, `detectAllChangeCategories`) enforcing BR-I11: `quantity_changed`, `material_changed`, `specification_changed`, `requirement_added`, `requirement_removed`, `date_changed`, `cost_changed`, `other`.
+  - `server/src/domain/impactCalculator.js`: Impact calculation (`calculateFindingImpact`) strictly wiring to Phase 1 decimal math and UTC calendar date helpers:
+    - `quantityDifference = revised - original`
+    - `estimatedCostDifference = quantityDifference * unitPrice` (unitPriceOverride takes precedence over extracted; returns `null` with "Cannot estimate: no unit price supplied" when absent per BR-I7)
+    - `priceDelta = (revisedUnitPrice - originalUnitPrice) * revisedQuantity`
+    - `scheduleDifferenceDays = calendarDateDiffDays(origDate, revDate)`
+    - Percent change via `percentChange`
+  - `server/src/domain/confidence.js`: Deterministic confidence rules (`evaluateFindingConfidence`) adhering to BR-I10:
+    - High: exact clause and quantity match with verified grounding evidence
+    - Medium: AI-assisted matching with verified evidence or partial exact match
+    - Low: AI-matched without verified evidence
+    - Includes deterministic `uncertaintyNote`
+  - `server/src/domain/approvalStatus.js`: Approval status rules (`evaluateApprovalEvidence`) adhering to BR-I9:
+    - `approved_in_writing`, `pending_signature`, or `not_found` (never guessed or assumed)
+  - `server/src/domain/investigationSchemas.js`: Zod schemas for the 4 LangGraph workflow stages.
+- **Phase 6b: LangGraph Workflow, Endpoints & UI:**
+  - `server/src/ai/investigationWorkflow.js`:
+    - 4-stage LangGraph workflow (`understand` -> `detect` -> `analyzeImpact` -> `generateFindings`).
+    - Untrusted document prompt isolation using clearly delimited `<DOCUMENT_DATA>` tags with explicit injection mitigation instructions (BR-I6, section 11.5).
+    - Grounding snippet verification (`verifySnippetInChunk`) dropping fabricated citations and setting `evidence_not_found` flag (BR-I8).
+    - In-memory mock support and offline deterministic fallback for test suites.
+  - `server/src/models/Investigation.js` & `server/src/models/Finding.js`:
+    - Investigation status lifecycle (`queued`, `running`, `completed`, `failed`).
+    - Unique partial index on `inputHash` for active jobs (`queued`, `running`) preventing duplicate or concurrent race jobs (BR-I3).
+  - `server/src/services/investigationService.js`:
+    - `createInvestigation`: Validates project ownership, document categories (BR-I2: original specification/contract, revised specification/change request), ready status (BR-I1). Returns HTTP 200 with existing job on duplicate, HTTP 202 on new job.
+    - `runInvestigation`: Executes workflow in-process and persists findings + completes investigation in ONE database transaction (section 8 #8).
+    - `cleanupStaleInvestigations`: Startup task marking jobs stuck in `running` older than 15 minutes as `failed` with reason `interrupted` (BR-I4).
+    - `getInvestigationFindings`: Reads findings and calculates all Section 7 derived values dynamically (derived values never stored).
+    - `deleteInvestigation`: Cascade deletes investigation, findings, review actions, and reports in ONE database transaction.
+  - `server/src/routes/investigations.js` & `server/src/controllers/investigationController.js`:
+    - `POST /projects/:projectId/investigations` (rate-limited, CSRF protected, validated)
+    - `GET /projects/:projectId/investigations`
+    - `GET /investigations/:id`
+    - `GET /investigations/:id/findings`
+    - `DELETE /investigations/:id`
+  - **Frontend UI (`frontend/`):**
+    - `frontend/src/features/investigations/InvestigationsManager.jsx`: Embedded in Project Details "Investigations" tab. Shows investigation list, status telemetry, and "Start New Investigation" modal with document category filtering and validation.
+    - `frontend/src/pages/app/InvestigationDetailsPage.jsx`: Full report view with live polling during workflow execution, mandatory limitations disclaimer banner (MASTER_PROMPT 12.4), aggregate telemetry cards, detected findings table, 3-tier information badges (Confirmed vs Estimate vs AI), approval grounding badges, and expandable citation drawer with verified quotes.
+    - `frontend/src/pages/app/InvestigationsPage.jsx`: Portfolio overview of investigations by project.
+    - `frontend/src/App.jsx`: Registered routes `/app/investigations` and `/app/investigations/:id`.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest (Phase 6 Suites):**
+  - `tests/unit/investigation-engine.test.js`: 31 passed
+    - Input hash computation, order-independence, and input differences (BR-I3)
+    - Item normalization, clause prefix stripping, deterministic matching
+    - Change classification for quantity, material, specification, date, added, removed (BR-I11)
+    - Fictional scenario "20 standard windows -> 32 premium insulated windows": +12 qty, 60% increase, cost diff $5,400 with unit price, null with message when no unit price (BR-I7)
+    - Unit price override precedence over extracted price
+    - Unit price delta when unit price itself changed
+    - Calendar date difference in whole UTC days
+    - Confidence rules evaluation (high, medium, low) (BR-I10)
+    - Approval evidence evaluation defaults to `not_found` (BR-I9)
+    - Stage Zod schema validation and rejection of invalid data
+  - `tests/api/investigations.test.js`: 9 passed
+    - BR-I1: requires documents to be in the same project, ready, and owned (foreign doc returns 404)
+    - BR-I2: original must be original_specification or original_contract; revised must be revised_specification or change_request
+    - BR-I3: double submit returns the same investigation (HTTP 200) and creates exactly one record
+    - BR-I4: clean up stale running jobs on server startup
+    - BR-I6, BR-I7, BR-I8, BR-I9, BR-I10: runs full workflow, calculates math, verifies citations, and produces findings
+    - BR-I8: drops fabricated citations and flags evidence_not_found
+    - Prompt injection fixture in document text does not alter permissions or instructions
+    - BR-D7: Deleting a document referenced by an investigation is BLOCKED with 409 CONFLICT
+    - Security: unauthenticated and foreign user requests are rejected (401 and 404)
+  - **Total Phase 6 Tests:** 40 passed
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1597 modules transformed, production bundle built cleanly in 38.89s
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking upgrade not auto-applied.
+  - `frontend/`: 8 vulnerabilities in dev/nested packages (vitest/tinypool, react-router <7.18); breaking upgrade not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- `@langchain/langgraph` v1.7.3 (official LangGraph.js StateGraph and Annotation API)
+- `@langchain/core` v1.1.28
+- `@langchain/google-genai` v2.3.6
+- `@google/genai` v3.1.0
+
+### 4. Decisions Made
+- **Transactional Findings Persistence:** Findings and investigation completion status are inserted/updated in one single database transaction session per MASTER_PROMPT section 8 #8.
+- **In-process Background Runner with Idempotency:** Duplicate investigations are caught both at the service query level and at the database partial unique index level (Mongo error code 11000 fallback), guaranteeing race-condition safety under concurrent client requests.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Interactive visual graph view (React Flow / XYFlow) of the LangGraph state execution (spec: only if owner requests; omitted for simplicity).
+- Multi-party approval assignment workflow (out of scope for MVP).
+
+

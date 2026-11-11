@@ -24,6 +24,7 @@ import {
   Play
 } from 'lucide-react';
 import DocumentsManager from '../../features/documents/DocumentsManager';
+import InvestigationsManager from '../../features/investigations/InvestigationsManager';
 
 const PROJECT_TYPE_LABELS = {
   commercial_building: { label: 'Commercial Building', icon: Building2 },
@@ -397,15 +398,7 @@ export default function ProjectDetailsPage() {
       )}
 
       {activeTab === 'investigations' && (
-        <div className="bg-surface rounded-xl border border-dashed border-border p-12 text-center max-w-lg mx-auto space-y-3">
-          <div className="w-12 h-12 rounded-full bg-primary-container/10 text-primary-container mx-auto flex items-center justify-center">
-            <SearchCode className="w-6 h-6" />
-          </div>
-          <h3 className="font-headline font-bold text-base text-primary">Phase 6: Multi-Stage Investigation Engine</h3>
-          <p className="text-xs text-secondary">
-            Run deterministic quantity comparison, LangGraph workflow analysis, and approval-evidence verification.
-          </p>
-        </div>
+        <InvestigationsManager projectId={project.id} isArchived={project.status === 'archived'} />
       )}
 
       {activeTab === 'reports' && (
