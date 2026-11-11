@@ -144,6 +144,12 @@ enum InterviewEndReason {
   ERROR
 }
 
+enum ReportStatus {
+  PENDING
+  READY
+  FAILED
+}
+
 enum QuestionKind {
   MAIN
   FOLLOW_UP
@@ -364,6 +370,7 @@ model Interview {
   answers        CandidateAnswer[]
   inquiries      CandidateInquiry[]
   aiUsageRecords AIUsageRecord[]
+  report         InterviewReport?
 
   @@index([userId, createdAt])
   @@index([status, createdAt])
@@ -431,6 +438,7 @@ model AnswerEvaluation {
   answerId               String          @unique
   overallScore           Int             @default(0)
   criteriaScores         Json
+  starParts              Json?
   correct                String?         @db.Text
   missing                String?         @db.Text
   strengths              Json?
@@ -460,5 +468,24 @@ model CandidateInquiry {
 
   @@unique([interviewId, clientRequestId])
   @@index([interviewId, createdAt])
+}
+
+model InterviewReport {
+  id              String        @id @default(cuid())
+  interviewId     String        @unique
+  status          ReportStatus  @default(PENDING)
+  summary         String?       @db.Text
+  strengths       Json?
+  weaknesses      Json?
+  recommendations Json?
+  studyTopics     Json?
+  generatedAt     DateTime?
+  failureReason   String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@index([interviewId, status])
 }
 

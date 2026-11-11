@@ -543,6 +543,7 @@ export type SynthesizeSpeechResponse = z.infer<typeof SynthesizeSpeechResponseSc
 
 export * from './voiceMath.js';
 export * from './roomRules.js';
+export * from './evaluationMath.js';
 
 
 

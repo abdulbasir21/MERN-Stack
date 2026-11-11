@@ -18,6 +18,13 @@ import {
   handleRetryInterview,
   handleGetInterviewState,
 } from './interviewController.js';
+import {
+  getInterviewReportHandler,
+  generateInterviewReportHandler,
+  getInterviewHistoryHandler,
+  getProgressHandler,
+  compareInterviewsHandler,
+} from '../reports/reportController.js';
 
 export const interviewRouter = Router();
 
@@ -37,6 +44,29 @@ interviewRouter.get(
   handleListInterviews
 );
 
+// Phase 10: History, Progress & Comparison (registered BEFORE /:id)
+interviewRouter.get(
+  '/history',
+  authenticate,
+  requirePermission('interview:read:own'),
+  getInterviewHistoryHandler
+);
+
+interviewRouter.get(
+  '/progress',
+  authenticate,
+  requirePermission('interview:read:own'),
+  getProgressHandler
+);
+
+interviewRouter.get(
+  '/compare',
+  authenticate,
+  requirePermission('interview:read:own'),
+  compareInterviewsHandler
+);
+
+// Specific interview by ID
 interviewRouter.get(
   '/:id',
   authenticate,
@@ -89,3 +119,17 @@ interviewRouter.post(
   handleRetryInterview
 );
 
+// Phase 10: Comprehensive Report Endpoints (RPT-1 to RPT-5)
+interviewRouter.get(
+  '/:id/report',
+  authenticate,
+  requirePermission('interview:read:own'),
+  getInterviewReportHandler
+);
+
+interviewRouter.post(
+  '/:id/report/generate',
+  authenticate,
+  requirePermission('interview:create'),
+  generateInterviewReportHandler
+);

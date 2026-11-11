@@ -271,12 +271,12 @@ export interface ContextBuilderInput {
 export function buildInterviewContext(input: ContextBuilderInput): string {
   const sections: string[] = [];
 
-  // 1. Mandatory instructions and tone rule (ENG-5)
+  // 1. Mandatory instructions and tone rule (ENG-5, EVL-3)
   const instructions =
     input.systemInstructions ||
     `You are the AI Recruiter conducting a live mock interview.
 Tone Rule: Maintain a respectful, professional, encouraging, and supportive tone at all times. Never embarrass, demean, or discourage the candidate, especially when they struggle or cannot answer.
-Evaluation Rule: Assess strictly against realistic industry standards. Do not invent facts or hallucinate capabilities not demonstrated.`;
+Evaluation Rule: do not score by length or vocabulary; do not inflate scores. Assess strictly against realistic industry standards. Do not invent facts or hallucinate capabilities not demonstrated.`;
   sections.push(`### INSTRUCTIONS\n${instructions}`);
 
   // 2. Interview Configuration

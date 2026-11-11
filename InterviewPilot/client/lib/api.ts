@@ -462,3 +462,159 @@ export async function synthesizeSpeechApi(
 }
 
 
+
+// Phase 10 — Evaluation, Reports, History
+export interface InterviewReportDto {
+  interview: {
+    id: string;
+    mode: string;
+    status: string;
+    role: string;
+    type: string;
+    experienceLevel: string;
+    startedAt: string | null;
+    endedAt: string | null;
+    endReason: string | null;
+  };
+  metrics: {
+    overallScore: number | null;
+    durationSeconds: number;
+    totalQuestions: number;
+    evaluatedAnswersCount: number;
+    skillBreakdown: Record<string, { meanScore: number; count: number }>;
+    starCoverage: {
+      situationShare: number;
+      taskShare: number;
+      actionShare: number;
+      resultShare: number;
+      totalBehavioralAnswers: number;
+    } | null;
+  };
+  report: {
+    id: string;
+    status: 'PENDING' | 'READY' | 'FAILED';
+    summary: string | null;
+    strengths: string[] | null;
+    weaknesses: string[] | null;
+    recommendations: string[] | null;
+    studyTopics: string[] | null;
+    generatedAt: string | null;
+  } | null;
+  questions: Array<{
+    id: string;
+    orderIndex: number;
+    topic: string;
+    kind: string;
+    difficulty: string;
+    questionText: string;
+    candidateAnswer: {
+      id: string;
+      transcript: string;
+      isEmpty: boolean;
+      durationSeconds: number | null;
+      score: number;
+      evaluation: {
+        id: string;
+        criteriaScores: Array<{ criterion: string; score: number; feedback?: string }>;
+        starParts?: { situation: boolean; task: boolean; action: boolean; result: boolean } | null;
+        correct?: string | null;
+        missing?: string | null;
+        strengths?: string[] | null;
+        weaknesses?: string[] | null;
+        improvements?: string[] | null;
+        idealAnswer?: string | null;
+        followUpRecommendation?: string | null;
+        reasoning?: string | null;
+      } | null;
+    } | null;
+  }>;
+}
+
+export interface HistoryListDto {
+  items: Array<{
+    id: string;
+    role: string;
+    type: string;
+    createdAt: string;
+    overallScore: number | null;
+    durationSeconds: number;
+    status: string;
+  }>;
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export async function fetchInterviewReportApi(
+  interviewId: string
+): Promise<ApiSuccessResponse<InterviewReportDto>> {
+  return apiRequest<InterviewReportDto>(`/api/interviews/${interviewId}/report`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function generateInterviewReportApi(
+  interviewId: string
+): Promise<ApiSuccessResponse<{ report: any }>> {
+  return apiRequest<{ report: any }>(`/api/interviews/${interviewId}/report/generate`, {
+    method: 'POST',
+  });
+}
+
+export async function fetchInterviewHistoryApi(params: {
+  role?: string;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<ApiSuccessResponse<HistoryListDto>> {
+  const query = new URLSearchParams();
+  if (params.role) query.set('role', params.role);
+  if (params.type) query.set('type', params.type);
+  if (params.startDate) query.set('startDate', params.startDate);
+  if (params.endDate) query.set('endDate', params.endDate);
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+
+  const qStr = query.toString();
+  return apiRequest<HistoryListDto>(`/api/interviews/history${qStr ? `?${qStr}` : ''}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchInterviewProgressApi(): Promise<
+  ApiSuccessResponse<{
+    progress: Array<{ id: string; date: string; role: string; type: string; overallScore: number | null }>;
+  }>
+> {
+  return apiRequest<{
+    progress: Array<{ id: string; date: string; role: string; type: string; overallScore: number | null }>;
+  }>('/api/interviews/progress', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function compareInterviewsApi(
+  interviewAId: string,
+  interviewBId: string
+): Promise<
+  ApiSuccessResponse<{
+    interviewA: any;
+    interviewB: any;
+    comparison: Record<string, { scoreA: number | null; scoreB: number | null; diff: number | null }>;
+  }>
+> {
+  return apiRequest<{
+    interviewA: any;
+    interviewB: any;
+    comparison: Record<string, { scoreA: number | null; scoreB: number | null; diff: number | null }>;
+  }>(`/api/interviews/compare?interviewAId=${interviewAId}&interviewBId=${interviewBId}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
