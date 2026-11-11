@@ -482,3 +482,47 @@
   - Full workspace `lint`: passed (0 errors)
 - **Incomplete items**: None for Phase 11.
 - **Assumptions**: Demo limits default to 1 session/day per IP and 20 sessions/day globally; 24-hour expiry on demo sessions.
+
+## Phase 12 — Admin Dashboard & Global Controls (ADM-1 to ADM-10, DEM-6, QTA-4, QTA-10, SEC-1)
+- **Status**: COMPLETE
+- **Tag**: `phase-12-done`
+- **What was built**:
+  - **Admin Service Layer (`server/src/modules/admin/adminService.ts`)**:
+    - `getAdminOverviewMetrics`: Real-time computed database metrics (total registered non-demo users, 7-day active users, unexpired demo sessions, real vs demo interview counts all-time and today UTC, total uploaded documents, and global monthly AI budget tracking with Decimal arithmetic `remaining = budget - used - reserved`) (`ADM-2`, Section 7).
+    - `listAdminUsers`, `setUserBlockStatus`, `deleteUserByAdmin`: Paginated user directory with search/filters. Enforces rule that an admin cannot block or delete themselves or another administrator. Sensitive actions audited within the same transaction (`ADM-3`).
+    - `listAdminDocuments`, `previewOrDownloadDocumentByAdmin`, `deleteDocumentByAdmin`: Secure document streaming and deletions, failing closed if audit log creation fails (`ADM-4`, `SEC-1`).
+    - `listAdminInterviews`, `viewInterviewTranscriptOrReportByAdmin`: Lists interviews with overall score calculation and audits transcript views with strictly no live audio endpoint (`ADM-5`).
+    - `getAdminUsageAggregates`: Model and operation aggregates from `AIUsageRecord` with costs explicitly labelled `"ESTIMATED"` (`ADM-6`).
+    - `getAdminSettings`, `updateAdminSettings`: Range-validated platform configuration storing before/after diffs without secrets (`ADM-7`).
+    - `triggerEmergencyAiShutdown`: Single-action immediate kill-switch setting `aiEnabled = false` across the platform while preserving non-AI pages (`QTA-10`).
+    - `listAdminAuditLogs`: Paginated, read-only immutable audit record (`ADM-8`).
+    - `resetAllDemoData`: Cascades deletion of all demo users and sessions (`DEM-6`, `ADM-9`).
+  - **Admin Controller & Routes (`server/src/modules/admin/`)**:
+    - Every route guarded by `authenticate` and `requireRole('ADMIN')` (checked on the database for every request: USER receives 403, anonymous receives 401) (`ADM-1`).
+    - Responses sanitized to guarantee no passwords, password hashes, JWT tokens, or environment keys are leaked (`ADM-10`).
+  - **Admin Frontend Pages (`client/app/admin/`)**:
+    - Layout (`client/app/admin/layout.tsx`): Top bar with emergency shutdown button, status badge, candidate portal return link, and tab navigation.
+    - Overview (`client/app/admin/page.tsx`): Key statistics, real vs demo interview split, global budget gauge, and reset demo data button.
+    - Users Directory (`client/app/admin/users/page.tsx`): Search, filter, block/unblock, and account deletion actions.
+    - Settings Editor (`client/app/admin/settings/page.tsx`): Quota controls, demo toggles, and budget inputs.
+    - Audit Viewer (`client/app/admin/audit/page.tsx`): Paginated audit stream with timestamps, actor IDs, actions, and metadata diffs.
+  - **Client API Integration (`client/lib/api.ts`)**: Added 14 admin API client functions.
+- **Files created/changed**:
+  - `server/src/modules/admin/adminService.ts`
+  - `server/src/modules/admin/adminController.ts`
+  - `server/src/modules/admin/adminRoutes.ts`
+  - `server/src/app.ts`
+  - `client/lib/api.ts`
+  - `client/app/admin/layout.tsx`
+  - `client/app/admin/page.tsx`
+  - `client/app/admin/users/page.tsx`
+  - `client/app/admin/settings/page.tsx`
+  - `client/app/admin/audit/page.tsx`
+  - `server/tests/api/admin-dashboard.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/api/admin-dashboard.test.ts`: 9 passed
+  - Full workspace `type-check`: passed (0 errors across shared, server, client)
+  - Full workspace `lint`: passed (0 errors)
+- **Incomplete items**: None for Phase 12.
+- **Assumptions**: None. All rules ADM-1 through ADM-10 strictly verified.
