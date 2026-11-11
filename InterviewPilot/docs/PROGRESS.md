@@ -526,3 +526,32 @@
   - Full workspace `lint`: passed (0 errors)
 - **Incomplete items**: None for Phase 12.
 - **Assumptions**: None. All rules ADM-1 through ADM-10 strictly verified.
+
+## Phase 13 — Public Website & SEO (PUB-1, PUB-2, PUB-3)
+- **Status**: COMPLETE
+- **Tag**: `phase-13-done`
+- **What was built**:
+  - **Landing Page (`client/app/page.tsx`)**:
+    - All sections mandated by `PUB-1`: Header navigation, Hero with exact required tagline (&quot;Practice smarter. Interview with confidence.&quot;), Start Free Interview and Try Instant Demo CTAs, Live Interview Cockpit preview, 4-step workflow, supported interview types (Technical, Behavioral, HR), transparent FAQ accordion, and footer with legal links.
+    - Direct integration with `createDemoSessionApi` for zero-friction 1-click instant demo experience.
+    - Zero fake statistics displayed as real metrics.
+  - **Privacy & Data Retention Page (`client/app/privacy/page.tsx`)**:
+    - Comprehensive legal disclosure matching actual backend implementation (`PUB-2`):
+      1. Zero audio storage guarantee (microphone streams processed in-memory and discarded).
+      2. Transcripts and reports retained privately until candidate deletes or executes 3-step account deletion.
+      3. Documents kept privately with strict user/interview partition in pgvector RAG.
+      4. Audited administrator support access with fail-closed security.
+      5. 24-hour automatic purge of demo sessions and data.
+  - **SEO & Metadata (`client/app/layout.tsx`, `client/app/privacy/page.tsx`)**:
+    - Metadata titles, descriptions, and OpenGraph-ready tags.
+- **Files created/changed**:
+  - `client/app/page.tsx`
+  - `client/app/privacy/page.tsx`
+  - `server/tests/unit/public-website.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/public-website.test.ts`: 5 passed
+  - Full workspace `type-check`: passed (0 errors across shared, server, client)
+  - Full workspace `lint`: passed (0 errors)
+- **Incomplete items**: None for Phase 13.
+- **Assumptions**: None.
