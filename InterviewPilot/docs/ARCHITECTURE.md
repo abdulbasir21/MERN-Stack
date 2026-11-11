@@ -165,9 +165,67 @@ zod (validation), Prisma, bcrypt, jsonwebtoken, helmet, cors, express-rate-limit
 - **Avatar SDK**: check bundle size, supported browsers and audio format in the docs before Phase 8.
 - **Provider quotas are separate**: also configure budget alerts and quota caps on Google's side where available.
 
-## 15. SDK notes (agent fills in during Phase 8)
+## 15. SDK notes (filled during Phase 8)
 
-Record here: Talking Avatar SDK version, exact methods used to load an avatar, play audio and lip-sync, the audio format required, doc page links, and the date checked. Same for the Gemini TTS, transcription and embedding calls (model names are in env, not here).
+### 15.1 Talking Avatar SDK (`@interviewflowai/talking-avatar`)
+- **Version**: `0.3.0`
+- **Documentation**: https://talking-avatar.dev/ & package types (`dist/TalkingAvatar.d.ts`)
+- **Date Checked**: 2026-11-11
+- **Exact Methods**:
+  - `const avatar = new TalkingAvatar({ container: HTMLElement, avatarUrl?: string, onError?: (err: Error) => void, streamDelayMs?: number })`: mounts the WebGL canvas, loads the 3D model and viseme neural network.
+  - `await avatar.ready`: resolves when the avatar mesh is fully loaded and on screen.
+  - `avatar.speak(audio: string | ArrayBuffer | Blob): Promise<void>`: plays the generated audio source directly and executes real-time viseme lip-synchronization. Resolves when speech playback finishes.
+  - `avatar.stopSpeaking()`: halts active speech playback and resets visemes.
+  - `avatar.setStatus(status: 'listening' | 'thinking')`: switches idle animation state.
+  - `avatar.dispose()`: tears down WebGL contexts, event listeners, and audio pipeline.
+- **Audio Format Required**: `audio/wav`, `audio/mp3`, `ArrayBuffer`, or `Blob` (any format the browser audio context decodes).
+
+### 15.2 Gemini Audio Transcription (`@google/genai`)
+- **SDK**: `@google/genai` (v3.0.0, current upstream SDK)
+- **Documentation**: https://ai.google.dev/gemini-api/docs (`sdk-samples/interactions_multimodal_input_text_and_audio_with_generate_content.ts`)
+- **Date Checked**: 2026-11-11
+- **Exact Method**:
+  ```typescript
+  const response = await ai.models.generateContent({
+    model: env.GEMINI_TRANSCRIBE_MODEL,
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { text: 'Please transcribe the following audio recording verbatim. Output only the transcribed speech with no preamble or commentary.' },
+          { inlineData: { mimeType, data: base64Audio } },
+        ],
+      },
+    ],
+  });
+  ```
+- **Error Handling**: Wrapped in `withAiUsage` (`SPEECH_TRANSCRIPTION`). If transcription fails, returns `502 TRANSCRIPTION_FAILED` (`VOI-5`), saves no answer, and temporary audio files are purged immediately (`VOI-3`).
+
+### 15.3 Gemini Speech Synthesis (`@google/genai`)
+- **SDK**: `@google/genai` (v3.0.0)
+- **Documentation**: https://ai.google.dev/gemini-api/docs (`sdk-samples/interactions_multimodal_response_audio_with_generate_content.ts`)
+- **Date Checked**: 2026-11-11
+- **Exact Method**:
+  ```typescript
+  const response = await ai.models.generateContent({
+    model: env.GEMINI_TTS_MODEL,
+    config: {
+      responseModalities: ['AUDIO'],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: 'Puck' }, // Puck, Aoede, Charon, Fenrir, Kore
+        },
+      },
+    },
+    contents: [{ role: 'user', parts: [{ text: utteranceText }] }],
+  });
+  ```
+- **Error Handling**: Wrapped in `withAiUsage` (`SPEECH_SYNTHESIS`). If speech generation fails, retries once then transitions to `ERROR` (`VOI-6`). Real generated audio is returned to client for Talking Avatar SDK lip-sync.
+
+### 15.4 Gemini Embeddings & Text (`@google/genai`)
+- **SDK**: `@google/genai` (v3.0.0)
+- **Embeddings**: `ai.models.embedContent({ model: env.GEMINI_EMBEDDING_MODEL, contents: text })` (768 float dimensions).
+- **Text & Structured JSON**: `ai.models.generateContent({ model: env.GEMINI_TEXT_MODEL, config: { responseMimeType: 'application/json', responseSchema: ... } })`.
 
 ## 16. Ambiguous decisions fixed in advance (so nobody debates them)
 

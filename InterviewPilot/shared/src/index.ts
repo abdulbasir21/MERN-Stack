@@ -521,4 +521,27 @@ export interface InterviewStateDto {
   isTerminal: boolean;
 }
 
+export const TranscribeAudioResponseSchema = z.object({
+  transcript: z.string(),
+  isEmpty: z.boolean(),
+  durationSeconds: z.number().min(0),
+});
+export type TranscribeAudioResponse = z.infer<typeof TranscribeAudioResponseSchema>;
+
+export const SynthesizeSpeechInputSchema = z.object({
+  text: z.string().min(1, 'Speech text is required').max(2000, 'Speech text too long'),
+  voice: z.enum(['Puck', 'Charon', 'Kore', 'Fenrir', 'Aoede']).default('Puck'),
+});
+export type SynthesizeSpeechInput = z.infer<typeof SynthesizeSpeechInputSchema>;
+
+export const SynthesizeSpeechResponseSchema = z.object({
+  audioBase64: z.string(),
+  mimeType: z.string(),
+  caption: z.string(),
+});
+export type SynthesizeSpeechResponse = z.infer<typeof SynthesizeSpeechResponseSchema>;
+
+export * from './voiceMath.js';
+
+
 

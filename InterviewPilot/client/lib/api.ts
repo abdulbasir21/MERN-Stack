@@ -423,3 +423,42 @@ export async function retryInterviewApi(
   });
 }
 
+// Phase 8 — Voice and Avatar
+import type {
+  TranscribeAudioResponse,
+  SynthesizeSpeechResponse,
+  SynthesizeSpeechInput,
+} from '@interviewpilot/shared';
+
+export async function transcribeAudioApi(params: {
+  audioBlob: Blob;
+  durationSeconds: number;
+  interviewId?: string;
+  isSilenceOnly?: boolean;
+}): Promise<ApiSuccessResponse<TranscribeAudioResponse>> {
+  const formData = new FormData();
+  formData.append('audio', params.audioBlob, 'answer.webm');
+  formData.append('durationSeconds', params.durationSeconds.toString());
+  if (params.interviewId) {
+    formData.append('interviewId', params.interviewId);
+  }
+  if (params.isSilenceOnly) {
+    formData.append('isSilenceOnly', 'true');
+  }
+
+  return apiRequest<TranscribeAudioResponse>('/api/voice/transcribe', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+export async function synthesizeSpeechApi(
+  input: SynthesizeSpeechInput & { interviewId?: string }
+): Promise<ApiSuccessResponse<SynthesizeSpeechResponse>> {
+  return apiRequest<SynthesizeSpeechResponse>('/api/voice/synthesize', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+
