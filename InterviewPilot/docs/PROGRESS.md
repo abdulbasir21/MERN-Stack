@@ -344,3 +344,40 @@
   - **Total**: 26 passed in Phase 8 suites, `type-check` passed (0 errors across all 3 workspaces), `lint` passed (0 errors).
 - **Incomplete items**: None for Phase 8.
 - **Assumptions**: None.
+
+
+## Phase 9 — Live Interview Room
+
+- **What was built**:
+  - **Room Rules & Enablement Logic (`shared/src/roomRules.ts`)**:
+    - `getRoomButtonStates(runtimeState, { inquiriesRemaining })`: implements the strict state-machine button enable matrix for `Mute`, `Finish Answer`, `Ask a Question`, `End Interview`, and `Retry` across all runtime states (`ROOM-2`).
+    - `mapRoomErrorMessage(code, defaultMessage)`: maps technical codes (`MICROPHONE_DENIED`, `MICROPHONE_LOST`, `AUDIO_PLAYBACK_FAILED`, `TRANSCRIPTION_FAILED`, `TTS_FAILED`, `AI_UNAVAILABLE`, `INTERNAL_ERROR`, `QUOTA_EXCEEDED`, `BUDGET_EXHAUSTED`, `SESSION_EXPIRED`) to plain, candidate-friendly guidance with no SQL, stack traces, or secrets (`ROOM-6`).
+  - **Device Check Page (`client/app/(app)/interviews/[id]/device-check/page.tsx`)**:
+    - Live microphone permission request and visual input level test using `useMicrophone` and `Waveform` (`ROOM-2`).
+    - Audio output verification using Web Audio API synthetic dual-frequency test chime.
+    - AI recruiter avatar preview using `RecruiterAvatar`.
+    - Prominent "No webcam needed" notice and turn-taking protocol instructions (`VOI-11`).
+    - Permission-denied help instructions.
+    - "Enter Interview Room" CTA button enabled only once microphone permission is verified.
+  - **Live Interview Room Page (`client/app/(app)/interviews/[id]/room/page.tsx`)**:
+    - 2-panel cockpit layout styled strictly in "Executive Synthetic" aesthetic matching `/design/screens/live-interview-room.html`:
+      - **Left Panel (AI Recruiter)**: `RecruiterAvatar` container with lip-sync audio playback, status badge (`Recruiter Speaking`, `Recruiter Thinking...`, `Listening to Candidate`), live question caption bar, and "Replay question" button costing 1 TTS call (`ROOM-5`).
+      - **Right Panel (Candidate Console)**: candidate details, live microphone `Waveform` driven by real Web Audio RMS, mute indicator, elapsed timer (whole seconds, `RPT-5`), progress indicator ("Question X of N"), remaining clarifications badge (`ROOM-2`).
+    - **"Ask a Question" Flow (`ROOM-3`, `ENG-10`)**: clicking button in `CANDIDATE_LISTENING` discards unsent answer, switches `listeningMode = 'QUESTION'`, records inquiry, and submits on Finish Answer; recruiter speaks the clarification reply and restores the same pending question with mic reopened in `ANSWER` mode.
+    - **End Interview Modal (`ROOM-4`)**: works at any time, asks for confirmation, sets `ENDED_EARLY`, releases reservations, and navigates to report.
+    - **Reload Recovery (`ROOM-5`, `ROOM-1`)**: restores state from backend via `GET /state` on reload, presenting current question caption without regenerating audio.
+    - **Idempotent Retry (`ROOM-7`, `QTA-12`)**: buffers recording in-memory and retries up to 3 times using the same `clientRequestId`.
+    - **Voice Interruption Gate (`VOI-11`)**: recorder is strictly inactive while recruiter speaks or AI thinks.
+- **Files created/changed**:
+  - `shared/src/roomRules.ts`, `shared/src/index.ts`
+  - `client/app/(app)/interviews/[id]/device-check/page.tsx`
+  - `client/app/(app)/interviews/[id]/room/page.tsx`
+  - `server/tests/unit/room-rules.test.ts`
+  - `server/tests/api/interview-room.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/room-rules.test.ts`: 9 passed
+  - `tests/api/interview-room.test.ts`: 6 passed
+  - **Total**: 15 passed in Phase 9 suites; monorepo `type-check` passed (0 errors across shared, server, client); monorepo `lint` passed (0 errors).
+- **Incomplete items**: None for Phase 9.
+- **Assumptions**: Room buttons and clarification inquiry flow follow default spec (`ROOM-3`).
