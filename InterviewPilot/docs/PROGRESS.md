@@ -296,5 +296,51 @@
 - **Incomplete items**: None for Phase 7.
 - **Assumptions**: None.
 
-
 ---
+
+## Phase 8 — Voice and Avatar ★
+
+- **What was built**:
+  - **Part (a) Pure Voice Math (`shared/src/voiceMath.ts`, `server/src/lib/voiceMath.ts`)**:
+    - `computeRms(samples)`: calculates normalized root-mean-square of audio signal.
+    - `mapRmsToBarHeights(rms, options)`: maps RMS to 24 waveform bar heights; values below `SILENCE_THRESHOLD` (`0.01`) strictly render flat bars (`minHeight = 4`) with zero animation (`VOI-8`).
+    - `isEmptyAnswer(params)`: detects empty answers (< 1 second duration, or < 2 words transcript, or silence only) so zero evaluation AI calls are made (`VOI-4`).
+    - `isRecorderAllowed(runtimeState)`: gates recording strictly to `CANDIDATE_LISTENING`, forbidding recording during `RECRUITER_SPEAKING`, `PROCESSING_ANSWER`, `AI_THINKING`, and `GENERATING_NEXT_QUESTION` (`VOI-11`).
+    - `validateAudioUpload(params)`: verifies MIME type against allowed set (`audio/webm`, `audio/ogg`, `audio/mp4`, `audio/wav`, `audio/x-m4a`, `audio/mpeg`, `audio/aac`) and caps upload size at 5 MB (`VOI-2`).
+    - `isAnswerTimeLimitExceeded(elapsedSeconds)`: enforces 120-second single-recording hard limit (`VOI-1`).
+  - **Part (b) Backend Voice Services & Endpoints (`server/src/services/voice/`, `server/src/modules/voice/`)**:
+    - `transcriptionService.ts`: Gemini speech-to-text service via `@google/genai` wrapped in `withAiUsage` (`SPEECH_TRANSCRIPTION`) and `MockTranscriptionService` for testing.
+    - `speechService.ts`: Gemini TTS synthesis via `@google/genai` with `responseModalities: ['AUDIO']` and prebuilt voice config, wrapped in `withAiUsage` (`SPEECH_SYNTHESIS`) with 1-attempt retry on failure (`VOI-6`), and `MockSpeechService`.
+    - `voiceController.ts` & `voiceRoutes.ts`: mounted at `/api/voice`:
+      - `POST /api/voice/transcribe`: validates audio upload, transcribes audio, detects empty answers, and immediately discards the in-memory buffer (`VOI-3`). Returns 502 `TRANSCRIPTION_FAILED` on upstream error (`VOI-5`).
+      - `POST /api/voice/synthesize`: generates speech audio and returns base64 audio and text caption (`VOI-6`).
+  - **Part (c) Frontend Voice Hooks & UI (`client/`)**:
+    - Installed approved `@interviewflowai/talking-avatar@0.3.0`, `three`, `@types/three`.
+    - `useMicrophone` hook (`client/hooks/useMicrophone.ts`):
+      - Requests microphone with echo cancellation, noise suppression, and auto gain control (`VOI-1`).
+      - Analyzes real microphone input via Web Audio API `AnalyserNode`, dynamically updating waveform bars.
+      - Enforces 120-second recording auto-submit limit (`VOI-1`).
+      - Detects audio track disconnects and sets `isDisconnected` error state (`VOI-10`).
+      - Gated strictly by `isRecorderAllowed(runtimeState)` (`VOI-11`).
+      - Mute support (`VOI-9`).
+    - `Waveform` component (`client/components/interview/Waveform.tsx`): renders reactive bars, flat when muted or in silence (`VOI-8`).
+    - `RecruiterAvatar` component (`client/components/interview/RecruiterAvatar.tsx`): wraps `TalkingAvatar` SDK, mounts 3D WebGL avatar canvas, drives viseme lip-sync via `avatar.speak(audioSource)` (`VOI-7`), and toggles behavior between `listening` and `thinking`.
+    - API client functions `transcribeAudioApi` and `synthesizeSpeechApi` in `client/lib/api.ts`.
+  - **Architecture Documentation**: Filled Section 15 "SDK notes" in `docs/ARCHITECTURE.md` with exact methods, version (`0.3.0`), and Gemini audio specs.
+- **Files created/changed**:
+  - `shared/src/voiceMath.ts`, `shared/src/index.ts`
+  - `server/src/services/voice/transcriptionService.ts`, `server/src/services/voice/speechService.ts`
+  - `server/src/modules/voice/voiceController.ts`, `server/src/modules/voice/voiceRoutes.ts`
+  - `server/src/app.ts`
+  - `client/package.json`, `package-lock.json`, `client/lib/api.ts`
+  - `client/hooks/useMicrophone.ts`, `client/components/interview/Waveform.tsx`, `client/components/interview/RecruiterAvatar.tsx`
+  - `docs/ARCHITECTURE.md`
+  - `server/tests/unit/voice-math.test.ts`
+  - `server/tests/api/voice.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/voice-math.test.ts`: 19 passed
+  - `tests/api/voice.test.ts`: 7 passed
+  - **Total**: 26 passed in Phase 8 suites, `type-check` passed (0 errors across all 3 workspaces), `lint` passed (0 errors).
+- **Incomplete items**: None for Phase 8.
+- **Assumptions**: None.
