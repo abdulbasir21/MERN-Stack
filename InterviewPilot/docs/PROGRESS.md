@@ -250,3 +250,51 @@
 - **Assumptions**: None.
 
 ---
+
+## Phase 7 — Interview Engine (LangGraph.js) ★
+
+- **What was built**:
+  - **Part (a) Pure Engine Functions (`server/src/lib/interviewEngineMath.ts`)**:
+    - Pure decision state machine `decideNext(state, evaluation)` for all branches (`FOLLOW_UP_DEEPER`, `CLARIFY_SIMPLER`, `NEXT_TOPIC`, `CLOSE`).
+    - Difficulty step calculator `stepDifficulty(current, delta)` clamped strictly between `EASY` and `HARD`.
+    - Question deduplication hash `computeQuestionHash(text)` and set tracker `isQuestionDuplicate` ensuring no duplicate question is ever asked (`ENG-4`).
+    - Valid state transition verifiers `isValidStatusTransition` and `isValidRuntimeTransition` enforcing valid lifecycle transitions only (`ENG-2`).
+    - Server-side time calculator `calculateElapsedSeconds`, `calculateRemainingSeconds`, `isPastMaxDuration`, and lazy timeout checker `isPastLazyTimeout`.
+    - Rolling summary trimmer `truncateRollingSummary(summary, 1200)` and context builder `buildTurnContext` strictly capped under `PROMPT_MAX_CHARS` (12,000 chars) (`ENG-7`).
+    - Inquiry prompt builder `buildInquiryPrompt` with strict anti-leak instruction forbidding hints or answers to pending questions (`ENG-10`).
+  - **Part (b) Graph, Database Models & Endpoints (`server/src/services/interviewEngine/`, `server/src/modules/interviews/`)**:
+    - Installed official `@langchain/langgraph@1.7.3` and `@langchain/core@1.3.7`.
+    - Prisma schema additions: `CandidateAnswer`, `AnswerEvaluation`, `CandidateInquiry` models with migration `20261111073000_phase7_engine_answers` deployed to database.
+    - LangGraph StateGraph state annotation `server/src/services/interviewEngine/interviewGraph.ts`.
+    - Turn evaluation service `evaluationService.ts`: structured output schema with 1-attempt retry loop on schema validation error (`ENG-8`), 0 AI calls for empty answers (`VOI-4`/`EVL-4`/`ENG-7`).
+    - Candidate inquiry service `inquiryService.ts`: grounded responses via RAG (`retrieveRelevantChunks`), strict 600-char response limit, pending question remains unchanged (`ENG-10`).
+    - Engine endpoints mounted on `/api/interviews/:id`:
+      - `POST /api/interviews/:id/start` — transitions `CREATED` -> `IN_PROGRESS`, sets `RECRUITER_SPEAKING`, records start time (`ENG-1`, `ENG-2`).
+      - `GET /api/interviews/:id/state` — returns current interview state DTO, lazy timeout detection, server-side remaining time.
+      - `POST /api/interviews/:id/answer` — submits answer, performs turn evaluation, applies adaptive branching, updates difficulty, persists answer and evaluation in one transaction, respects `Client-Request-Id` idempotency (`QTA-12`).
+      - `POST /api/interviews/:id/inquiry` — candidate asks question, checks inquiry quota, answers recruiter clarification without leaking question answer, leaves pending question untouched (`ENG-10`).
+      - `POST /api/interviews/:id/end` — early interview termination, sets terminal status `COMPLETED` / `ABANDONED` (`ENG-9`).
+      - `POST /api/interviews/:id/retry` — recovers from transient error state back to `CANDIDATE_RECORDING`.
+  - **Client API Client (`client/lib/api.ts`)**:
+    - Added `startInterviewApi`, `getInterviewStateApi`, `submitInterviewAnswerApi`, `submitInterviewInquiryApi`, `endInterviewApi`, `retryInterviewErrorApi`.
+- **Files created/changed**:
+  - `shared/src/index.ts`
+  - `server/package.json`, `package-lock.json`
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261111073000_phase7_engine_answers/migration.sql`
+  - `server/scripts/migrate-all.ts`, `server/src/config/env.ts`, `server/src/db/prisma.ts`
+  - `server/src/lib/interviewEngineMath.ts`
+  - `server/src/services/interviewEngine/evaluationService.ts`, `inquiryService.ts`, `interviewGraph.ts`
+  - `server/src/modules/interviews/interviewEngineService.ts`, `interviewController.ts`, `interviewRoutes.ts`, `interviewService.ts`
+  - `client/lib/api.ts`
+  - `server/tests/unit/interview-engine.test.ts`
+  - `server/tests/api/interview-engine.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/interview-engine.test.ts`: 24 passed
+  - `tests/api/interview-engine.test.ts`: 6 passed
+  - **Total**: 30 passed in Phase 7 suites, `type-check` passed (0 errors), `lint` passed (0 errors).
+- **Incomplete items**: None for Phase 7.
+- **Assumptions**: None.
+
+
+---
