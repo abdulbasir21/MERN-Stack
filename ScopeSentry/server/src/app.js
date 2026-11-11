@@ -9,6 +9,9 @@ import settingsRouter from './routes/settings.js';
 import projectsRouter from './routes/projects.js';
 import { documentsRouter, projectDocumentsRouter } from './routes/documents.js';
 import investigationsRouter from './routes/investigations.js';
+import findingsRouter from './routes/findings.js';
+import reportsRouter from './routes/reports.js';
+import dashboardRouter from './routes/dashboard.js';
 import { notFoundHandler, centralErrorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
@@ -38,6 +41,9 @@ export function createApp() {
   app.use('/projects/:projectId/documents', projectDocumentsRouter);
   app.use('/documents', documentsRouter);
   app.use(investigationsRouter);
+  app.use(findingsRouter);
+  app.use(reportsRouter);
+  app.use(dashboardRouter);
 
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
@@ -46,6 +52,9 @@ export function createApp() {
   app.use('/api/v1/projects/:projectId/documents', projectDocumentsRouter);
   app.use('/api/v1/documents', documentsRouter);
   app.use('/api/v1', investigationsRouter);
+  app.use('/api/v1', findingsRouter);
+  app.use('/api/v1', reportsRouter);
+  app.use('/api/v1', dashboardRouter);
 
   // Catch-all 404
   app.use(notFoundHandler);

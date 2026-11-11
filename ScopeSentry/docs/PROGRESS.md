@@ -559,4 +559,109 @@ Path: `docs/PROGRESS.md`
 - Interactive visual graph view (React Flow / XYFlow) of the LangGraph state execution (spec: only if owner requests; omitted for simplicity).
 - Multi-party approval assignment workflow (out of scope for MVP).
 
+---
+
+## Phase 7 — Findings Review, Reports, Dashboard
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Phase 7a: Review and Audit Ledger (`server/`):**
+  - `server/src/models/ReviewAction.js`: Append-only audit model (`timestamps: { createdAt: true, updatedAt: false }`) tracking finding reviews, comments, and price overrides.
+  - `server/src/services/reviewService.js`:
+    - `updateFindingReviewStatus`: Updates finding status (`pending`, `approved`, `rejected`, `needs_further_review`) and logs audit entry in ONE database transaction (BR-R1, BR-R2).
+    - `addFindingComment`: Appends comment (1–2000 chars) to audit history (BR-R3).
+    - `overrideFindingUnitPrice`: Sets `unitPriceOverride` and logs audit entry in ONE transaction; dynamically recomputes estimated cost delta on read (Section 7, BR-R5). Rejects negative prices.
+    - `getFindingHistory`: Retrieves chronological audit trail for a finding.
+  - `server/src/routes/findings.js` & `server/src/controllers/reviewController.js`:
+    - `PATCH /findings/:id/review` (authenticated, CSRF protected, validated)
+    - `POST /findings/:id/comments` (validated 1–2000 chars)
+    - `PATCH /findings/:id/price-override` (validated non-negative decimal)
+    - `GET /findings/:id/history`
+- **Phase 7b: Reports and Live Dashboard:**
+  - `server/src/services/reportService.js`:
+    - Server-side PDF generation using `pdfkit` (v0.20.2) implementing all 12 required sections in exact order (BR-RP2):
+      1. Project Information
+      2. Investigation Date
+      3. Executive Summary
+      4. Documents Compared
+      5. Detected Changes
+      6. Original vs Revised Values
+      7. Supporting Evidence
+      8. Potential Cost Impacts (Estimate)
+      9. Potential Schedule Impacts
+      10. Approval Findings
+      11. Assumptions and Limitations (Section 12.4 text)
+      12. Human Review Status ("Approved = reviewed by user; not legal determination")
+    - Enforces generation only from `completed` investigations (BR-RP1).
+    - Computes executive summary counts dynamically from findings at generation time (BR-RP3).
+    - Stores PDF privately in ImageKit with signed download URL (BR-RP4).
+    - Labels every cost delta as "Estimate" with price source (BR-RP5).
+  - `server/src/services/dashboardService.js`:
+    - Live database telemetry query calculating:
+      - `totalProjects`, `activeProjects`
+      - `totalInvestigations`
+      - `changesAwaitingReview` (findings in pending/needs_further_review in user's completed investigations)
+      - `reportsGenerated`
+      - Last 5 recent projects & last 5 recent investigations
+    - Counts computed dynamically on read, never stored (MASTER_PROMPT section 9).
+  - `server/src/routes/reports.js` & `server/src/routes/dashboard.js`:
+    - `POST /investigations/:id/reports`
+    - `GET /reports/:id/download` (authenticated signed URL)
+    - `GET /projects/:projectId/reports`
+    - `GET /dashboard`
+- **Frontend User Interface (`frontend/`):**
+  - `frontend/src/features/review/ReviewControls.jsx`:
+    - Status transition controls (Approve, Reject, Needs Review, Reset) with audit justification modal.
+    - Prominent legal limitation notice: "Approved = reviewed by you; not a legal determination" (BR-R4).
+    - PM comment modal for audit entries.
+    - Unit price override modal with immediate recalculation.
+    - Audit Trail Ledger slide-over drawer showing chronological history.
+  - `frontend/src/features/reports/ReportsManager.jsx`:
+    - Embedded into Project Details "Reports" tab.
+    - Generate PDF report action with loading spinner.
+    - Report history table with authenticated signed PDF download action.
+  - `frontend/src/pages/app/ReportsPage.jsx`:
+    - Global portfolio report browser across user's projects.
+  - `frontend/src/pages/app/DashboardPage.jsx`:
+    - Live executive dashboard wired to `GET /dashboard`.
+    - Real-time KPI cards for Active Projects, Investigations, Changes Awaiting Review, Reports.
+    - Recent projects & recent investigations feeds with direct navigation.
+  - `frontend/src/pages/app/InvestigationDetailsPage.jsx`:
+    - Embedded `ReviewControls` in each finding drawer.
+    - "Generate PDF Report" top action button with direct download.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest (Phase 7 Suite):**
+  - `tests/api/review-reports-dashboard.test.js`: 8 passed
+    - BR-R1: defaults to pending; rejects invalid review status
+    - BR-R2: review status transition writes exactly one audit record in same transaction
+    - BR-R3: comment length validation and history retrieval
+    - BR-R5: unit price override recomputes estimate on read and rejects negative values
+    - Security: foreign user access returns 404
+    - BR-RP1: generating a report on non-completed investigation returns 400
+    - BR-RP2, BR-RP3, BR-RP4: generates 12-section PDF report and stores record
+    - Dashboard: calculates live metrics without storing derived counts (Section 9)
+  - **Total Phase 7 Tests:** 8 passed
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1600 modules transformed, production bundle built cleanly in 6.85s
+- **Audit Reports:**
+  - `server/`: 7 vulnerabilities in dev/nested packages (vitest/tinypool, zod <4); breaking upgrade not auto-applied.
+  - `frontend/`: 8 vulnerabilities in dev/nested packages (vitest/tinypool, react-router <7.18); breaking upgrade not auto-applied.
+
+### 3. Documentation & Package Versions Used
+- `pdfkit` v0.20.2 (official PDFKit document generator)
+
+### 4. Decisions Made
+- **Transactional Audit Preservation:** Status transitions and price overrides execute inside a single Mongoose transaction session together with the audit action, guaranteeing zero drift between findings and history.
+- **Dynamic Cost Delta on Override:** Overriding a price stores only the fact of the override (`unitPriceOverride`); the mathematical cost delta is computed on read by `calculateFindingImpact` in pure decimal code.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Multi-currency conversion in executive reports (spec BR-P7 requires single project currency, no conversions).
+- Export to spreadsheet (CSV/Excel) (spec section 14: exporting formats other than PDF are out of scope for MVP).
+
+
 

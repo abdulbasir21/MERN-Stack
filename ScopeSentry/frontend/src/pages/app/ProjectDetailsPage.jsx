@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import DocumentsManager from '../../features/documents/DocumentsManager';
 import InvestigationsManager from '../../features/investigations/InvestigationsManager';
+import ReportsManager from '../../features/reports/ReportsManager';
 
 const PROJECT_TYPE_LABELS = {
   commercial_building: { label: 'Commercial Building', icon: Building2 },
@@ -402,15 +403,7 @@ export default function ProjectDetailsPage() {
       )}
 
       {activeTab === 'reports' && (
-        <div className="bg-surface rounded-xl border border-dashed border-border p-12 text-center max-w-lg mx-auto space-y-3">
-          <div className="w-12 h-12 rounded-full bg-primary-container/10 text-primary-container mx-auto flex items-center justify-center">
-            <FileSpreadsheet className="w-6 h-6" />
-          </div>
-          <h3 className="font-headline font-bold text-base text-primary">Phase 7: Change Intelligence Reports</h3>
-          <p className="text-xs text-secondary">
-            Generate executive 12-section PDF reports with cost delta summaries and human review audits.
-          </p>
-        </div>
+        <ReportsManager projectId={project.id} />
       )}
 
       {/* Edit Project Modal */}

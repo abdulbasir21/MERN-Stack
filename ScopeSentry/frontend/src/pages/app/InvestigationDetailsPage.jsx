@@ -12,8 +12,10 @@ import {
   ChevronRight,
   ShieldCheck,
   ShieldAlert,
-  Info
+  Info,
+  FileSpreadsheet
 } from 'lucide-react';
+import ReviewControls from '../../features/review/ReviewControls';
 
 export default function InvestigationDetailsPage() {
   const { id } = useParams();
@@ -24,6 +26,33 @@ export default function InvestigationDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedFindingId, setExpandedFindingId] = useState(null);
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(null);
+
+  const handleFindingUpdated = (updatedFinding) => {
+    setFindings((prev) =>
+      prev.map((f) => (f.id === updatedFinding.id ? updatedFinding : f))
+    );
+  };
+
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true);
+    setReportSuccess(null);
+    try {
+      const res = await apiClient(`/investigations/${id}/reports`, { method: 'POST' });
+      setReportSuccess('PDF report generated successfully!');
+      if (res?.data?.report?.id) {
+        const dl = await apiClient(`/reports/${res.data.report.id}/download`);
+        if (dl?.data?.downloadUrl) {
+          window.open(dl.data.downloadUrl, '_blank', 'noopener,noreferrer');
+        }
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to generate report');
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
 
   const fetchInvestigation = useCallback(async () => {
     try {
@@ -202,7 +231,34 @@ export default function InvestigationDetailsPage() {
             Started: {new Date(investigation.startedAt || investigation.createdAt).toLocaleString()}
           </p>
         </div>
+
+        {investigation.status === 'completed' && (
+          <button
+            onClick={handleGenerateReport}
+            disabled={generatingReport}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary-container text-white text-xs font-semibold rounded-lg shadow-sm hover:opacity-95 disabled:opacity-50 self-start sm:self-auto"
+          >
+            {generatingReport ? (
+              <>
+                <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Generating PDF...</span>
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Generate PDF Report</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
+
+      {reportSuccess && (
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span>{reportSuccess}</span>
+        </div>
+      )}
 
       {/* Mandatory Limitations Banner (MASTER_PROMPT 12.4) */}
       <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 flex items-start gap-3">
@@ -442,6 +498,9 @@ export default function InvestigationDetailsPage() {
                               </div>
                             )}
                           </div>
+
+                          {/* Interactive Human Review & Audit Controls (BR-R1 to BR-R5) */}
+                          <ReviewControls finding={finding} onFindingUpdated={handleFindingUpdated} />
                         </div>
                       )}
                     </div>

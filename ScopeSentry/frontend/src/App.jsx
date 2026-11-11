@@ -14,6 +14,7 @@ import ProjectsPage from './pages/app/ProjectsPage';
 import ProjectDetailsPage from './pages/app/ProjectDetailsPage';
 import InvestigationsPage from './pages/app/InvestigationsPage';
 import InvestigationDetailsPage from './pages/app/InvestigationDetailsPage';
+import ReportsPage from './pages/app/ReportsPage';
 
 export default function App() {
   return (
@@ -42,7 +43,7 @@ export default function App() {
               <Route path="projects/:id" element={<ProjectDetailsPage />} />
               <Route path="investigations" element={<InvestigationsPage />} />
               <Route path="investigations/:id" element={<InvestigationDetailsPage />} />
-              <Route path="reports" element={<div className="p-8 text-center text-sm font-mono text-secondary">Change Intelligence Reports (Phase 7)</div>} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
