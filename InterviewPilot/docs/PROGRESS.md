@@ -381,3 +381,56 @@
   - **Total**: 15 passed in Phase 9 suites; monorepo `type-check` passed (0 errors across shared, server, client); monorepo `lint` passed (0 errors).
 - **Incomplete items**: None for Phase 9.
 - **Assumptions**: Room buttons and clarification inquiry flow follow default spec (`ROOM-3`).
+
+
+## Phase 10 — Evaluation, Reports, History ★
+
+- **What was built**:
+  - **Part (a) Pure Evaluation and Report Math (`shared/src/evaluationMath.ts`)**:
+    - `roundHalfUp(val)`: standard half-up integer rounding (e.g. 74.5 -> 75, 74.4 -> 74) (`EVL-2`, `RPT-1`).
+    - `calculateAnswerScore(criteria, isEmpty)`: mean of answer criteria scores rounded half up; empty answers strictly yield 0 (`EVL-2`, `EVL-4`).
+    - `calculateOverallScore(answerScores)`: mean of all answer scores (including empty answers as 0) rounded half up (`RPT-1`).
+    - `calculateSkillBreakdown(answers)`: aggregates criteria scores per skill across answers and calculates mean rounded half up (`RPT-1`).
+    - `calculateStarCoverage(behavioralAnswers)`: calculates situation, task, action, and result share percentages (`RPT-1`).
+    - `calculateDurationSeconds(startedAt, endedAt)`: exact elapsed interview duration in whole seconds (`RPT-5`).
+    - `filterInterviewHistory(items, filters)`: filters by role text (case-insensitive contains), interview type, UTC date range, sorted newest first, with 20 items per page pagination (`RPT-6`).
+    - `compareInterviewSkills(skillsA, skillsB)`: computes differential variance matrix comparing skills between two selected interviews (`RPT-7`).
+    - Anti-bias instruction embedded in `buildInterviewContext`: `"Evaluation Rule: do not score by length or vocabulary; do not inflate scores."` (`EVL-3`).
+  - **Part (b) Database Models & Migrations (`server/prisma/`)**:
+    - Migration `20261111183000_phase10_interview_reports`:
+      - Created `enum ReportStatus { PENDING, READY, FAILED }`.
+      - Added `starParts JSONB` column on `AnswerEvaluation`.
+      - Created `InterviewReport` table (`id`, `interviewId` unique, `status`, `summary`, `strengths`, `weaknesses`, `recommendations`, `studyTopics`, `generatedAt`, `failureReason`).
+  - **Part (c) Report Generation Service & Endpoints (`server/src/services/report/`, `server/src/modules/reports/`)**:
+    - `reportService.ts`: Gemini report generation using a compact digest of evaluation scores and strengths/weaknesses (never raw transcripts/audio) wrapped in `withAiUsage` (`REPORT_GENERATION`) (`RPT-2`), with `MockReportGenerator`.
+    - `reportController.ts` & `interviewRoutes.ts`:
+      - `GET /api/interviews/:id/report`: returns report, questions breakdown (`RPT-4`), and calculated metrics (overall score, duration, skills, STAR coverage) calculated dynamically on read (`RPT-1`, `RPT-5`). Another user's interview returns 404 (`SEC-1`).
+      - `POST /api/interviews/:id/report/generate`: generates report if >= 1 answer evaluated (`RPT-2`); returns existing report without extra AI calls if already READY (`RPT-3`); sets status to `PENDING` if AI is unavailable while preserving calculated numbers.
+      - `GET /api/interviews/history`: returns own interviews with pagination, role search, and type filters (`RPT-6`).
+      - `GET /api/interviews/progress`: returns list of completed interviews for progress tracking (`RPT-7`).
+      - `GET /api/interviews/compare`: compares skill breakdowns between two interviews owned by user (`RPT-7`).
+  - **Part (d) Frontend Report & History Pages (`client/`)**:
+    - Comprehensive Report screen (`client/app/(app)/interviews/[id]/report/page.tsx`):
+      - Executive header, overall score index bento card (`overallScore / 100`), competency skill breakdown tiles, STAR coverage breakdown, strengths & weaknesses cards, actionable recommendations and study topics, and question-by-question audit breakdown (`RPT-4`).
+      - "Generate Executive Narrative" CTA button when report is in `PENDING` state (`RPT-2`).
+    - History & Progress screen (`client/app/(app)/history/page.tsx`):
+      - Performance trajectory timeline (`RPT-7`), side-by-side skill comparison tool with differential variance highlights, role search and type filtering, and paginated history table (`RPT-6`).
+- **Files created/changed**:
+  - `shared/src/evaluationMath.ts`, `shared/src/index.ts`
+  - `server/prisma/schema.prisma`, `server/prisma/migrations/20261111183000_phase10_interview_reports/migration.sql`
+  - `server/src/lib/interviewEngineMath.ts`
+  - `server/src/services/report/reportService.ts`
+  - `server/src/modules/reports/reportController.ts`
+  - `server/src/modules/interviews/interviewRoutes.ts`
+  - `client/lib/api.ts`
+  - `client/app/(app)/interviews/[id]/report/page.tsx`
+  - `client/app/(app)/history/page.tsx`
+  - `server/tests/unit/evaluation-math.test.ts`
+  - `server/tests/api/interview-reports.test.ts`
+  - `docs/PROGRESS.md`
+- **Tests run**:
+  - `tests/unit/evaluation-math.test.ts`: 15 passed
+  - `tests/api/interview-reports.test.ts`: 5 passed
+  - **Total**: 20 passed in Phase 10 suites; monorepo `type-check` passed (0 errors across shared, server, client); monorepo `lint` passed (0 errors).
+- **Incomplete items**: None for Phase 10.
+- **Assumptions**: Decision D-5: default applied (empty answers receive 0 score on every criterion, zero AI calls, and count in overall score averages).
