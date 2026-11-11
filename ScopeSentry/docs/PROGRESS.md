@@ -208,3 +208,88 @@ Path: `docs/PROGRESS.md`
 ### 5. Suggestions (Not Built — Out of Scope for MVP)
 - Social login / OAuth providers (GitHub/Google SSO): out of scope for MVP single-tenant owner model.
 - Multi-factor authentication (MFA/TOTP): out of scope for MVP.
+
+---
+
+## Phase 3 — Projects Module
+
+**Status:** Completed & Verified  
+**Date:** 2026-11-11
+
+### 1. What was built
+- **Backend Project Domain & Cascade Architecture (`server/`):**
+  - `server/src/models/Project.js`: Project schema enforcing BR-P1 (name 1-120 chars, description <= 2000, location <= 200, budget >= 0), BR-P3 (projectType enum), BR-P6 (status `active` / `archived`), and BR-P7 (currency 3-letter code defaulting to `USD`).
+  - Sibling schemas created for full dependency cascading: `Document`, `DocumentChunk`, `Investigation` (with unique partial index on `inputHash` for active states), `Finding`, `ReviewAction`, and `Report`.
+  - `server/src/services/projectService.js`:
+    - `validateDateOrdering`: Enforces BR-P2 (`expectedCompletionDate >= startDate` using whole calendar days in UTC).
+    - `createProject`: Saves project scoped to `ownerId` with active status.
+    - `listProjects`: Supports pagination (`page`, `limit` default 20 max 100), regex text search, and status filtering (`active`, `archived`, `all`).
+    - `getProjectById`: Enforces BR-P4 (strict `ownerId` filtering; foreign or nonexistent IDs throw 404).
+    - `updateProject`: Enforces BR-P6 (archived projects reject edits with 409 `CONFLICT` unless unarchiving); validates date ordering; updates permitted fields.
+    - `deleteProjectCascade`: Enforces BR-P5 and section 8 #1 (deleting a project deletes all associated child documents, chunks, investigations, findings, review actions, and reports in **one database transaction** with transactional rollback on failure).
+  - `server/src/controllers/projectController.js` & Routes (`server/src/routes/projects.js`):
+    - `GET /projects` (paginated, filtered, search)
+    - `POST /projects` (validated via Zod, CSRF protected, authenticated)
+    - `GET /projects/:id` (scoped, 404 on foreign ID)
+    - `PATCH /projects/:id` (CSRF protected, archived status check, date ordering check)
+    - `DELETE /projects/:id` (CSRF protected, transactional cascade delete)
+    - `POST /projects/:id/archive` & `POST /projects/:id/unarchive` (status toggles)
+    - Mounted on both `/projects` and `/api/v1/projects` in `src/app.js`.
+- **Frontend Project Management (`frontend/`):**
+  - `frontend/src/pages/app/ProjectsPage.jsx`:
+    - Project portfolio dashboard with active, archived, and all tabs.
+    - Live search filter by project name, description, and location.
+    - Responsive card grid displaying project type icons, live active/archived badges, budget with currency formatting, and timeline dates.
+    - "New Project" modal form with full validation and inline date ordering check.
+    - Archive / Unarchive toggle actions.
+    - Cascade deletion confirmation dialog with warning message (BR-P5).
+    - Empty, loading skeleton, and error banner states.
+  - `frontend/src/pages/app/ProjectDetailsPage.jsx`:
+    - Executive banner with project type badge, active status pill, budget, location, and dates.
+    - Breadcrumb navigation (`Projects / [Project Name]`).
+    - Quick actions: Edit Project modal (with archived lock check), Archive/Unarchive, and Delete Project.
+    - Tab navigation shell: Overview (pipeline readiness & governance rules), Documents (ready for Phase 4), Investigations (ready for Phase 6), Change Reports (ready for Phase 7).
+  - `frontend/src/App.jsx`: Wired `/app/projects` and `/app/projects/:id` under `ProtectedRoute`.
+
+### 2. Real Test & Verification Counts
+- **Server Vitest:**
+  - `tests/api/projects.test.js`: 9 passed
+    - Unauthenticated access returns 401
+    - Mutating requests without CSRF return 403
+    - BR-P1 & BR-P3: validates limits and rejects invalid projectType
+    - BR-P2: rejects completion date earlier than start date
+    - BR-P7: currency validation and default USD
+    - BR-P4: User B cannot read, update, or delete User A project (returns 404)
+    - BR-P6: Archived project rejects edits with 409 but allows unarchive/delete
+    - BR-P5: cascade deletes all child records in one database transaction
+    - BR-P5 Transactional Rollback: forced failure during cascade delete preserves all records
+  - `tests/api/auth.test.js`: 12 passed
+  - `tests/api/middleware.test.js`: 11 passed
+  - `tests/unit/math.test.js`: 17 passed
+  - `tests/unit/ownership.test.js`: 7 passed
+  - `tests/api/health.test.js`: 4 passed
+  - `tests/unit/dates.test.js`: 8 passed
+  - `tests/unit/env.test.js`: 2 passed
+  - **Total Server:** 70 tests passed across 8 test suites (duration: 63.54s)
+- **Frontend Vitest:**
+  - `src/App.test.jsx`: 1 passed (duration: 183ms)
+- **Static Checks & Linting:**
+  - Server ESLint: 0 errors, 0 warnings
+  - Frontend ESLint: 0 errors, 0 warnings
+  - Frontend Vite build: 1593 modules transformed, production bundle built in 14.64s (`dist/assets/index-BaZL0flI.js`)
+- **Audit Reports:**
+  - `server/`: 7 reported in dev/nested packages (vitest/tinypool, zod <4); breaking changes not auto-applied per AGENTS.md.
+  - `frontend/`: 8 reported in dev/nested packages (vitest/tinypool, react-router <7.18); breaking changes not auto-applied per AGENTS.md.
+
+### 3. Documentation & Package Versions Used
+- `mongoose` v8.8.0 (multi-document transactions via `session.withTransaction`)
+- `zod` v3.23.8 (ISO calendar date regex and enum validation)
+- `lucide-react` v0.468.0 (architectural and portfolio iconography)
+
+### 4. Decisions Made
+- **Transactional Rollback Verification:** Built explicit unit/integration test using `options.simulateFailure` inside `session.withTransaction()` to prove atomic rollback across Project and Document collections.
+- **Combined Auth & CSRF Cookie Handling in API Tests:** Ensured test helper registers both session cookie and CSRF cookie concurrently, matching browser cookie jar behavior.
+
+### 5. Suggestions (Not Built — Out of Scope for MVP)
+- Multi-currency conversion rates (spec explicitly mandates project-level currency label with no conversion).
+- Project templates / cloning functionality (out of MVP scope).

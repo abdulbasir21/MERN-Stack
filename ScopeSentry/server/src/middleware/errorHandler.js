@@ -21,7 +21,7 @@ export function notFoundHandler(req, res, next) {
 
 export function centralErrorHandler(err, req, res, next) {
   // Determine status code and error code
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || err.status || 500;
   let code = err.code || ERROR_CODES.INTERNAL_ERROR;
   let message = err.message || 'An unexpected error occurred';
   let details = err.details || undefined;
