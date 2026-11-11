@@ -7,7 +7,7 @@ export default function PublicLayout() {
       {/* Public Header */}
       <header className="sticky top-0 z-40 bg-surface/90 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 focus-ring rounded-lg">
             <div className="w-9 h-9 rounded-lg bg-primary-container flex items-center justify-center text-white shadow-sm">
               <Shield className="w-5 h-5" />
             </div>
@@ -21,16 +21,16 @@ export default function PublicLayout() {
             </div>
           </Link>
 
-          <nav className="flex items-center gap-4 sm:gap-6">
-            <Link to="/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors">
+          <nav className="flex items-center gap-4 sm:gap-6" aria-label="Public Navigation">
+            <Link to="/demo" className="text-sm font-medium text-secondary hover:text-on-surface transition-colors focus-ring rounded">
               Interactive Demo
             </Link>
-            <Link to="/login" className="text-sm font-semibold text-secondary hover:text-primary transition-colors">
+            <Link to="/login" className="text-sm font-semibold text-secondary hover:text-primary transition-colors focus-ring rounded">
               Log in
             </Link>
             <Link
               to="/register"
-              className="h-9 px-4 rounded-lg bg-primary-container text-white text-sm font-semibold hover:bg-primary-hover shadow-sm transition-all flex items-center justify-center"
+              className="h-9 px-4 rounded-lg bg-primary-container text-white text-sm font-semibold hover:bg-primary-hover shadow-sm transition-all flex items-center justify-center focus-ring"
             >
               Get Started
             </Link>

@@ -12,6 +12,7 @@ import { Report } from '../../src/models/Report.js';
 import { ReviewAction } from '../../src/models/ReviewAction.js';
 import { indexDocumentChunks } from '../../src/services/indexingService.js';
 import { runInvestigation } from '../../src/services/investigationService.js';
+import { seedDemoData } from '../../src/db/seedDemo.js';
 
 describe('Phase 9: Comprehensive End-to-End Full Flow Integration Test', { timeout: 90000 }, () => {
   let app;
@@ -28,8 +29,9 @@ describe('Phase 9: Comprehensive End-to-End Full Flow Integration Test', { timeo
     await connectDatabase();
     app = createApp();
 
-    // Clean up test user
+    // Clean up test user & ensure demo data exists
     await User.deleteMany({ email: 'fullflow_contractor@example.com' });
+    await seedDemoData();
   }, 60000);
 
   afterAll(async () => {

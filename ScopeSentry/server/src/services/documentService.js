@@ -92,6 +92,8 @@ export async function uploadDocument(ownerId, projectId, { file, category, simul
       text: extraction.text,
       pages: extraction.pages
     });
+    documentRecord.processingStatus = 'ready';
+    documentRecord.failureReason = null;
   } catch (extractErr) {
     // BR-D4, BR-D9: Save safe failure reason
     const failureReason =

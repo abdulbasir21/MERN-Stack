@@ -29,3 +29,22 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 }
+
+/* Accessibility: Focus visible ring utilities */
+@layer utilities {
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+  }
+}
+
+/* Accessibility: Respect user's motion preferences (prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
