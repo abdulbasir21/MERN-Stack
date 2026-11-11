@@ -17,6 +17,7 @@ import { documentRouter } from './modules/documents/documentRoutes.js';
 import { interviewRouter } from './modules/interviews/interviewRoutes.js';
 import { voiceRouter } from './modules/voice/voiceRoutes.js';
 import { demoRouter } from './modules/demo/demoRoutes.js';
+import { adminRouter } from './modules/admin/adminRoutes.js';
 
 export interface CreateAppOptions {
   allowedOrigin?: string;
@@ -77,6 +78,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
   app.use('/api/interviews', interviewRouter);
   app.use('/api/voice', voiceRouter);
   app.use('/api/demo', demoRouter);
+  app.use('/api/admin', adminRouter);
 
   // Admin role check endpoint (ADM-1, SEC-1)
   app.get(

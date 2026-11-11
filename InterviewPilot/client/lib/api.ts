@@ -679,3 +679,181 @@ export async function fetchDemoSamplesApi(): Promise<
     cache: 'no-store',
   });
 }
+
+// ==================== ADMIN API CLIENT (ADM-1..10) ====================
+
+export interface AdminOverviewData {
+  totalRegisteredUsers: number;
+  activeUsers7d: number;
+  activeDemoSessions: number;
+  interviews: {
+    realTotal: number;
+    realToday: number;
+    demoTotal: number;
+    demoToday: number;
+  };
+  uploadedDocumentsTotal: number;
+  budget: {
+    period: string;
+    totalBudgetUsd: string;
+    usedUsd: string;
+    reservedUsd: string;
+    remainingUsd: string;
+    aiEnabled: boolean;
+  };
+}
+
+export async function fetchAdminOverviewApi(): Promise<ApiSuccessResponse<AdminOverviewData>> {
+  return apiRequest<AdminOverviewData>('/api/admin/overview', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchAdminUsersApi(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+  role?: string;
+  isDemo?: boolean;
+} = {}): Promise<ApiSuccessResponse<any>> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+  if (params.search) query.set('search', params.search);
+  if (params.status) query.set('status', params.status);
+  if (params.role) query.set('role', params.role);
+  if (params.isDemo !== undefined) query.set('isDemo', String(params.isDemo));
+
+  const qStr = query.toString();
+  return apiRequest<any>(`/api/admin/users${qStr ? `?${qStr}` : ''}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function updateAdminUserStatusApi(
+  userId: string,
+  block: boolean
+): Promise<ApiSuccessResponse<{ id: string; status: string }>> {
+  return apiRequest<{ id: string; status: string }>(`/api/admin/users/${userId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ block }),
+  });
+}
+
+export async function deleteAdminUserApi(userId: string): Promise<ApiSuccessResponse<{ success: boolean }>> {
+  return apiRequest<{ success: boolean }>(`/api/admin/users/${userId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchAdminDocumentsApi(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  type?: string;
+} = {}): Promise<ApiSuccessResponse<any>> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+  if (params.search) query.set('search', params.search);
+  if (params.type) query.set('type', params.type);
+
+  const qStr = query.toString();
+  return apiRequest<any>(`/api/admin/documents${qStr ? `?${qStr}` : ''}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function deleteAdminDocumentApi(documentId: string): Promise<ApiSuccessResponse<{ success: boolean }>> {
+  return apiRequest<{ success: boolean }>(`/api/admin/documents/${documentId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function fetchAdminInterviewsApi(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+} = {}): Promise<ApiSuccessResponse<any>> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+  if (params.search) query.set('search', params.search);
+  if (params.status) query.set('status', params.status);
+
+  const qStr = query.toString();
+  return apiRequest<any>(`/api/admin/interviews${qStr ? `?${qStr}` : ''}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchAdminInterviewAuditApi(interviewId: string): Promise<ApiSuccessResponse<any>> {
+  return apiRequest<any>(`/api/admin/interviews/${interviewId}/audit`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchAdminUsageApi(): Promise<ApiSuccessResponse<any>> {
+  return apiRequest<any>('/api/admin/usage', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function fetchAdminSettingsApi(): Promise<ApiSuccessResponse<{ settings: Record<string, any> }>> {
+  return apiRequest<{ settings: Record<string, any> }>('/api/admin/settings', {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function updateAdminSettingsApi(
+  updates: Record<string, any>
+): Promise<ApiSuccessResponse<{ success: boolean; changes: any }>> {
+  return apiRequest<{ success: boolean; changes: any }>('/api/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function triggerEmergencyShutdownApi(): Promise<
+  ApiSuccessResponse<{ aiEnabled: boolean; status: string }>
+> {
+  return apiRequest<{ aiEnabled: boolean; status: string }>('/api/admin/settings/emergency-shutdown', {
+    method: 'POST',
+  });
+}
+
+export async function fetchAdminAuditLogsApi(params: {
+  page?: number;
+  pageSize?: number;
+  action?: string;
+  targetType?: string;
+} = {}): Promise<ApiSuccessResponse<any>> {
+  const query = new URLSearchParams();
+  if (params.page) query.set('page', params.page.toString());
+  if (params.pageSize) query.set('pageSize', params.pageSize.toString());
+  if (params.action) query.set('action', params.action);
+  if (params.targetType) query.set('targetType', params.targetType);
+
+  const qStr = query.toString();
+  return apiRequest<any>(`/api/admin/audit-logs${qStr ? `?${qStr}` : ''}`, {
+    method: 'GET',
+    cache: 'no-store',
+  });
+}
+
+export async function resetAdminDemoDataApi(): Promise<
+  ApiSuccessResponse<{ success: boolean; deletedDemoUsersCount: number }>
+> {
+  return apiRequest<{ success: boolean; deletedDemoUsersCount: number }>('/api/admin/demo/reset', {
+    method: 'POST',
+  });
+}
