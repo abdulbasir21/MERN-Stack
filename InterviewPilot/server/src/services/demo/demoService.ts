@@ -122,31 +122,37 @@ export async function createDemoSession(clientIp: string): Promise<DemoSessionRe
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours expiry
   const ephemeralEmail = `demo-${crypto.randomUUID()}@demo.interviewpilot.local`;
 
-  const { user, session } = await prisma.$transaction(async (tx) => {
-    const newUser = await tx.user.create({
-      data: {
-        email: ephemeralEmail,
-        role: 'USER',
-        isDemo: true,
-        profile: {
-          create: {
-            fullName: 'Demo Candidate',
-            onboardingCompletedAt: new Date(),
+  const { user, session } = await prisma.$transaction(
+    async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          email: ephemeralEmail,
+          role: 'USER',
+          isDemo: true,
+          profile: {
+            create: {
+              fullName: 'Demo Candidate',
+              onboardingCompletedAt: new Date(),
+            },
           },
         },
-      },
-    });
+      });
 
-    const newSession = await tx.demoSession.create({
-      data: {
-        userId: newUser.id,
-        ipHash,
-        expiresAt,
-      },
-    });
+      const newSession = await tx.demoSession.create({
+        data: {
+          userId: newUser.id,
+          ipHash,
+          expiresAt,
+        },
+      });
 
-    return { user: newUser, session: newSession };
-  });
+      return { user: newUser, session: newSession };
+    },
+    {
+      maxWait: 10000,
+      timeout: 20000,
+    }
+  );
 
   // Generate JWT token
   const token = signSessionToken({
