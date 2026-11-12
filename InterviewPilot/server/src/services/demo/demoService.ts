@@ -87,6 +87,17 @@ export async function createDemoSession(clientIp: string): Promise<DemoSessionRe
   });
   const maxGlobal = typeof globalLimitSetting?.value === 'number' ? globalLimitSetting.value : 20;
 
+  const isLoopback =
+    clientIp === '127.0.0.1' ||
+    clientIp === '::1' ||
+    clientIp === '::ffff:127.0.0.1' ||
+    clientIp === 'localhost';
+
+  const effectiveMaxPerIp =
+    process.env.NODE_ENV !== 'production' && isLoopback ? 100 : maxPerIp;
+  const effectiveMaxGlobal =
+    process.env.NODE_ENV !== 'production' && isLoopback ? 200 : maxGlobal;
+
   // Check IP session count today
   const ipCountToday = await prisma.demoSession.count({
     where: {
@@ -95,7 +106,7 @@ export async function createDemoSession(clientIp: string): Promise<DemoSessionRe
     },
   });
 
-  if (ipCountToday >= maxPerIp) {
+  if (ipCountToday >= effectiveMaxPerIp) {
     throw new AppError(
       'DEMO_RESTRICTED',
       'Daily demo limit reached for your connection. Please register for a free account to continue.',
@@ -110,7 +121,7 @@ export async function createDemoSession(clientIp: string): Promise<DemoSessionRe
     },
   });
 
-  if (globalCountToday >= maxGlobal) {
+  if (globalCountToday >= effectiveMaxGlobal) {
     throw new AppError(
       'DEMO_RESTRICTED',
       'Global demo capacity reached for today. Please register or try again tomorrow.',
