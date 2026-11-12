@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   InterviewMode,
   InterviewType,
@@ -45,7 +46,7 @@ export default function InterviewSetupPage() {
   const [experienceLevel, setExperienceLevel] = useState<ExperienceLevel>('INTERMEDIATE');
   const [type, setType] = useState<InterviewType>('TECHNICAL');
   const [difficulty, setDifficulty] = useState<InterviewDifficulty>('MEDIUM');
-  const [durationMinutes, setDurationMinutes] = useState<15 | 30 | 45>(15);
+  const [durationMinutes, setDurationMinutes] = useState<5 | 15 | 30 | 45>(15);
   const [questionCountInput, setQuestionCountInput] = useState<string>('');
 
   // Documents state
@@ -69,11 +70,11 @@ export default function InterviewSetupPage() {
       try {
         setLoading(true);
         const [docsRes, quotaRes] = await Promise.all([
-          fetchDocuments(),
+          fetchDocuments().catch(() => null),
           fetchQuotaMe().catch(() => null),
         ]);
 
-        if (docsRes.data) {
+        if (docsRes?.data) {
           const cvs = docsRes.data.documents.filter(
             (d) => d.type === 'CV' && d.status === 'READY'
           );
@@ -96,9 +97,12 @@ export default function InterviewSetupPage() {
             interviewsRemaining: remaining,
           });
 
-          // Ensure selected duration does not exceed user quota
-          if (durationMinutes > eq.maxDurationMinutes) {
-            setDurationMinutes(eq.maxDurationMinutes as 15 | 30 | 45);
+          // If demo user or limited duration, automatically set appropriate duration
+          if (eq.maxDurationMinutes <= 5) {
+            setDurationMinutes(5);
+            setMode('GENERAL');
+          } else if (durationMinutes > eq.maxDurationMinutes) {
+            setDurationMinutes(eq.maxDurationMinutes as 5 | 15 | 30 | 45);
           }
         }
       } catch (err) {
@@ -111,8 +115,8 @@ export default function InterviewSetupPage() {
   }, []);
 
   const calculatedQuestions = Math.min(
-    Math.max(3, Math.floor(durationMinutes / 3)),
-    quota.maxQuestionsPerInterview
+    quota.maxQuestionsPerInterview,
+    durationMinutes <= 5 ? 3 : Math.max(3, Math.floor(durationMinutes / 3))
   );
 
   async function handleCreateInterview(e: React.FormEvent) {
@@ -132,8 +136,8 @@ export default function InterviewSetupPage() {
     let parsedQuestionCount: number | undefined = undefined;
     if (questionCountInput.trim()) {
       const parsed = parseInt(questionCountInput, 10);
-      if (isNaN(parsed) || parsed < 3) {
-        setErrorMsg('Custom question count must be at least 3.');
+      if (isNaN(parsed) || parsed < 1) {
+        setErrorMsg('Custom question count must be at least 1.');
         return;
       }
       if (parsed > quota.maxQuestionsPerInterview) {
@@ -160,8 +164,8 @@ export default function InterviewSetupPage() {
       });
 
       if (res.data?.interview?.id) {
-        // Redirection to the live interview rehearsal room
-        router.push(`/interviews/${res.data.interview.id}`);
+        // Redirection to the device check page
+        router.push(`/interviews/${res.data.interview.id}/device-check`);
       }
     } catch (err) {
       if (err instanceof ApiClientError) {
@@ -199,6 +203,23 @@ export default function InterviewSetupPage() {
           Customize your realistic AI mock interview with tailored roles, duration, and documents.
         </p>
       </div>
+
+      {quota.maxDurationMinutes <= 5 && (
+        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>
+              <strong>Demo Session:</strong> 5-minute preview simulation with up to 3 adaptive questions. General practice mode is active.
+            </span>
+          </div>
+          <Link
+            href="/register"
+            className="text-amber-300 hover:text-white font-semibold underline underline-offset-4"
+          >
+            Create Permanent Account →
+          </Link>
+        </div>
+      )}
 
       {errorMsg && (
         <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-start gap-3">
@@ -240,16 +261,22 @@ export default function InterviewSetupPage() {
 
             {/* CV_BASED */}
             <div
-              onClick={() => setMode('CV_BASED')}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                mode === 'CV_BASED'
-                  ? 'border-primary bg-primary/5 shadow-sm'
-                  : 'border-border hover:border-muted-foreground/30'
+              onClick={() => {
+                if (quota.maxDurationMinutes > 5) setMode('CV_BASED');
+              }}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                quota.maxDurationMinutes <= 5
+                  ? 'opacity-40 cursor-not-allowed border-border'
+                  : mode === 'CV_BASED'
+                  ? 'border-primary bg-primary/5 shadow-sm cursor-pointer'
+                  : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-base">Resume-Based</span>
-                <Badge variant={mode === 'CV_BASED' ? 'speaking' : 'default'}>CV Required</Badge>
+                <Badge variant={mode === 'CV_BASED' ? 'speaking' : 'default'}>
+                  {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'CV Required'}
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Questions probe your real projects, skills, and accomplishments from your uploaded resume.
@@ -258,16 +285,22 @@ export default function InterviewSetupPage() {
 
             {/* JD_BASED */}
             <div
-              onClick={() => setMode('JD_BASED')}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                mode === 'JD_BASED'
-                  ? 'border-primary bg-primary/5 shadow-sm'
-                  : 'border-border hover:border-muted-foreground/30'
+              onClick={() => {
+                if (quota.maxDurationMinutes > 5) setMode('JD_BASED');
+              }}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                quota.maxDurationMinutes <= 5
+                  ? 'opacity-40 cursor-not-allowed border-border'
+                  : mode === 'JD_BASED'
+                  ? 'border-primary bg-primary/5 shadow-sm cursor-pointer'
+                  : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-base">Job Description</span>
-                <Badge variant={mode === 'JD_BASED' ? 'speaking' : 'default'}>JD Required</Badge>
+                <Badge variant={mode === 'JD_BASED' ? 'speaking' : 'default'}>
+                  {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'JD Required'}
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 Simulates the exact interview for a target job description or company listing.
@@ -276,16 +309,22 @@ export default function InterviewSetupPage() {
 
             {/* CV_JD */}
             <div
-              onClick={() => setMode('CV_JD')}
-              className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                mode === 'CV_JD'
-                  ? 'border-primary bg-primary/5 shadow-sm'
-                  : 'border-border hover:border-muted-foreground/30'
+              onClick={() => {
+                if (quota.maxDurationMinutes > 5) setMode('CV_JD');
+              }}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                quota.maxDurationMinutes <= 5
+                  ? 'opacity-40 cursor-not-allowed border-border'
+                  : mode === 'CV_JD'
+                  ? 'border-primary bg-primary/5 shadow-sm cursor-pointer'
+                  : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-base">Targeted Role Fit</span>
-                <Badge variant={mode === 'CV_JD' ? 'speaking' : 'default'}>CV + JD Required</Badge>
+                <Badge variant={mode === 'CV_JD' ? 'speaking' : 'default'}>
+                  {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'CV + JD Required'}
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 The most realistic rehearsal. Maps your past background directly to the target employer's needs.
@@ -455,15 +494,19 @@ export default function InterviewSetupPage() {
           <CardContent className="space-y-4">
             <div>
               <Label>Target Duration</Label>
-              <div className="grid grid-cols-3 gap-3 mt-1.5">
-                {[15, 30, 45].map((mins) => {
+              <div
+                className={`grid gap-3 mt-1.5 ${
+                  quota.maxDurationMinutes <= 5 ? 'grid-cols-1' : 'grid-cols-3'
+                }`}
+              >
+                {(quota.maxDurationMinutes <= 5 ? [5] : [15, 30, 45]).map((mins) => {
                   const isExceeded = mins > quota.maxDurationMinutes;
                   return (
                     <button
                       key={mins}
                       type="button"
                       disabled={isExceeded}
-                      onClick={() => setDurationMinutes(mins as 15 | 30 | 45)}
+                      onClick={() => setDurationMinutes(mins as 5 | 15 | 30 | 45)}
                       className={`p-3 rounded-lg border text-center transition-all ${
                         isExceeded
                           ? 'opacity-40 cursor-not-allowed bg-muted border-border'
@@ -472,9 +515,13 @@ export default function InterviewSetupPage() {
                           : 'border-border hover:border-muted-foreground/30'
                       }`}
                     >
-                      <div className="text-base">{mins} Minutes</div>
+                      <div className="text-base font-semibold">
+                        {mins} Minutes {mins === 5 ? '(Demo Rehearsal)' : ''}
+                      </div>
                       <div className="text-xs text-muted-foreground mt-0.5">
-                        {isExceeded ? 'Exceeds quota' : `~${Math.floor(mins / 3)} questions`}
+                        {isExceeded
+                          ? 'Exceeds quota'
+                          : `~${mins === 5 ? 3 : Math.floor(mins / 3)} questions`}
                       </div>
                     </button>
                   );
