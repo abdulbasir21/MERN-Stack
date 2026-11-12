@@ -9,7 +9,13 @@ export async function connectDatabase() {
   }
 
   try {
-    await mongoose.connect(config.mongoUri, {
+    let uri = config.mongoUri;
+    // Ensure database name case in URI matches config.mongoDbName
+    if (uri && uri.includes('/scopesentry')) {
+      uri = uri.replace('/scopesentry', `/${config.mongoDbName}`);
+    }
+
+    await mongoose.connect(uri, {
       dbName: config.mongoDbName,
       serverSelectionTimeoutMS: 20000
     });

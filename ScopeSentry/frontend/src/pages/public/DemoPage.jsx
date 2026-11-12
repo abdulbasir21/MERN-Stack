@@ -152,6 +152,17 @@ export default function DemoPage() {
       {/* Project Scenario Switcher */}
       {loadingProjects ? (
         <div className="h-16 bg-surface rounded-xl border border-border animate-pulse" />
+      ) : demoProjects.length === 0 ? (
+        <div className="bg-surface rounded-xl border border-dashed border-border p-8 text-center max-w-xl mx-auto space-y-3">
+          <p className="text-sm font-semibold text-secondary-navy">No demo scenarios currently loaded.</p>
+          <p className="text-xs text-secondary">Click below to refresh the pre-seeded construction scenarios.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary-container text-white text-xs font-semibold rounded-lg shadow-sm"
+          >
+            Reload Scenarios
+          </button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {demoProjects.map((p) => {

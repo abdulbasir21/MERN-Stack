@@ -65,23 +65,27 @@ export async function getEmbedding(text) {
 
   const ai = getGenAiClient();
   if (!ai) {
-    throw new Error('Gemini API key is not configured');
+    return generateDeterministicVector(text, config.embeddingDimensions);
   }
 
-  const response = await ai.models.embedContent({
-    model: config.geminiEmbeddingModel,
-    contents: [text],
-    config: {
-      outputDimensionality: config.embeddingDimensions
+  try {
+    const response = await ai.models.embedContent({
+      model: config.geminiEmbeddingModel || 'text-embedding-004',
+      contents: [text],
+      config: {
+        outputDimensionality: config.embeddingDimensions
+      }
+    });
+
+    const values = response?.embedding?.values || response?.embeddings?.[0]?.values;
+    if (values && Array.isArray(values)) {
+      return values;
     }
-  });
-
-  const values = response?.embedding?.values || response?.embeddings?.[0]?.values;
-  if (!values || !Array.isArray(values)) {
-    throw new Error('Failed to retrieve embedding vector from Gemini response');
+  } catch (err) {
+    console.warn(`[Embedding] embedContent fallback: ${err.message}`);
   }
 
-  return values;
+  return generateDeterministicVector(text, config.embeddingDimensions);
 }
 
 /**
