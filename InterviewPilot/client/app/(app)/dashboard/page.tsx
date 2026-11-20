@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { fetchUserDashboardApi, type UserDashboardData } from '@/lib/api';
 import { FadeIn, CardHover } from '@/components/animations/MotionWrappers';
+import { AppNavbar } from '@/components/navigation/AppNavbar';
 
 export default function CandidateDashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -36,75 +37,20 @@ export default function CandidateDashboardPage() {
   return (
     <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] antialiased">
       {/* Top Header Bar */}
-      <header className="h-16 border-b border-[#1E293B] bg-[#111827]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-6">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-cyan-500/20">
-              IP
-            </div>
-            <span className="font-semibold text-sm tracking-tight text-[#F8FAFC]">
-              InterviewPilot
-            </span>
-          </Link>
-
-          {/* Navigation links */}
-          <nav className="hidden md:flex items-center gap-1 text-xs font-medium">
-            <Link
-              href="/dashboard"
-              className="px-3 py-1.5 rounded-lg bg-[#1E293B] text-cyan-400 font-semibold"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/interviews/setup"
-              className="px-3 py-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60 transition"
-            >
-              Mock Interviews
-            </Link>
-            <Link
-              href="/history"
-              className="px-3 py-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60 transition"
-            >
-              History &amp; Trends
-            </Link>
-            <Link
-              href="/documents"
-              className="px-3 py-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60 transition"
-            >
-              Documents &amp; CVs
-            </Link>
-            <Link
-              href="/settings"
-              className="px-3 py-1.5 rounded-lg text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]/60 transition"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/interviews/setup"
-            className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold shadow-lg shadow-cyan-600/20 transition flex items-center gap-2"
-          >
-            <span>Start Practice</span>
-            <span className="text-cyan-200">→</span>
-          </Link>
-        </div>
-      </header>
+      <AppNavbar activeHref="/dashboard" />
 
       {/* Demo Warning Banner if ephemeral demo user (DEM-4, DEM-5) */}
       {data?.isDemo && (
-        <div className="bg-amber-950/40 border-b border-amber-800/40 px-6 py-2.5 flex items-center justify-between text-xs text-amber-200">
+        <div className="bg-amber-950/40 border-b border-amber-800/40 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-200">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
             <span>
               <strong>Demo Session Preview:</strong> 1 interview/day, 5-minute cap, GENERAL mode only. Document uploads are restricted.
             </span>
           </div>
           <Link
             href="/register"
-            className="text-amber-300 hover:text-white font-semibold underline underline-offset-4"
+            className="text-amber-300 hover:text-white font-semibold underline underline-offset-4 whitespace-nowrap"
           >
             Create Permanent Account →
           </Link>
@@ -112,9 +58,9 @@ export default function CandidateDashboardPage() {
       )}
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-8">
         {/* Hero Banner */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#111827] via-[#151D2F] to-[#0E1524] border border-[#1E293B] p-6 md:p-8 shadow-2xl">
+        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#111827] via-[#151D2F] to-[#0E1524] border border-[#1E293B] p-5 sm:p-6 md:p-8 shadow-2xl">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-2xl">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/50 text-[11px] font-mono text-cyan-400">
@@ -129,16 +75,16 @@ export default function CandidateDashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
               <Link
                 href="/interviews/setup"
-                className="px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs tracking-wide shadow-lg shadow-cyan-600/30 transition transform hover:-translate-y-0.5"
+                className="flex-1 sm:flex-initial text-center px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-xs tracking-wide shadow-lg shadow-cyan-600/30 transition transform hover:-translate-y-0.5"
               >
                 Start New Interview
               </Link>
               <Link
                 href="/history"
-                className="px-4 py-3 rounded-xl bg-[#1E293B] hover:bg-[#283548] text-[#F8FAFC] font-semibold text-xs transition"
+                className="flex-1 sm:flex-initial text-center px-4 py-3 rounded-xl bg-[#1E293B] hover:bg-[#283548] text-[#F8FAFC] font-semibold text-xs transition"
               >
                 View History
               </Link>

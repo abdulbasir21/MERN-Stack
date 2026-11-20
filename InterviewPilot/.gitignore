@@ -21,6 +21,9 @@ build/
 out/
 coverage/
 *.tsbuildinfo
+.vercel/
+client/.vercel/
+client/next-env.d.ts
 
 # Logs & OS
 logs/

@@ -41,7 +41,7 @@ InterviewPilot is an end-to-end AI-powered job interview rehearsal platform desi
 
 ```
 InterviewPilot/
-├── client/              # Next.js 14 App Router, Tailwind CSS, Lucide icons
+├── client/              # Next.js 15 App Router, Tailwind CSS, Lucide icons
 │   ├── app/             # (public), (auth), (app), admin routes
 │   ├── components/      # UI primitives, RecruiterAvatar, Waveform
 │   ├── hooks/           # useMicrophone, Web Audio API hooks
@@ -53,9 +53,7 @@ InterviewPilot/
 │   │   ├── services/    # LangGraph engine, Gemini AI, RAG chunking, speech, storage
 │   │   └── middleware/  # auth, permissions, rate limiting, csrf, errorHandler
 │   └── tests/           # Vitest unit & API integration test suites
-├── shared/              # Shared Zod schemas, TypeScript DTOs, pure mathematical utilities
-├── design/              # Google Stitch UI design references
-└── docs/                # Architecture, Master prompt, Phases, Deployment guide
+└── shared/              # Shared Zod schemas, TypeScript DTOs, pure mathematical utilities
 ```
 
 ---
@@ -82,10 +80,9 @@ InterviewPilot/
 3. **Environment Configuration**:
    - Configure `server/.env` based on `server/.env.example`.
    - Configure `client/.env` based on `client/.env.example`.
-4. **Deploy Database Schema & Seed**:
+4. **Deploy Database Schema**:
    ```bash
-   npm --workspace=@interviewpilot/server run prisma:deploy
-   npm --workspace=@interviewpilot/server run prisma:seed
+   npm --workspace=@interviewpilot/server run prisma:migrate
    ```
 5. **Start Development Servers**:
    ```bash

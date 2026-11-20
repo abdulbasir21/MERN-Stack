@@ -30,3 +30,20 @@ CrewDesk/docs/
 CrewDesk/design/
 CrewDesk/.planning/
 CrewDesk/fix-network.bat
+
+# ScopeSentry Exclusions
+ScopeSentry/AGENTS.md
+ScopeSentry/REVIEW_CHECKLIST.md
+ScopeSentry/docs/
+ScopeSentry/design/
+ScopeSentry/designs/
+**/.vercel/
+
+# InterviewPilot Exclusions requested by user
+InterviewPilot/AGENTS.md
+InterviewPilot/REVIEW_CHECKLIST.md
+InterviewPilot/docs/
+InterviewPilot/design/
+InterviewPilot/.vercel/
+InterviewPilot/client/.vercel/
+InterviewPilot/client/next-env.d.ts

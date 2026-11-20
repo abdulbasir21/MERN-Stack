@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   fetchInterviewReportApi,
@@ -9,10 +9,10 @@ import {
   type InterviewReportDto,
 } from '@/lib/api';
 import { AnimatedProgressBar, FadeIn } from '@/components/animations/MotionWrappers';
+import { AppNavbar } from '@/components/navigation/AppNavbar';
 
 export default function ComprehensiveReportPage() {
   const params = useParams();
-  const router = useRouter();
   const interviewId = params.id as string;
 
   const [loading, setLoading] = useState<boolean>(true);
@@ -96,37 +96,15 @@ export default function ComprehensiveReportPage() {
   return (
     <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] antialiased">
       {/* Top Header */}
-      <header className="h-16 border-b border-[#1E293B] bg-[#111827]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2 pr-3 border-r border-[#1E293B] text-xs text-[#94A3B8] hover:text-[#F8FAFC] transition">
-            ← Dashboard
-          </Link>
-          <span className="font-semibold text-sm tracking-tight text-[#F8FAFC]">Performance Assessment Report</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/history"
-            className="px-3 py-1.5 rounded-lg bg-[#1E293B] hover:bg-[#334155] border border-[#334155] text-xs font-medium text-[#F8FAFC] transition"
-          >
-            History &amp; Trends
-          </Link>
-          <button
-            type="button"
-            onClick={() => router.push('/interviews/setup')}
-            className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition shadow-md shadow-cyan-600/20"
-          >
-            New Interview
-          </button>
-        </div>
-      </header>
+      <AppNavbar activeHref="/history" badgeText="Performance Report" />
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
-        <FadeIn className="space-y-8">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-8">
+        <FadeIn className="space-y-6 sm:space-y-8">
           {/* Session Header Banner */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-[#1E293B]">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[11px] font-mono uppercase tracking-wider font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
                 AUDIT COMPLETE
@@ -150,11 +128,11 @@ export default function ComprehensiveReportPage() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex items-center gap-2 bg-[#111827] p-1 rounded-xl border border-[#1E293B]">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#111827] p-1 rounded-xl border border-[#1E293B] w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg text-xs font-semibold transition ${
                 activeTab === 'overview'
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'text-[#94A3B8] hover:text-[#F8FAFC]'
@@ -165,7 +143,7 @@ export default function ComprehensiveReportPage() {
             <button
               type="button"
               onClick={() => setActiveTab('questions')}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition ${
+              className={`flex-1 sm:flex-initial text-center px-4 py-2 rounded-lg text-xs font-semibold transition ${
                 activeTab === 'questions'
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'text-[#94A3B8] hover:text-[#F8FAFC]'
@@ -280,7 +258,7 @@ export default function ComprehensiveReportPage() {
                         {metrics.starCoverage.totalBehavioralAnswers} Behavioral Answers
                       </span>
                     </div>
-                    <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                       <div className="p-2.5 rounded-lg bg-[#0B0F17] border border-[#1E293B]">
                         <span className="text-[10px] font-mono uppercase text-[#64748B] block">Situation</span>
                         <span className="text-xs font-bold font-mono text-cyan-400">{metrics.starCoverage.situationShare}%</span>

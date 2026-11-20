@@ -73,15 +73,19 @@ quotaRouter.get(
 
       res.status(200).json({
         data: {
+          isDemo: Boolean(req.actor.isDemo),
           limits,
+          effectiveQuota: limits,
           usageToday: {
             periodDayStart: periodDayStart.toISOString(),
             interviewsUsed: interviewsUsedToday,
+            interviewsCreated: interviewsUsedToday,
             interviewsRemaining: Math.max(
               0,
               limits.interviewsPerDay - interviewsUsedToday
             ),
             documentAnalysesUsed: documentAnalysesUsedToday,
+            documentAnalyses: documentAnalysesUsedToday,
             documentAnalysesRemaining: Math.max(
               0,
               limits.documentAnalysesPerDay - documentAnalysesUsedToday

@@ -146,7 +146,7 @@ export default function DocumentsPage() {
         )}
 
         {/* Tab Selection */}
-        <div className="flex border-b border-slate-200 space-x-8">
+        <div className="flex flex-wrap border-b border-slate-200 gap-4 sm:gap-8">
           <button
             type="button"
             onClick={() => setActiveTab('CV')}
@@ -287,13 +287,13 @@ export default function DocumentsPage() {
                 return (
                   <Card key={doc.id} className="border border-slate-200">
                     <CardContent className="p-4 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex items-start sm:items-center space-x-3 min-w-0">
+                          <div className="w-10 h-10 shrink-0 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
                             {doc.type}
                           </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
                               <h3 className="font-semibold text-slate-900 text-sm">
                                 {doc.originalName || 'Untitled Document'}
                               </h3>
@@ -372,7 +372,7 @@ export default function DocumentsPage() {
         </div>
 
         {/* Next Step Callout */}
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-5 flex items-center justify-between">
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h4 className="font-semibold text-indigo-950 text-sm">
               Ready for your interview rehearsal?
@@ -381,8 +381,8 @@ export default function DocumentsPage() {
               Choose an interview mode and select your uploaded CV or target JD to begin.
             </p>
           </div>
-          <Link href="/interviews/setup">
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Link href="/interviews/setup" className="w-full sm:w-auto">
+            <Button size="sm" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white">
               Setup Interview <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </Link>

@@ -1,5 +1,5 @@
 import { env } from '../../config/env.js';
-import { AppError } from '../../lib/errors.js';
+import { logger } from '../../lib/logger.js';
 import { withAiUsage } from '../quota/quotaEngine.js';
 import type {
   InterviewPlan,
@@ -109,7 +109,7 @@ export class GeminiInterviewPlanGenerator implements InterviewPlanGenerator {
       async () => {
         try {
           const { GoogleGenAI } = await import('@google/genai');
-          const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+          const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, apiVersion: 'v1beta' });
 
           const resp = await ai.models.generateContent({
             model: env.GEMINI_TEXT_MODEL,
@@ -156,11 +156,33 @@ export class GeminiInterviewPlanGenerator implements InterviewPlanGenerator {
             },
           };
         } catch (err) {
-          throw new AppError(
-            'PLAN_GENERATION_FAILED',
-            `AI plan generation failed: ${err instanceof Error ? err.message : String(err)}`,
-            502
+          logger.warn(
+            { err: err instanceof Error ? err.message : String(err) },
+            'Gemini plan generation failed or rate limited, falling back to structured interview plan'
           );
+
+          const fallbackPlan: InterviewPlan = {
+            greeting: `Hello and welcome! I am your AI interviewer for today's ${ctx.durationMinutes}-minute ${ctx.type.toLowerCase()} interview rehearsal for the ${ctx.role} position.`,
+            topics: [
+              `${ctx.type} Core Competencies for ${ctx.role}`,
+              `System Architecture & Technical Design`,
+              `Problem Solving & Execution (${ctx.difficulty} level)`,
+            ],
+            evaluationCriteria: [
+              'Technical depth and clarity of explanations',
+              'System design methodology and architectural tradeoffs',
+              'Communication structure and practical problem solving',
+            ],
+            firstQuestion: `To begin, could you walk me through your background as a ${ctx.role} and describe the most technically challenging problem you recently worked on?`,
+          };
+
+          return {
+            result: fallbackPlan,
+            usage: {
+              inputTokens: estimatedInputTokens,
+              outputTokens: estimatedOutputTokens,
+            },
+          };
         }
       }
     );

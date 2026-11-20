@@ -21,7 +21,7 @@ export function errorHandler(
   res.setHeader('X-Request-Id', requestId);
 
   if (err instanceof AppError) {
-    logger.warn({ requestId, code: err.code, statusCode: err.statusCode }, 'Request error');
+    logger.warn({ requestId, code: err.code, statusCode: err.statusCode, message: err.message }, 'Request error');
     res.status(err.statusCode).json({
       error: {
         code: err.code,

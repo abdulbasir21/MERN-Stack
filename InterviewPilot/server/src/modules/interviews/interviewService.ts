@@ -30,59 +30,59 @@ export async function createInterview(params: {
     if (liveDemoSetting && liveDemoSetting.value === false) {
       throw new AppError('DEMO_LIVE_DISABLED', 'Live demo interviews are currently disabled by administrator.', 403);
     }
-    if (input.mode !== 'GENERAL') {
-      throw new AppError('DEMO_RESTRICTED', 'Only GENERAL interview mode is allowed in demo mode.', 403);
-    }
   }
 
-  // 1. Validate Mode vs Documents (SET-1)
-  const docIdsToValidate: string[] = [];
+  // 1. Sanitize Mode & Documents for Demo mode vs Authenticated
+  const effectiveMode = isDemo ? 'GENERAL' : input.mode;
   let effectiveCvId: string | null = null;
   let effectiveJdId: string | null = null;
+  const docIdsToValidate: string[] = [];
 
-  switch (input.mode) {
-    case 'GENERAL':
-      // Uploads are optional; GENERAL needs no documents
-      break;
-    case 'CV_BASED':
-      if (!input.cvDocumentId) {
-        throw new AppError(
-          'DOCUMENT_REQUIRED',
-          'CV_BASED mode requires a valid CV document',
-          422
-        );
-      }
-      docIdsToValidate.push(input.cvDocumentId);
-      effectiveCvId = input.cvDocumentId;
-      break;
-    case 'JD_BASED':
-      if (!input.jdDocumentId) {
-        throw new AppError(
-          'DOCUMENT_REQUIRED',
-          'JD_BASED mode requires a valid Job Description document',
-          422
-        );
-      }
-      docIdsToValidate.push(input.jdDocumentId);
-      effectiveJdId = input.jdDocumentId;
-      break;
-    case 'CV_JD':
-      if (!input.cvDocumentId || !input.jdDocumentId) {
-        throw new AppError(
-          'DOCUMENT_REQUIRED',
-          'CV_JD mode requires both a CV and a Job Description document',
-          422
-        );
-      }
-      docIdsToValidate.push(input.cvDocumentId, input.jdDocumentId);
-      effectiveCvId = input.cvDocumentId;
-      effectiveJdId = input.jdDocumentId;
-      break;
-  }
+  if (!isDemo) {
+    switch (effectiveMode) {
+      case 'GENERAL':
+        // Uploads are optional; GENERAL needs no documents
+        break;
+      case 'CV_BASED':
+        if (!input.cvDocumentId) {
+          throw new AppError(
+            'DOCUMENT_REQUIRED',
+            'CV_BASED mode requires a valid CV document',
+            422
+          );
+        }
+        docIdsToValidate.push(input.cvDocumentId);
+        effectiveCvId = input.cvDocumentId;
+        break;
+      case 'JD_BASED':
+        if (!input.jdDocumentId) {
+          throw new AppError(
+            'DOCUMENT_REQUIRED',
+            'JD_BASED mode requires a valid Job Description document',
+            422
+          );
+        }
+        docIdsToValidate.push(input.jdDocumentId);
+        effectiveJdId = input.jdDocumentId;
+        break;
+      case 'CV_JD':
+        if (!input.cvDocumentId || !input.jdDocumentId) {
+          throw new AppError(
+            'DOCUMENT_REQUIRED',
+            'CV_JD mode requires both a CV and a Job Description document',
+            422
+          );
+        }
+        docIdsToValidate.push(input.cvDocumentId, input.jdDocumentId);
+        effectiveCvId = input.cvDocumentId;
+        effectiveJdId = input.jdDocumentId;
+        break;
+    }
 
-  // Verify documents are READY and belong to the user (RAG-8, SEC-1)
-  if (docIdsToValidate.length > 0) {
-    await validateDocumentsReady(docIdsToValidate, userId);
+    // Verify documents are READY and belong to the user (RAG-8, SEC-1)
+    if (docIdsToValidate.length > 0) {
+      await validateDocumentsReady(docIdsToValidate, userId);
+    }
   }
 
   // 2. Load User Quota and Calculate Effective Limits (QTA-9, SET-2, SET-3)
@@ -97,11 +97,15 @@ export async function createInterview(params: {
 
   const effectiveQuota = await getEffectiveQuotaForUser(userId);
 
-  // Validate duration against quota limit (QTA-9)
-  if (input.durationMinutes > effectiveQuota.maxDurationMinutes) {
+  // Validate duration against quota limit (QTA-9). For demo, clamp to 5 min.
+  const effectiveDurationMinutes = isDemo
+    ? (5 as const)
+    : input.durationMinutes;
+
+  if (effectiveDurationMinutes > effectiveQuota.maxDurationMinutes) {
     throw new AppError(
       'EXCEEDS_QUOTA_LIMIT',
-      `Selected duration (${input.durationMinutes} min) exceeds your plan limit of ${effectiveQuota.maxDurationMinutes} min`,
+      `Selected duration (${effectiveDurationMinutes} min) exceeds your plan limit of ${effectiveQuota.maxDurationMinutes} min`,
       422,
       {
         allowedDurationMinutes: effectiveQuota.maxDurationMinutes,
@@ -112,7 +116,9 @@ export async function createInterview(params: {
 
   // Calculate question count (SET-3): default floor(durationMinutes / 3) capped by allowed max
   let effectiveQuestions: number;
-  if (input.questionCount !== undefined) {
+  if (isDemo) {
+    effectiveQuestions = Math.min(3, effectiveQuota.maxQuestionsPerInterview);
+  } else if (input.questionCount !== undefined) {
     if (input.questionCount > effectiveQuota.maxQuestionsPerInterview) {
       throw new AppError(
         'EXCEEDS_QUOTA_LIMIT',
@@ -125,7 +131,7 @@ export async function createInterview(params: {
     }
     effectiveQuestions = input.questionCount;
   } else {
-    const defaultCalculated = Math.floor(input.durationMinutes / 3);
+    const defaultCalculated = Math.floor(effectiveDurationMinutes / 3);
     effectiveQuestions = Math.min(
       Math.max(3, defaultCalculated),
       effectiveQuota.maxQuestionsPerInterview
@@ -138,14 +144,34 @@ export async function createInterview(params: {
       userId,
       status: 'IN_PROGRESS',
     },
+    include: {
+      configuration: true,
+    },
   });
 
   if (activeInterview) {
-    throw new AppError(
-      'INTERVIEW_ALREADY_ACTIVE',
-      'You already have an interview in progress. Complete or end it before starting a new one.',
-      409
-    );
+    const durationMinutes = activeInterview.configuration?.durationMinutes ?? 15;
+    const isExpired =
+      Boolean(activeInterview.startedAt) &&
+      Date.now() >= activeInterview.startedAt!.getTime() + durationMinutes * 60 * 1000;
+
+    if (isExpired) {
+      await prisma.interview.update({
+        where: { id: activeInterview.id },
+        data: {
+          status: 'TIMED_OUT',
+          runtimeState: 'INTERVIEW_COMPLETED',
+          endedAt: new Date(),
+          endReason: 'TIME_LIMIT',
+        },
+      });
+    } else {
+      throw new AppError(
+        'INTERVIEW_ALREADY_ACTIVE',
+        'You already have an interview in progress. Complete or end it before starting a new one.',
+        409
+      );
+    }
   }
 
   // 4. Fetch document summaries for plan generation (SET-5)
@@ -170,12 +196,12 @@ export async function createInterview(params: {
   const planGenerator = getInterviewPlanGenerator();
   const plan = await planGenerator.generatePlan({
     userId,
-    mode: input.mode,
+    mode: effectiveMode,
     role: input.role,
     experienceLevel: input.experienceLevel,
     type: input.type,
     difficulty: input.difficulty,
-    durationMinutes: input.durationMinutes,
+    durationMinutes: effectiveDurationMinutes,
     maxQuestions: effectiveQuestions,
     cvSummary,
     jdSummary,
@@ -189,36 +215,36 @@ export async function createInterview(params: {
   const interview = await prisma.$transaction(
     async (tx) => {
       const newInterview = await tx.interview.create({
-      data: {
-        userId,
-        mode: input.mode,
-        status: 'CREATED',
-        runtimeState: 'INITIALIZING',
-        state: {
-          plan,
-          difficulty: input.difficulty,
-          topicsCovered: [],
-          rollingSummary: '',
-          pendingQuestion: {
-            orderIndex: 1,
-            text: firstQuestionText,
-            topic: firstQuestionTopic,
+        data: {
+          userId,
+          mode: effectiveMode,
+          status: 'CREATED',
+          runtimeState: 'INITIALIZING',
+          state: {
+            plan,
             difficulty: input.difficulty,
+            topicsCovered: [],
+            rollingSummary: '',
+            pendingQuestion: {
+              orderIndex: 1,
+              text: firstQuestionText,
+              topic: firstQuestionTopic,
+              difficulty: input.difficulty,
+            },
+            listeningMode: 'ANSWER',
           },
-          listeningMode: 'ANSWER',
-        },
-        configuration: {
-          create: {
-            role: input.role,
-            experienceLevel: input.experienceLevel,
-            type: input.type,
-            startDifficulty: input.difficulty,
-            durationMinutes: input.durationMinutes,
-            maxQuestions: effectiveQuestions,
-            cvDocumentId: effectiveCvId,
-            jdDocumentId: effectiveJdId,
+          configuration: {
+            create: {
+              role: input.role,
+              experienceLevel: input.experienceLevel,
+              type: input.type,
+              startDifficulty: input.difficulty,
+              durationMinutes: effectiveDurationMinutes,
+              maxQuestions: effectiveQuestions,
+              cvDocumentId: effectiveCvId,
+              jdDocumentId: effectiveJdId,
+            },
           },
-        },
         questions: {
           create: {
             orderIndex: 1,

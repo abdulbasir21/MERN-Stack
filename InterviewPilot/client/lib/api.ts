@@ -302,18 +302,26 @@ export async function fetchInterviews(): Promise<
   });
 }
 
+export interface QuotaLimitsDto {
+  interviewsPerDay: number;
+  maxDurationMinutes: number;
+  maxQuestionsPerInterview: number;
+  maxInquiriesPerInterview: number;
+  documentAnalysesPerDay: number;
+}
+
 export async function fetchQuotaMe(): Promise<
   ApiSuccessResponse<{
-    effectiveQuota: {
-      interviewsPerDay: number;
-      maxDurationMinutes: number;
-      maxQuestionsPerInterview: number;
-      maxInquiriesPerInterview: number;
-      documentAnalysesPerDay: number;
-    };
+    isDemo?: boolean;
+    limits?: QuotaLimitsDto;
+    effectiveQuota?: QuotaLimitsDto;
     usageToday: {
-      interviewsCreated: number;
-      documentAnalyses: number;
+      interviewsUsed?: number;
+      interviewsCreated?: number;
+      interviewsRemaining?: number;
+      documentAnalyses?: number;
+      documentAnalysesUsed?: number;
+      documentAnalysesRemaining?: number;
     };
   }>
 > {
@@ -437,7 +445,8 @@ export async function transcribeAudioApi(params: {
   isSilenceOnly?: boolean;
 }): Promise<ApiSuccessResponse<TranscribeAudioResponse>> {
   const formData = new FormData();
-  formData.append('audio', params.audioBlob, 'answer.webm');
+  const fileName = params.audioBlob.type.includes('wav') ? 'answer.wav' : 'answer.webm';
+  formData.append('audio', params.audioBlob, fileName);
   formData.append('durationSeconds', params.durationSeconds.toString());
   if (params.interviewId) {
     formData.append('interviewId', params.interviewId);

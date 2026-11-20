@@ -25,6 +25,7 @@ export interface CreateAppOptions {
 
 export function createApp(options: CreateAppOptions = {}): Express {
   const app = express();
+  app.set('trust proxy', 1);
   const allowedOrigin = options.allowedOrigin || env.CLIENT_ORIGIN;
 
   app.disable('x-powered-by');

@@ -23,6 +23,21 @@ import { useMicrophone } from '@/hooks/useMicrophone';
 import { RecruiterAvatar, type RecruiterAvatarHandle } from '@/components/interview/RecruiterAvatar';
 import { Waveform } from '@/components/interview/Waveform';
 
+function isCandidateAskingQuestion(text: string): boolean {
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length < 2 || words.length > 35) {
+    return false;
+  }
+
+  const startsLikeQuestion =
+    /^(can you|could you|would you|what is|what are|what do you|what does|how do you|how many|how much|should i|do you want|are we|is this|is there|may i ask|can i ask|i have a question|quick question|sorry can|pardon|please repeat|repeat the)\b/i.test(
+      trimmed
+    );
+
+  return startsLikeQuestion || (trimmed.endsWith('?') && words.length <= 22);
+}
+
 export default function LiveInterviewRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -37,11 +52,20 @@ export default function LiveInterviewRoomPage() {
   const [showEndModal, setShowEndModal] = useState<boolean>(false);
   const [isEnding, setIsEnding] = useState<boolean>(false);
   const [isReplaying, setIsReplaying] = useState<boolean>(false);
+  const [isPreparingSpeech, setIsPreparingSpeech] = useState<boolean>(false);
+  const [lastTurnAnalysis, setLastTurnAnalysis] = useState<{
+    candidateWords: string;
+    mode: 'ANSWER' | 'QUESTION';
+    score?: number;
+    decision?: string;
+    feedback: string;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [elapsedTimer, setElapsedTimer] = useState<number>(0);
 
-  // Avatar ref
+  // Avatar and caption timer refs
   const avatarRef = useRef<RecruiterAvatarHandle | null>(null);
+  const captionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // In-flight recording recovery (ROOM-7)
   const lastRecordedBlobRef = useRef<{ blob: Blob; durationSeconds: number; isSilence: boolean } | null>(null);
@@ -91,12 +115,53 @@ export default function LiveInterviewRoomPage() {
     return () => clearInterval(timer);
   }, [runtimeState, interviewState?.isTerminal]);
 
-  // Recruiter speech and avatar playback
+  // Refs to keep initRoom and callbacks free of render-loop dependencies
+  const micRef = useRef(mic);
+  micRef.current = mic;
+  const initializedRef = useRef<string | null>(null);
+
+  const clearCaptionTimer = useCallback(() => {
+    if (captionTimerRef.current) {
+      clearInterval(captionTimerRef.current);
+      captionTimerRef.current = null;
+    }
+  }, []);
+
+  const revealCaptionProgressively = useCallback(
+    (fullText: string, estimatedDurationMs: number) => {
+      clearCaptionTimer();
+      const words = fullText.trim().split(/\s+/).filter(Boolean);
+      if (words.length <= 2) {
+        setActiveCaption(fullText);
+        return;
+      }
+
+      // Sync first words immediately as audio starts, then reveal progressively
+      const totalTicks = Math.max(8, Math.min(words.length, Math.floor(estimatedDurationMs / 160)));
+      const tickMs = Math.max(80, Math.floor(estimatedDurationMs / totalTicks));
+      const wordsPerTick = Math.max(1, Math.ceil(words.length / totalTicks));
+      let shownCount = Math.min(words.length, wordsPerTick);
+      setActiveCaption(words.slice(0, shownCount).join(' '));
+
+      captionTimerRef.current = setInterval(() => {
+        shownCount = Math.min(words.length, shownCount + wordsPerTick);
+        setActiveCaption(words.slice(0, shownCount).join(' '));
+        if (shownCount >= words.length) {
+          clearCaptionTimer();
+        }
+      }, tickMs);
+    },
+    [clearCaptionTimer]
+  );
+
+  // Recruiter speech and avatar playback (caption waits for audio so both start together)
   const playRecruiterUtterance = useCallback(
     async (text: string) => {
+      clearCaptionTimer();
       try {
-        setRuntimeState('RECRUITER_SPEAKING');
-        setActiveCaption(text);
+        setIsPreparingSpeech(true);
+        setRuntimeState('AI_THINKING');
+        setActiveCaption('');
 
         const res = await synthesizeSpeechApi({
           text,
@@ -111,27 +176,88 @@ export default function LiveInterviewRoomPage() {
             byteNumbers[i] = byteCharacters.charCodeAt(i);
           }
           const byteArray = new Uint8Array(byteNumbers);
-          const audioBlob = new Blob([byteArray], { type: res.data.mimeType || 'audio/mp3' });
+          const audioBlob = new Blob([byteArray], { type: res.data.mimeType || 'audio/wav' });
+
+          let estimatedPlaybackMs = Math.max(2500, text.split(/\s+/).length * 420);
+          if (byteArray.length >= 44) {
+            const view = new DataView(byteArray.buffer, byteArray.byteOffset, byteArray.byteLength);
+            const sampleRate = view.getUint32(24, true);
+            const byteRate = view.getUint32(28, true);
+            if (sampleRate !== 16000 && byteRate > 0) {
+              estimatedPlaybackMs = Math.max(1800, Math.round(((byteArray.length - 44) / byteRate) * 1000));
+            }
+          }
+
+          setIsPreparingSpeech(false);
+          setRuntimeState('RECRUITER_SPEAKING');
+          revealCaptionProgressively(text, estimatedPlaybackMs);
 
           if (avatarRef.current) {
-            await avatarRef.current.speakAudio(audioBlob);
+            await avatarRef.current.speakAudio(audioBlob, text);
           } else {
-            await new Promise((resolve) => setTimeout(resolve, Math.max(2500, text.length * 50)));
+            await new Promise((resolve) => setTimeout(resolve, estimatedPlaybackMs));
           }
         } else {
-          // If no audio synthesis returned, simulate natural reading pace
-          await new Promise((resolve) => setTimeout(resolve, Math.max(2500, text.length * 50)));
+          setIsPreparingSpeech(false);
+          setRuntimeState('RECRUITER_SPEAKING');
+          const durationMs = Math.max(2500, text.length * 50);
+          revealCaptionProgressively(text, durationMs);
+          await new Promise((resolve) => setTimeout(resolve, durationMs));
         }
       } catch {
-        // Fall back gracefully
+        setIsPreparingSpeech(false);
+        setRuntimeState('RECRUITER_SPEAKING');
+        const durationMs = Math.max(2500, text.split(/\s+/).length * 420);
+        revealCaptionProgressively(text, durationMs);
+
+        // Fall back to browser speech synthesis if API or WebGL playback fails
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          await new Promise<void>((resolve) => {
+            const safetyTimer = setTimeout(resolve, Math.min(20000, durationMs + 3000));
+            try {
+              window.speechSynthesis.cancel();
+              const utterance = new SpeechSynthesisUtterance(text);
+              utterance.pitch = 0.92;
+              const voices = window.speechSynthesis.getVoices();
+              const maleVoice = voices.find(
+                (v) =>
+                  /en/i.test(v.lang) &&
+                  /Male|David|Mark|Guy|Daniel|George|Alex|James/i.test(v.name) &&
+                  !/Female|Zira|Hazel|Samantha|Victoria/i.test(v.name)
+              );
+              if (maleVoice) {
+                utterance.voice = maleVoice;
+              }
+              utterance.onend = () => {
+                clearTimeout(safetyTimer);
+                resolve();
+              };
+              utterance.onerror = () => {
+                clearTimeout(safetyTimer);
+                resolve();
+              };
+              window.speechSynthesis.speak(utterance);
+            } catch {
+              clearTimeout(safetyTimer);
+              resolve();
+            }
+          });
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, durationMs));
+        }
       } finally {
-        // When speech finishes, hand over turn to candidate (VOI-11)
+        clearCaptionTimer();
+        setIsPreparingSpeech(false);
+        setActiveCaption(text);
+        // When speech finishes, hand over turn to candidate (useMicrophone auto-starts recording on CANDIDATE_LISTENING)
         setRuntimeState('CANDIDATE_LISTENING');
-        mic.startRecording().catch(() => {});
       }
     },
-    [interviewId, mic]
+    [clearCaptionTimer, interviewId, revealCaptionProgressively]
   );
+
+  const playRecruiterUtteranceRef = useRef(playRecruiterUtterance);
+  playRecruiterUtteranceRef.current = playRecruiterUtterance;
 
   // Core Submit Handler (ROOM-3, ROOM-7, QTA-12)
   const handleCandidateSubmit = useCallback(
@@ -144,26 +270,61 @@ export default function LiveInterviewRoomPage() {
       setIsSubmitting(true);
       setErrorMessage(null);
 
+      const spokenOrTypedText = micRef.current.liveTranscript.trim();
+      const effectiveSilenceOnly =
+        audioBlob.size > 500 || spokenOrTypedText.length > 0 ? false : isSilenceOnly;
+      let effectiveDuration =
+        spokenOrTypedText.length > 0 ? Math.max(2, durationSeconds) : durationSeconds;
+
       // Store in-memory for 3-attempt idempotent retry (ROOM-7)
-      lastRecordedBlobRef.current = { blob: audioBlob, durationSeconds, isSilence: isSilenceOnly };
+      lastRecordedBlobRef.current = {
+        blob: audioBlob,
+        durationSeconds: effectiveDuration,
+        isSilence: effectiveSilenceOnly,
+      };
 
       try {
         setRuntimeState('PROCESSING_ANSWER');
 
-        // 1. Transcribe audio via Gemini Audio Model
-        const transcribeRes = await transcribeAudioApi({
-          audioBlob,
-          durationSeconds,
-          interviewId,
-          isSilenceOnly,
-        });
+        // 1. Transcribe audio via Gemini Audio Model (merge with browser live transcript)
+        let transcript = '';
+        let isEmpty = false;
+        if ((!audioBlob || audioBlob.size === 0) && spokenOrTypedText.length === 0) {
+          isEmpty = true;
+        } else if (audioBlob && audioBlob.size > 0) {
+          const transcribeRes = await transcribeAudioApi({
+            audioBlob,
+            durationSeconds: effectiveDuration,
+            interviewId,
+            isSilenceOnly: effectiveSilenceOnly,
+          });
+          const serverTranscript = (transcribeRes.data.transcript || '').trim();
+          transcript =
+            serverTranscript.length >= spokenOrTypedText.length
+              ? serverTranscript
+              : spokenOrTypedText;
+          isEmpty = transcript.trim().length === 0 ? transcribeRes.data.isEmpty : false;
+        } else {
+          transcript = spokenOrTypedText;
+          isEmpty = transcript.trim().split(/\s+/).filter(Boolean).length < 2;
+        }
 
-        const { transcript, isEmpty } = transcribeRes.data;
+        if (transcript.trim().length > 0) {
+          isEmpty = false;
+          effectiveDuration = Math.max(2, effectiveDuration);
+          micRef.current.setLiveTranscript(transcript);
+        }
 
-        // Check current mode: ANSWER or QUESTION
-        const isQuestionMode = interviewState?.listeningMode === 'QUESTION';
+        // Check whether candidate clicked Ask a Question OR clearly asked a clarifying question aloud
+        const inquiriesLeft = Math.max(
+          0,
+          (interviewState?.maxInquiries || 2) - (interviewState?.inquiriesCount || 0)
+        );
+        const isQuestionTurn =
+          interviewState?.listeningMode === 'QUESTION' ||
+          (!isEmpty && inquiriesLeft > 0 && isCandidateAskingQuestion(transcript));
 
-        if (isQuestionMode) {
+        if (isQuestionTurn) {
           // Submit candidate inquiry (ROOM-3, ENG-10)
           const inquiryText = transcript.trim() || 'Could you please clarify this question?';
           const inquiryRes = await submitInquiryApi(
@@ -172,7 +333,13 @@ export default function LiveInterviewRoomPage() {
             currentRequestIdRef.current
           );
 
+          setLastTurnAnalysis({
+            candidateWords: inquiryText,
+            mode: 'QUESTION',
+            feedback: inquiryRes.data.reply,
+          });
           setInterviewState(inquiryRes.data.state);
+          micRef.current.setLiveTranscript('');
           currentRequestIdRef.current = crypto.randomUUID();
           retryCountRef.current = 0;
           lastRecordedBlobRef.current = null;
@@ -186,13 +353,23 @@ export default function LiveInterviewRoomPage() {
             {
               transcript,
               isEmpty,
-              durationSeconds,
+              durationSeconds: effectiveDuration,
             },
             currentRequestIdRef.current
           );
 
           const nextState = answerRes.data.state;
+          setLastTurnAnalysis({
+            candidateWords:
+              transcript.trim() ||
+              '(No speech detected — please speak clearly or type in the box above)',
+            mode: 'ANSWER',
+            score: answerRes.data.evaluation.overallScore,
+            decision: answerRes.data.decision,
+            feedback: answerRes.data.evaluation.summaryFeedback,
+          });
           setInterviewState(nextState);
+          micRef.current.setLiveTranscript('');
 
           currentRequestIdRef.current = crypto.randomUUID();
           retryCountRef.current = 0;
@@ -219,17 +396,32 @@ export default function LiveInterviewRoomPage() {
         setIsSubmitting(false);
       }
     },
-    [interviewId, interviewState?.listeningMode, isSubmitting, playRecruiterUtterance, router]
+    [
+      interviewId,
+      interviewState?.inquiriesCount,
+      interviewState?.listeningMode,
+      interviewState?.maxInquiries,
+      isSubmitting,
+      playRecruiterUtterance,
+      router,
+    ]
   );
 
   handleCandidateSubmitRef.current = handleCandidateSubmit;
 
   // Initial load / Reload recovery (ROOM-1, ROOM-5)
   useEffect(() => {
+    if (initializedRef.current === interviewId) {
+      return;
+    }
+    initializedRef.current = interviewId;
     let isMounted = true;
 
     async function initRoom() {
       try {
+        // Request microphone permission up front before speech/recording transitions
+        await micRef.current.requestPermission();
+
         // 1. Fetch user profile for candidate name
         try {
           const profileRes = await fetchMyProfile();
@@ -258,6 +450,7 @@ export default function LiveInterviewRoomPage() {
         if (state.status === 'CREATED') {
           const startRes = await startInterviewApi(interviewId);
           const startedState = startRes.data.state;
+          if (!isMounted) return;
           setInterviewState(startedState);
           setRuntimeState(startedState.runtimeState);
 
@@ -266,19 +459,20 @@ export default function LiveInterviewRoomPage() {
             startedState.currentQuestion?.text ||
             'Welcome. Let us begin your interview.';
 
-          await playRecruiterUtterance(promptText);
+          await playRecruiterUtteranceRef.current(promptText);
         } else {
-          // ROOM-5: Reload recovery - show current question as caption WITHOUT regenerating audio
+          // ROOM-5: Reload recovery - restore caption and speak if recruiter/listening turn
           const caption =
             state.recruiterUtterance ||
             state.currentQuestion?.text ||
             'Welcome back. Please proceed with your answer.';
           setActiveCaption(caption);
-          setRuntimeState(state.runtimeState === 'RECRUITER_SPEAKING' ? 'CANDIDATE_LISTENING' : state.runtimeState);
+          if (state.runtimeState === 'RECRUITER_SPEAKING' || state.runtimeState === 'CANDIDATE_LISTENING') {
+            await playRecruiterUtteranceRef.current(caption);
+          } else {
+            setRuntimeState(state.runtimeState);
+          }
         }
-
-        // Request microphone permission if not yet acquired
-        await mic.requestPermission();
       } catch (err: unknown) {
         if (isMounted) {
           const e = err as { code?: string; message?: string };
@@ -292,16 +486,23 @@ export default function LiveInterviewRoomPage() {
 
     return () => {
       isMounted = false;
+      initializedRef.current = null;
+      clearCaptionTimer();
     };
-  }, [interviewId, router, playRecruiterUtterance, mic]);
+  }, [clearCaptionTimer, interviewId, router]);
 
   // "Finish Answer" button click
   const handleFinishAnswer = async () => {
+    const capturedLiveText = mic.liveTranscript.trim();
     const result = await mic.stopRecording();
     if (result) {
       await handleCandidateSubmit(result.audioBlob, result.durationSeconds, result.isSilenceOnly);
     } else {
-      await handleCandidateSubmit(new Blob([]), 0, true);
+      await handleCandidateSubmit(
+        new Blob([]),
+        capturedLiveText.length > 0 ? Math.max(2, mic.recordingDuration || 3) : 0,
+        capturedLiveText.length === 0
+      );
     }
   };
 
@@ -385,6 +586,12 @@ export default function LiveInterviewRoomPage() {
 
   // Runtime State Badge Label and Colors
   const getBadgeConfig = () => {
+    if (isPreparingSpeech) {
+      return {
+        label: 'Preparing Audio & Reply...',
+        color: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30 animate-pulse',
+      };
+    }
     switch (runtimeState) {
       case 'RECRUITER_SPEAKING':
         return { label: 'Recruiter Speaking', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
@@ -411,59 +618,60 @@ export default function LiveInterviewRoomPage() {
     : 'listening';
 
   return (
-    <div className="h-screen w-full bg-[#0B0F17] text-[#F8FAFC] flex flex-col overflow-hidden select-none antialiased">
+    <div className="min-h-screen lg:h-screen w-full bg-[#0B0F17] text-[#F8FAFC] flex flex-col lg:overflow-hidden select-none antialiased">
       {/* TOP HUD BAR */}
-      <header className="h-16 bg-[#111827]/90 backdrop-blur-md px-6 flex items-center justify-between shrink-0 border-b border-[#1E293B] z-20">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 pr-4 border-r border-[#1E293B]">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white">
+      <header className="min-h-14 py-2 bg-[#111827]/90 backdrop-blur-md px-3 sm:px-6 flex flex-wrap items-center justify-between gap-2 shrink-0 border-b border-[#1E293B] z-20">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 pr-0 sm:pr-4 sm:border-r sm:border-[#1E293B]">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white shrink-0">
               IP
             </div>
-            <span className="font-semibold text-sm tracking-tight text-[#F8FAFC]">InterviewPilot</span>
+            <span className="font-semibold text-sm tracking-tight text-[#F8FAFC] hidden xs:inline sm:inline">InterviewPilot</span>
           </div>
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <span className="text-xs text-[#94A3B8] font-medium">Session ID:</span>
             <span className="text-xs font-mono text-[#64748B]">{interviewId.slice(0, 8)}</span>
           </div>
         </div>
 
         {/* Center: Live Timer and Question Counter */}
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[#64748B] uppercase tracking-wider font-semibold">Elapsed:</span>
-            <span className="font-mono text-sm font-semibold text-cyan-400 tabular-nums">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="text-[10px] sm:text-xs text-[#64748B] uppercase tracking-wider font-semibold">Elapsed:</span>
+            <span className="font-mono text-xs sm:text-sm font-semibold text-cyan-400 tabular-nums">
               {formatTimer(elapsedTimer)}
             </span>
           </div>
 
           {interviewState && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[#64748B] uppercase tracking-wider font-semibold">Progress:</span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs text-[#64748B] uppercase tracking-wider font-semibold hidden sm:inline">Progress:</span>
               <span className="text-xs font-semibold text-[#F8FAFC] font-mono">
-                Q{interviewState.questionsAsked} of {interviewState.maxQuestions}
+                Q{interviewState.questionsAsked}/{interviewState.maxQuestions}
               </span>
             </div>
           )}
         </div>
 
         {/* Right: End Interview CTA */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
             onClick={() => setShowEndModal(true)}
-            className="px-3.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold tracking-wide transition flex items-center gap-1.5"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-semibold tracking-wide transition flex items-center gap-1.5 whitespace-nowrap"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <span>End Interview</span>
+            <span className="hidden sm:inline">End Interview</span>
+            <span className="sm:hidden">End</span>
           </button>
         </div>
       </header>
 
       {/* ERROR BANNER IF ACTIVE */}
       {errorMessage && (
-        <div className="bg-rose-500/15 border-b border-rose-500/30 px-6 py-2.5 flex items-center justify-between z-10">
+        <div className="bg-rose-500/15 border-b border-rose-500/30 px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2 z-10">
           <div className="flex items-center gap-2 text-xs text-rose-300">
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -483,15 +691,16 @@ export default function LiveInterviewRoomPage() {
       )}
 
       {/* MAIN VIEWPORT: 2-PANEL COCKPIT */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 md:p-6 overflow-hidden">
+      <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 p-3 sm:p-4 md:p-5 overflow-y-auto lg:overflow-hidden">
         {/* LEFT PANEL: AI Recruiter (7 of 12 cols on desktop) */}
-        <section className="lg:col-span-7 flex flex-col rounded-2xl bg-[#111827] border border-[#1E293B] overflow-hidden shadow-2xl relative">
+        <section className="lg:col-span-7 flex flex-col rounded-2xl bg-[#111827] border border-[#1E293B] overflow-hidden shadow-2xl relative min-h-[280px] sm:min-h-[360px] lg:min-h-0">
           {/* Avatar Area */}
-          <div className="flex-1 relative bg-[#0B0F17] flex items-center justify-center overflow-hidden">
+          <div className="flex-1 relative bg-[#0B0F17] flex items-center justify-center overflow-hidden min-h-[200px] sm:min-h-[260px] lg:min-h-0">
             <RecruiterAvatar
               ref={avatarRef}
               behavior={avatarBehavior}
               isSpeaking={runtimeState === 'RECRUITER_SPEAKING'}
+              isPreparingSpeech={isPreparingSpeech}
             />
 
             {/* Floating Top Badge */}
@@ -521,25 +730,39 @@ export default function LiveInterviewRoomPage() {
           </div>
 
           {/* Subtitle / Caption Bar */}
-          <div className="p-4 bg-[#111827] border-t border-[#1E293B] flex items-center justify-between">
+          <div className="p-4 bg-[#111827] border-t border-[#1E293B] flex items-center justify-between min-h-[84px]">
             <div className="flex-1 pr-4">
               <div className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] mb-1">
                 Recruiter Utterance
               </div>
-              <p className="text-sm text-[#F8FAFC] font-medium leading-relaxed">
-                {activeCaption}
-              </p>
+              {isPreparingSpeech ? (
+                <div className="flex items-center gap-3 py-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.2s]"></span>
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.1s]"></span>
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 animate-bounce"></span>
+                  </div>
+                  <span className="text-sm text-cyan-300 font-medium animate-pulse">
+                    Generating recruiter voice &amp; lip-sync...
+                  </span>
+                </div>
+              ) : (
+                <p className="text-sm text-[#F8FAFC] font-medium leading-relaxed">
+                  {activeCaption}
+                </p>
+              )}
             </div>
           </div>
         </section>
 
-        {/* RIGHT PANEL: Candidate Telemetry & Controls (5 of 12 cols on desktop) */}
-        <section className="lg:col-span-5 flex flex-col justify-between rounded-2xl bg-[#111827] border border-[#1E293B] p-5 shadow-2xl overflow-y-auto">
-          {/* Header: Candidate Details & Inquiries Badge */}
-          <div>
-            <div className="flex items-center justify-between mb-4 pb-4 border-b border-[#1E293B]">
+        {/* RIGHT PANEL: Candidate Telemetry & Pinned Action Dock (5 of 12 cols on desktop) */}
+        <section className="lg:col-span-5 flex flex-col justify-between rounded-2xl bg-[#111827] border border-[#1E293B] p-3.5 sm:p-4 gap-3 shadow-2xl lg:overflow-hidden min-h-0">
+          {/* Scrollable Telemetry & Analysis Region */}
+          <div className="flex-1 lg:overflow-y-auto lg:pr-1 space-y-2.5 min-h-0">
+            {/* Header: Candidate Details & Inquiries Badge */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#1E293B]">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-sm text-white">
+                <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-600 flex items-center justify-center font-bold text-sm text-white">
                   {candidateName.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -565,16 +788,16 @@ export default function LiveInterviewRoomPage() {
             </div>
 
             {/* Listening Mode Callout */}
-            <div className="mb-4">
+            <div>
               {interviewState?.listeningMode === 'QUESTION' ? (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-xs text-amber-300">
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-xs text-amber-300">
                   <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>Inquiry Mode: Ask your question. Click Finish Answer when done.</span>
                 </div>
               ) : (
-                <div className="p-3 rounded-xl bg-[#0B0F17] border border-[#1E293B] flex items-center justify-between text-xs text-[#94A3B8]">
+                <div className="p-2.5 rounded-xl bg-[#0B0F17] border border-[#1E293B] flex items-center justify-between text-xs text-[#94A3B8]">
                   <span>Candidate Response Mode</span>
                   <span className="font-mono text-cyan-400">{formatTimer(mic.recordingDuration)} / 02:00</span>
                 </div>
@@ -582,8 +805,8 @@ export default function LiveInterviewRoomPage() {
             </div>
 
             {/* Real-time Waveform */}
-            <div className="p-4 rounded-xl bg-[#0B0F17] border border-[#1E293B] mb-6">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-2 flex items-center justify-between">
+            <div className="p-2.5 rounded-xl bg-[#0B0F17] border border-[#1E293B]">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-1.5 flex items-center justify-between">
                 <span>Microphone Telemetry</span>
                 <span>{mic.isMuted ? 'MUTED' : mic.isRecording ? 'LIVE' : 'STANDBY'}</span>
               </div>
@@ -593,18 +816,114 @@ export default function LiveInterviewRoomPage() {
                 isMuted={mic.isMuted}
               />
             </div>
+
+            {/* Candidate Live Voice Transcript & Editable Response Box */}
+            <div className="p-3 rounded-xl bg-[#0B0F17] border border-[#1E293B]">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
+                  Your Answer (Live Voice Transcript / Text)
+                </span>
+                <div className="flex items-center gap-2">
+                  {buttonStates.canFinishAnswer && !isSubmitting && (
+                    <button
+                      type="button"
+                      onClick={handleFinishAnswer}
+                      className="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition shadow-sm"
+                    >
+                      ✓ Finish Answer
+                    </button>
+                  )}
+                  {mic.isRecording && !mic.isMuted ? (
+                    <span className="text-[10px] font-mono text-cyan-400 animate-pulse">
+                      ● Transcribing Speech
+                    </span>
+                  ) : runtimeState === 'CANDIDATE_LISTENING' && !isSubmitting ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        mic.startRecording(true).catch(() => {});
+                      }}
+                      className="text-[10px] font-semibold px-2 py-0.5 rounded bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 border border-cyan-500/30 transition"
+                    >
+                      Start / Resume Mic
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+              <textarea
+                value={mic.liveTranscript}
+                onChange={(e) => mic.setLiveTranscript(e.target.value)}
+                disabled={runtimeState !== 'CANDIDATE_LISTENING' || isSubmitting}
+                rows={2}
+                placeholder={
+                  runtimeState === 'CANDIDATE_LISTENING'
+                    ? 'Speak into your microphone (your live words appear here) or type/refine your answer...'
+                    : 'Waiting for Alex (AI Recruiter) to finish speaking before your microphone opens...'
+                }
+                className="w-full rounded-lg bg-[#111827] border border-[#1E293B] focus:border-cyan-500/60 focus:outline-none px-3 py-2 text-xs text-[#F8FAFC] placeholder:text-[#64748B] resize-none disabled:opacity-60"
+              />
+            </div>
+
+            {/* Compact Last Turn Recognition & AI Recruiter Feedback */}
+            {lastTurnAnalysis && (
+              <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/25 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-300">
+                    Last Turn Analysis
+                  </span>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30">
+                    {lastTurnAnalysis.mode === 'QUESTION'
+                      ? 'Clarifying Question Answered'
+                      : `Answer Analyzed • Score: ${lastTurnAnalysis.score ?? 0}/100`}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-snug">
+                  <strong className="text-cyan-300">Your Words:</strong>{' '}
+                  &ldquo;{lastTurnAnalysis.candidateWords}&rdquo;
+                </p>
+                <p className="text-xs text-[#CBD5E1] leading-relaxed">
+                  <strong className="text-indigo-200">AI Recruiter Analysis:</strong>{' '}
+                  {lastTurnAnalysis.feedback}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Action Dock (Governed strictly by getRoomButtonStates) */}
-          <div className="space-y-3 pt-4 border-t border-[#1E293B]">
-            {/* Main Action Buttons */}
+          {/* Pinned Non-Scrolling Action Dock (Governed strictly by getRoomButtonStates) */}
+          <div className="shrink-0 space-y-2.5 pt-3 mt-2 border-t border-[#1E293B] bg-[#111827]">
+            {/* Primary Finish Answer Button Promoted on Top */}
+            <button
+              type="button"
+              onClick={handleFinishAnswer}
+              disabled={!buttonStates.canFinishAnswer || isSubmitting}
+              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:from-emerald-400 hover:via-cyan-400 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-bold tracking-wide transition shadow-xl shadow-cyan-500/25 ring-2 ring-cyan-400/30 flex items-center justify-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                  </svg>
+                  <span>Transcribing &amp; Analyzing Your Words...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Finish Answer &amp; Submit</span>
+                </>
+              )}
+            </button>
+
+            {/* Secondary Action Buttons */}
             <div className="grid grid-cols-2 gap-3">
               {/* Mute Button */}
               <button
                 type="button"
                 onClick={mic.toggleMute}
                 disabled={!buttonStates.canMute}
-                className="py-2.5 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] disabled:opacity-40 disabled:cursor-not-allowed border border-[#334155] text-xs font-semibold text-[#F8FAFC] transition flex items-center justify-center gap-2"
+                className="py-2 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] disabled:opacity-40 disabled:cursor-not-allowed border border-[#334155] text-xs font-semibold text-[#F8FAFC] transition flex items-center justify-center gap-2"
               >
                 {mic.isMuted ? (
                   <>
@@ -628,7 +947,7 @@ export default function LiveInterviewRoomPage() {
                 type="button"
                 onClick={handleAskQuestion}
                 disabled={!buttonStates.canAskQuestion}
-                className="py-2.5 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] disabled:opacity-40 disabled:cursor-not-allowed border border-[#334155] text-xs font-semibold text-[#F8FAFC] transition flex items-center justify-center gap-2"
+                className="py-2 px-4 rounded-xl bg-[#1E293B] hover:bg-[#334155] disabled:opacity-40 disabled:cursor-not-allowed border border-[#334155] text-xs font-semibold text-[#F8FAFC] transition flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -636,31 +955,6 @@ export default function LiveInterviewRoomPage() {
                 <span>Ask a Question</span>
               </button>
             </div>
-
-            {/* Primary Submit Button */}
-            <button
-              type="button"
-              onClick={handleFinishAnswer}
-              disabled={!buttonStates.canFinishAnswer || isSubmitting}
-              className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold tracking-wide transition shadow-xl shadow-cyan-600/20 flex items-center justify-center gap-2"
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                  </svg>
-                  <span>Processing Speech...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Finish Answer</span>
-                </>
-              )}
-            </button>
           </div>
         </section>
       </main>

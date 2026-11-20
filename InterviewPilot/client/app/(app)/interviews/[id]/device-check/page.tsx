@@ -7,6 +7,7 @@ import { useMicrophone } from '@/hooks/useMicrophone';
 import { RecruiterAvatar } from '@/components/interview/RecruiterAvatar';
 import { Waveform } from '@/components/interview/Waveform';
 import { fetchInterviewStateApi } from '@/lib/api';
+import { AppNavbar } from '@/components/navigation/AppNavbar';
 
 export default function DeviceCheckPage() {
   const params = useParams();
@@ -14,6 +15,7 @@ export default function DeviceCheckPage() {
   const interviewId = params.id as string;
 
   const [loading, setLoading] = useState(true);
+  const [enteringRoom, setEnteringRoom] = useState(false);
   const [interviewRole, setInterviewRole] = useState<string>('Interview');
   const [soundTested, setSoundTested] = useState<boolean>(false);
   const [isPlayingTestSound, setIsPlayingTestSound] = useState<boolean>(false);
@@ -87,23 +89,19 @@ export default function DeviceCheckPage() {
   return (
     <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] flex flex-col antialiased">
       {/* Top Header */}
-      <header className="h-16 border-b border-[#1E293B] bg-[#111827]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-sky-400 via-blue-500 to-indigo-500 flex items-center justify-center font-bold text-xs text-white">
-            IP
+      <AppNavbar
+        activeHref="/interviews/setup"
+        badgeText={interviewRole}
+        rightSlot={
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111827] border border-[#1E293B]">
+            <span className="text-xs text-[#94A3B8]">System Verification</span>
+            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
           </div>
-          <span className="font-semibold text-sm tracking-tight text-[#F8FAFC]">InterviewPilot</span>
-          <span className="text-[#334155] text-xs">/</span>
-          <span className="text-xs text-[#94A3B8] font-medium">{interviewRole}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-[#64748B]">System Verification</span>
-          <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content */}
-      <main className="flex-1 max-w-4xl w-full mx-auto p-6 md:p-10 flex flex-col justify-center">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 md:p-10 flex flex-col justify-center">
         <div className="mb-8">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#F8FAFC] mb-2">
             Device Check &amp; Orientation
@@ -282,14 +280,34 @@ export default function DeviceCheckPage() {
 
           <button
             type="button"
-            disabled={!mic.hasPermission || loading}
-            onClick={() => router.push(`/interviews/${interviewId}/room`)}
+            disabled={!mic.hasPermission || loading || enteringRoom}
+            onClick={() => {
+              setEnteringRoom(true);
+              window.dispatchEvent(
+                new CustomEvent('interviewpilot:navigate', {
+                  detail: { label: 'Loading Live Interview Room...' },
+                })
+              );
+              router.push(`/interviews/${interviewId}/room`);
+            }}
             className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold tracking-wide transition shadow-xl shadow-blue-600/20 flex items-center justify-center gap-2"
           >
-            <span>Enter Interview Room</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
+            {enteringRoom ? (
+              <>
+                <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Loading Interview Room...</span>
+              </>
+            ) : (
+              <>
+                <span>Enter Interview Room</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </>
+            )}
           </button>
         </div>
       </main>

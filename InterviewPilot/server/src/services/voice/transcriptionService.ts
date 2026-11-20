@@ -3,6 +3,69 @@ import { env } from '../../config/env.js';
 import { withAiUsage } from '../quota/quotaEngine.js';
 import { AIOperationType } from '@prisma/client';
 import { AppError } from '../../lib/errors.js';
+import { logger } from '../../lib/logger.js';
+
+interface GeminiTranscriptWord {
+  word?: string;
+  text?: string;
+}
+
+interface GeminiAudioTranscriptionPart {
+  text?: string;
+  words?: GeminiTranscriptWord[];
+}
+
+interface GeminiContentPart {
+  text?: string;
+  thought?: boolean;
+  audioTranscription?: GeminiAudioTranscriptionPart;
+}
+
+interface GeminiTranscriptResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: GeminiContentPart[];
+    };
+  }>;
+  text?: string;
+}
+
+export function extractTranscriptFromGeminiResponse(response: unknown): string {
+  const resp = response as GeminiTranscriptResponse | null | undefined;
+  const parts = resp?.candidates?.[0]?.content?.parts ?? [];
+  const pieces: string[] = [];
+
+  for (const part of parts) {
+    const audioText = part?.audioTranscription?.text;
+    if (typeof audioText === 'string' && audioText.trim().length > 0) {
+      pieces.push(audioText.trim());
+      continue;
+    }
+
+    const words = part?.audioTranscription?.words;
+    if (Array.isArray(words) && words.length > 0) {
+      const joinedWords = words
+        .map((w) => (w?.word || w?.text || '').trim())
+        .filter(Boolean)
+        .join(' ')
+        .trim();
+      if (joinedWords.length > 0) {
+        pieces.push(joinedWords);
+        continue;
+      }
+    }
+
+    if (typeof part?.text === 'string' && !part.thought && part.text.trim().length > 0) {
+      pieces.push(part.text.trim());
+    }
+  }
+
+  if (pieces.length > 0) {
+    return pieces.join(' ').trim();
+  }
+
+  return typeof resp?.text === 'string' ? resp.text.trim() : '';
+}
 
 export interface AudioTranscriptionResult {
   transcript: string;
@@ -23,7 +86,7 @@ export class GeminiTranscriptionService implements AudioTranscriptionService {
   private ai: GoogleGenAI;
 
   constructor(apiKey = env.GEMINI_API_KEY) {
-    this.ai = new GoogleGenAI({ apiKey });
+    this.ai = new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
   }
 
   async transcribeAudio(params: {
@@ -48,49 +111,69 @@ export class GeminiTranscriptionService implements AudioTranscriptionService {
         estimatedOutputTokens,
       },
       async () => {
-        try {
-          const base64Audio = audioBuffer.toString('base64');
-          const normalizedMime = mimeType.split(';')[0].trim();
+        const base64Audio = audioBuffer.toString('base64');
+        const normalizedMime = mimeType.split(';')[0].trim();
+        const modelsToTry = Array.from(
+          new Set([env.GEMINI_TRANSCRIBE_MODEL, env.GEMINI_TEXT_MODEL, 'gemini-2.5-flash'].filter(Boolean))
+        );
+        let lastError: unknown = null;
 
-          const response = await this.ai.models.generateContent({
-            model: env.GEMINI_TRANSCRIBE_MODEL,
-            contents: [
-              {
-                role: 'user',
-                parts: [
-                  {
-                    text: 'Please transcribe the following audio recording verbatim. Output only the transcribed spoken English words. Do not add preface, markdown quotes, formatting, or commentary.',
-                  },
-                  {
-                    inlineData: {
-                      mimeType: normalizedMime,
-                      data: base64Audio,
+        for (const modelName of modelsToTry) {
+          try {
+            const response = await this.ai.models.generateContent({
+              model: modelName,
+              contents: [
+                {
+                  role: 'user',
+                  parts: [
+                    {
+                      text: 'Please transcribe the following audio recording verbatim. Output only the transcribed spoken English words. Do not add preface, markdown quotes, formatting, or commentary.',
                     },
-                  },
-                ],
+                    {
+                      inlineData: {
+                        mimeType: normalizedMime,
+                        data: base64Audio,
+                      },
+                    },
+                  ],
+                },
+              ],
+            });
+
+            const transcript = extractTranscriptFromGeminiResponse(response);
+            if (!transcript) {
+              continue;
+            }
+            const usage = response.usageMetadata;
+
+            return {
+              result: {
+                transcript,
+                inputTokens: usage?.promptTokenCount,
+                outputTokens: usage?.candidatesTokenCount,
               },
-            ],
-          });
-
-          const transcript = (response.text || '').trim();
-          const usage = response.usageMetadata;
-
-          return {
-            result: {
-              transcript,
-              inputTokens: usage?.promptTokenCount,
-              outputTokens: usage?.candidatesTokenCount,
-            },
-            inputTokens: usage?.promptTokenCount || estimatedInputTokens,
-            outputTokens: usage?.candidatesTokenCount || estimatedOutputTokens,
-          };
-        } catch (err: unknown) {
-          throw new AppError(
-            'TRANSCRIPTION_FAILED',
-            `Audio transcription failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
-            502
-          );
+              inputTokens: usage?.promptTokenCount || estimatedInputTokens,
+              outputTokens: usage?.candidatesTokenCount || estimatedOutputTokens,
+            };
+          } catch (err: unknown) {
+            lastError = err;
+          }
         }
+
+        logger.warn(
+          { err: lastError instanceof Error ? lastError.message : String(lastError) },
+          'Gemini transcription returned empty or failed across models'
+        );
+
+        return {
+          result: {
+            transcript: '',
+            inputTokens: estimatedInputTokens,
+            outputTokens: estimatedOutputTokens,
+          },
+          inputTokens: estimatedInputTokens,
+          outputTokens: estimatedOutputTokens,
+        };
       }
     );
   }

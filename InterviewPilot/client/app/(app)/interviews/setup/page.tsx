@@ -12,6 +12,7 @@ import {
 } from '@interviewpilot/shared';
 import {
   createInterviewApi,
+  createDemoSessionApi,
   fetchDocuments,
   fetchQuotaMe,
   ApiClientError,
@@ -30,8 +31,10 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
+import { AppNavbar } from '@/components/navigation/AppNavbar';
 
 interface QuotaState {
+  isDemo: boolean;
   maxDurationMinutes: number;
   maxQuestionsPerInterview: number;
   interviewsRemaining: number;
@@ -57,6 +60,7 @@ export default function InterviewSetupPage() {
 
   // Quota & UI state
   const [quota, setQuota] = useState<QuotaState>({
+    isDemo: false,
     maxDurationMinutes: 45,
     maxQuestionsPerInterview: 15,
     interviewsRemaining: 5,
@@ -69,29 +73,32 @@ export default function InterviewSetupPage() {
     async function loadInitialData() {
       try {
         setLoading(true);
-        const [docsRes, quotaRes] = await Promise.all([
-          fetchDocuments().catch(() => null),
-          fetchQuotaMe().catch(() => null),
-        ]);
+        let quotaRes = await fetchQuotaMe().catch(() => null);
+        let eq = quotaRes?.data?.effectiveQuota || quotaRes?.data?.limits;
+        let ut = quotaRes?.data?.usageToday;
 
-        if (docsRes?.data) {
-          const cvs = docsRes.data.documents.filter(
-            (d) => d.type === 'CV' && d.status === 'READY'
+        if (eq) {
+          let remaining =
+            ut?.interviewsRemaining ??
+            Math.max(0, eq.interviewsPerDay - (ut?.interviewsUsed ?? ut?.interviewsCreated ?? 0));
+          const isDemoUser = Boolean(
+            quotaRes?.data?.isDemo || eq.maxDurationMinutes <= 5 || eq.documentAnalysesPerDay === 0
           );
-          const jds = docsRes.data.documents.filter(
-            (d) => d.type === 'JD' && d.status === 'READY'
-          );
-          setCvDocs(cvs);
-          setJdDocs(jds);
-          if (cvs.length > 0) setSelectedCvId(cvs[0].id);
-          if (jds.length > 0) setSelectedJdId(jds[0].id);
-        }
 
-        if (quotaRes?.data?.effectiveQuota) {
-          const eq = quotaRes.data.effectiveQuota;
-          const ut = quotaRes.data.usageToday;
-          const remaining = Math.max(0, eq.interviewsPerDay - (ut?.interviewsCreated || 0));
+          if (isDemoUser && remaining <= 0) {
+            const rotated = await createDemoSessionApi().catch(() => null);
+            if (rotated) {
+              quotaRes = await fetchQuotaMe().catch(() => quotaRes);
+              eq = quotaRes?.data?.effectiveQuota || quotaRes?.data?.limits || eq;
+              ut = quotaRes?.data?.usageToday || ut;
+              remaining =
+                ut?.interviewsRemaining ??
+                Math.max(0, eq.interviewsPerDay - (ut?.interviewsUsed ?? ut?.interviewsCreated ?? 0));
+            }
+          }
+
           setQuota({
+            isDemo: isDemoUser,
             maxDurationMinutes: eq.maxDurationMinutes,
             maxQuestionsPerInterview: eq.maxQuestionsPerInterview,
             interviewsRemaining: remaining,
@@ -103,6 +110,23 @@ export default function InterviewSetupPage() {
             setMode('GENERAL');
           } else if (durationMinutes > eq.maxDurationMinutes) {
             setDurationMinutes(eq.maxDurationMinutes as 5 | 15 | 30 | 45);
+          }
+
+          // Only fetch documents when user plan allows documents (never call for demo users)
+          if (!isDemoUser && eq.documentAnalysesPerDay > 0) {
+            const docsRes = await fetchDocuments().catch(() => null);
+            if (docsRes?.data) {
+              const cvs = docsRes.data.documents.filter(
+                (d) => d.type === 'CV' && d.status === 'READY'
+              );
+              const jds = docsRes.data.documents.filter(
+                (d) => d.type === 'JD' && d.status === 'READY'
+              );
+              setCvDocs(cvs);
+              setJdDocs(jds);
+              if (cvs.length > 0) setSelectedCvId(cvs[0].id);
+              if (jds.length > 0) setSelectedJdId(jds[0].id);
+            }
           }
         }
       } catch (err) {
@@ -151,23 +175,56 @@ export default function InterviewSetupPage() {
 
     try {
       setGenerating(true);
-      const res = await createInterviewApi({
-        mode,
+      const isDemoQuota = quota.isDemo || quota.maxDurationMinutes <= 5;
+      const createPayload = {
+        mode: isDemoQuota ? ('GENERAL' as const) : mode,
         role: role.trim(),
         experienceLevel,
         type,
         difficulty,
-        durationMinutes,
-        questionCount: parsedQuestionCount,
-        cvDocumentId: mode === 'CV_BASED' || mode === 'CV_JD' ? selectedCvId : undefined,
-        jdDocumentId: mode === 'JD_BASED' || mode === 'CV_JD' ? selectedJdId : undefined,
-      });
+        durationMinutes: isDemoQuota ? (5 as const) : durationMinutes,
+        questionCount: isDemoQuota ? 3 : parsedQuestionCount,
+        cvDocumentId: !isDemoQuota && (mode === 'CV_BASED' || mode === 'CV_JD') ? selectedCvId : undefined,
+        jdDocumentId: !isDemoQuota && (mode === 'JD_BASED' || mode === 'CV_JD') ? selectedJdId : undefined,
+      };
+
+      let res;
+      try {
+        res = await createInterviewApi(createPayload);
+      } catch (firstErr) {
+        if (
+          isDemoQuota &&
+          firstErr instanceof ApiClientError &&
+          (firstErr.code === 'USER_QUOTA_EXCEEDED' || firstErr.code === 'INTERVIEW_ALREADY_ACTIVE')
+        ) {
+          await createDemoSessionApi();
+          res = await createInterviewApi({
+            mode: 'GENERAL',
+            role: role.trim(),
+            experienceLevel,
+            type,
+            difficulty,
+            durationMinutes: 5,
+            questionCount: 3,
+          });
+        } else {
+          throw firstErr;
+        }
+      }
 
       if (res.data?.interview?.id) {
-        // Redirection to the device check page
+        // Redirection to the device check page (keep button in loading state until route transitions)
+        window.dispatchEvent(
+          new CustomEvent('interviewpilot:navigate', {
+            detail: { label: 'Loading Device Check...' },
+          })
+        );
         router.push(`/interviews/${res.data.interview.id}/device-check`);
+      } else {
+        setGenerating(false);
       }
     } catch (err) {
+      setGenerating(false);
       if (err instanceof ApiClientError) {
         if (err.code === 'INTERVIEW_ALREADY_ACTIVE') {
           setErrorMsg(
@@ -181,40 +238,43 @@ export default function InterviewSetupPage() {
       } else {
         setErrorMsg('Failed to initialize interview rehearsal plan. Please try again.');
       }
-    } finally {
-      setGenerating(false);
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-3 text-muted-foreground">Loading interview configurations...</span>
+      <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] antialiased">
+        <AppNavbar activeHref="/interviews/setup" />
+        <div className="flex items-center justify-center min-h-[400px] px-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-3 text-sm sm:text-base text-muted-foreground">Loading interview configurations...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
+    <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] antialiased">
+      <AppNavbar activeHref="/interviews/setup" />
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 pb-12">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Configure Interview Rehearsal</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Configure Interview Rehearsal</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">
           Customize your realistic AI mock interview with tailored roles, duration, and documents.
         </p>
       </div>
 
       {quota.maxDurationMinutes <= 5 && (
-        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/40 text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
             <span>
               <strong>Demo Session:</strong> 5-minute preview simulation with up to 3 adaptive questions. General practice mode is active.
             </span>
           </div>
           <Link
             href="/register"
-            className="text-amber-300 hover:text-white font-semibold underline underline-offset-4"
+            className="text-amber-300 hover:text-white font-semibold underline underline-offset-4 whitespace-nowrap"
           >
             Create Permanent Account →
           </Link>
@@ -250,7 +310,7 @@ export default function InterviewSetupPage() {
                   : 'border-border hover:border-muted-foreground/30'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold text-base">General Practice</span>
                 <Badge variant={mode === 'GENERAL' ? 'speaking' : 'default'}>No docs needed</Badge>
               </div>
@@ -272,7 +332,7 @@ export default function InterviewSetupPage() {
                   : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold text-base">Resume-Based</span>
                 <Badge variant={mode === 'CV_BASED' ? 'speaking' : 'default'}>
                   {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'CV Required'}
@@ -296,7 +356,7 @@ export default function InterviewSetupPage() {
                   : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold text-base">Job Description</span>
                 <Badge variant={mode === 'JD_BASED' ? 'speaking' : 'default'}>
                   {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'JD Required'}
@@ -320,7 +380,7 @@ export default function InterviewSetupPage() {
                   : 'border-border hover:border-muted-foreground/30 cursor-pointer'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold text-base">Targeted Role Fit</span>
                 <Badge variant={mode === 'CV_JD' ? 'speaking' : 'default'}>
                   {quota.maxDurationMinutes <= 5 ? 'Sign up required' : 'CV + JD Required'}
@@ -425,7 +485,7 @@ export default function InterviewSetupPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Seniority Level</Label>
-                <div className="flex gap-2 mt-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {(['BEGINNER', 'INTERMEDIATE', 'EXPERIENCED'] as ExperienceLevel[]).map((lvl) => (
                     <Button
                       key={lvl}
@@ -433,7 +493,7 @@ export default function InterviewSetupPage() {
                       variant={experienceLevel === lvl ? 'default' : 'secondary'}
                       size="sm"
                       onClick={() => setExperienceLevel(lvl)}
-                      className="flex-1 capitalize text-xs"
+                      className="flex-1 min-w-[90px] capitalize text-xs"
                     >
                       {lvl.toLowerCase()}
                     </Button>
@@ -443,7 +503,7 @@ export default function InterviewSetupPage() {
 
               <div>
                 <Label>Interview Category</Label>
-                <div className="flex gap-2 mt-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {(['TECHNICAL', 'HR', 'BEHAVIORAL'] as InterviewType[]).map((cat) => (
                     <Button
                       key={cat}
@@ -451,7 +511,7 @@ export default function InterviewSetupPage() {
                       variant={type === cat ? 'default' : 'secondary'}
                       size="sm"
                       onClick={() => setType(cat)}
-                      className="flex-1 capitalize text-xs"
+                      className="flex-1 min-w-[90px] capitalize text-xs"
                     >
                       {cat.toLowerCase()}
                     </Button>
@@ -461,7 +521,7 @@ export default function InterviewSetupPage() {
 
               <div>
                 <Label>Starting Difficulty</Label>
-                <div className="flex gap-2 mt-1">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {(['EASY', 'MEDIUM', 'HARD'] as InterviewDifficulty[]).map((diff) => (
                     <Button
                       key={diff}
@@ -469,7 +529,7 @@ export default function InterviewSetupPage() {
                       variant={difficulty === diff ? 'default' : 'secondary'}
                       size="sm"
                       onClick={() => setDifficulty(diff)}
-                      className="flex-1 capitalize text-xs"
+                      className="flex-1 min-w-[80px] capitalize text-xs"
                     >
                       {diff.toLowerCase()}
                     </Button>
@@ -496,7 +556,7 @@ export default function InterviewSetupPage() {
               <Label>Target Duration</Label>
               <div
                 className={`grid gap-3 mt-1.5 ${
-                  quota.maxDurationMinutes <= 5 ? 'grid-cols-1' : 'grid-cols-3'
+                  quota.maxDurationMinutes <= 5 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-3'
                 }`}
               >
                 {(quota.maxDurationMinutes <= 5 ? [5] : [15, 30, 45]).map((mins) => {
@@ -541,7 +601,7 @@ export default function InterviewSetupPage() {
                 placeholder={`Default: ${calculatedQuestions} questions`}
                 value={questionCountInput}
                 onChange={(e) => setQuestionCountInput(e.target.value)}
-                className="mt-1 max-w-xs"
+                className="mt-1 w-full sm:max-w-xs"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Leave blank to automatically ask questions at approximately 3 minutes per question.
@@ -550,16 +610,23 @@ export default function InterviewSetupPage() {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between pt-4">
+        {errorMsg && (
+          <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 mt-0.5 shrink-0" />
+            <div className="text-sm font-medium">{errorMsg}</div>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
           <div className="text-sm text-muted-foreground">
             {quota.interviewsRemaining > 0 ? (
               <span className="flex items-center gap-1.5 text-emerald-600 font-medium">
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
                 {quota.interviewsRemaining} rehearsal sessions remaining today
               </span>
             ) : (
               <span className="flex items-center gap-1.5 text-amber-600 font-medium">
-                <AlertCircle className="w-4 h-4" />
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 Daily interview quota limit reached
               </span>
             )}
@@ -569,12 +636,12 @@ export default function InterviewSetupPage() {
             type="submit"
             size="lg"
             disabled={generating || quota.interviewsRemaining <= 0}
-            className="min-w-[200px]"
+            className="w-full sm:w-auto min-w-[200px]"
           >
             {generating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating Plan...
+                Generating Plan &amp; Loading...
               </>
             ) : (
               <>
@@ -585,6 +652,7 @@ export default function InterviewSetupPage() {
           </Button>
         </div>
       </form>
+      </main>
     </div>
   );
 }

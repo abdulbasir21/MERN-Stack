@@ -5,6 +5,9 @@ const activeUrl = getActiveDatabaseUrl(env, process.env.NODE_ENV);
 
 function ensureConnectTimeout(urlString: string): string {
   let result = urlString;
+  if (!result.includes('schema=')) {
+    result += (result.includes('?') ? '&' : '?') + 'schema=public';
+  }
   if (!result.includes('connect_timeout=')) {
     result += (result.includes('?') ? '&' : '?') + 'connect_timeout=30';
   }

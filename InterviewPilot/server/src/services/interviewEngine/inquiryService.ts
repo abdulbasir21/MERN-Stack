@@ -1,4 +1,5 @@
 import { env } from '../../config/env.js';
+import { logger } from '../../lib/logger.js';
 import { withAiUsage } from '../quota/quotaEngine.js';
 import { retrieveRelevantChunks } from '../rag/ragService.js';
 import { buildInquiryPrompt, INQUIRY_MAX_REPLY_CHARS } from '../../lib/interviewEngineMath.js';
@@ -86,47 +87,67 @@ export class GeminiInquiryAnswerer implements InquiryAnswerer {
         estimatedOutputTokens: 180,
       },
       async () => {
-        const { GoogleGenAI } = await import('@google/genai');
-        const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+        try {
+          const { GoogleGenAI } = await import('@google/genai');
+          const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, apiVersion: 'v1beta' });
 
-        const resp = await ai.models.generateContent({
-          model: env.GEMINI_TEXT_MODEL,
-          contents: prompt,
-          config: {
-            temperature: 0.3,
-          },
-        });
+          const resp = await ai.models.generateContent({
+            model: env.GEMINI_TEXT_MODEL,
+            contents: prompt,
+            config: {
+              temperature: 0.3,
+            },
+          });
 
-        let text = resp.text?.trim() || 'Please proceed with your answer based on standard industry principles.';
-        if (text.length > INQUIRY_MAX_REPLY_CHARS) {
-          text = text.slice(0, INQUIRY_MAX_REPLY_CHARS - 3) + '...';
+          let text = resp.text?.trim() || 'Please proceed with your answer based on standard industry principles.';
+          if (text.length > INQUIRY_MAX_REPLY_CHARS) {
+            text = text.slice(0, INQUIRY_MAX_REPLY_CHARS - 3) + '...';
+          }
+
+          return {
+            result: text,
+            usage: {
+              inputTokens: resp.usageMetadata?.promptTokenCount || 200,
+              outputTokens: resp.usageMetadata?.candidatesTokenCount || 100,
+            },
+          };
+        } catch (err) {
+          logger.warn(
+            { err: err instanceof Error ? err.message : String(err) },
+            'Gemini inquiry answerer unavailable; using fallback clarification'
+          );
+          return {
+            result:
+              'Good question — please focus on the core architectural requirements, trade-offs, and constraints you would prioritize in production.',
+            usage: {
+              inputTokens: 200,
+              outputTokens: 60,
+            },
+          };
         }
-
-        return {
-          result: text,
-          usage: {
-            inputTokens: resp.usageMetadata?.promptTokenCount || 200,
-            outputTokens: resp.usageMetadata?.candidatesTokenCount || 100,
-          },
-        };
       }
     );
   }
 }
 
-let activeInquiryAnswerer: InquiryAnswerer = new MockInquiryAnswerer();
+let customInquiryAnswerer: InquiryAnswerer | null = null;
+let defaultMockInquiryAnswerer = new MockInquiryAnswerer();
 
 export function getInquiryAnswerer(): InquiryAnswerer {
-  if (process.env.NODE_ENV === 'production' && env.GEMINI_API_KEY) {
+  if (customInquiryAnswerer) {
+    return customInquiryAnswerer;
+  }
+  if (process.env.NODE_ENV !== 'test' && env.GEMINI_API_KEY) {
     return new GeminiInquiryAnswerer();
   }
-  return activeInquiryAnswerer;
+  return defaultMockInquiryAnswerer;
 }
 
 export function setInquiryAnswerer(answerer: InquiryAnswerer): void {
-  activeInquiryAnswerer = answerer;
+  customInquiryAnswerer = answerer;
 }
 
 export function resetInquiryAnswerer(): void {
-  activeInquiryAnswerer = new MockInquiryAnswerer();
+  customInquiryAnswerer = null;
+  defaultMockInquiryAnswerer = new MockInquiryAnswerer();
 }

@@ -8,6 +8,7 @@ import {
   compareInterviewsApi,
   type HistoryListDto,
 } from '@/lib/api';
+import { AppNavbar } from '@/components/navigation/AppNavbar';
 
 export default function HistoryPage() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,23 +72,10 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-[#0B0F17] text-[#F8FAFC] antialiased">
       {/* Top Header */}
-      <header className="h-16 border-b border-[#1E293B] bg-[#111827]/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2 pr-3 border-r border-[#1E293B] text-xs text-[#94A3B8] hover:text-[#F8FAFC] transition">
-            ← Dashboard
-          </Link>
-          <span className="font-semibold text-sm tracking-tight text-[#F8FAFC]">Interview History &amp; Progress</span>
-        </div>
-        <Link
-          href="/interviews/setup"
-          className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition shadow-md shadow-cyan-600/20"
-        >
-          New Interview
-        </Link>
-      </header>
+      <AppNavbar activeHref="/history" badgeText="History & Progress" />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-6 md:p-10 space-y-10">
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 md:p-10 space-y-6 sm:space-y-10">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#F8FAFC] mb-2">
             Historical Performance &amp; Trends
@@ -221,8 +209,8 @@ export default function HistoryPage() {
 
         {/* HISTORY FILTERS & LIST (RPT-6) */}
         <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               {/* Role search */}
               <input
                 type="text"
@@ -242,7 +230,7 @@ export default function HistoryPage() {
                   setTypeFilter(e.target.value);
                   setPage(1);
                 }}
-                className="py-2 px-3 rounded-xl bg-[#111827] border border-[#1E293B] text-xs text-[#F8FAFC] focus:outline-none focus:border-cyan-500"
+                className="py-2 px-3 rounded-xl bg-[#111827] border border-[#1E293B] text-xs text-[#F8FAFC] focus:outline-none focus:border-cyan-500 w-full sm:w-auto"
               >
                 <option value="">All Types</option>
                 <option value="TECHNICAL">Technical</option>
