@@ -39,7 +39,7 @@ export function divide(a, b) {
 }
 
 /**
- * BR-I7 & MASTER_PROMPT section 7:
+ * Business rule:
  * quantityDifference = revisedQuantity − originalQuantity (signed; may be negative)
  */
 export function quantityDifference(revisedQuantity, originalQuantity) {
@@ -52,7 +52,7 @@ export function quantityDifference(revisedQuantity, originalQuantity) {
 }
 
 /**
- * BR-I7 & MASTER_PROMPT section 7:
+ * Business rule:
  * estimatedCostDifference = quantityDifference × unitPrice
  * where unitPrice = unitPriceOverride if present, else confirmed document unit price, else null.
  * If unitPrice is null: return null ("Cannot estimate: no unit price supplied"). Never guess.
@@ -70,7 +70,6 @@ export function estimatedCostDifference(quantityDiff, unitPrice) {
 }
 
 /**
- * MASTER_PROMPT section 7:
  * priceDelta = (revisedUnitPrice − originalUnitPrice) × revisedQuantity
  */
 export function priceDelta(originalUnitPrice, revisedUnitPrice, revisedQuantity) {
@@ -85,7 +84,6 @@ export function priceDelta(originalUnitPrice, revisedUnitPrice, revisedQuantity)
 }
 
 /**
- * MASTER_PROMPT section 7:
  * Percent change = (revised − original) / original × 100
  * If original = 0 or null -> return null
  */

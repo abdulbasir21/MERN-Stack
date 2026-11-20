@@ -15,7 +15,7 @@ function getImageKitClient() {
   return imagekitClient;
 }
 
-// In-memory test spy/mock state for deterministic tests (AGENTS.md rule 4)
+// In-memory test spy/mock state for deterministic tests
 let testMock = null;
 
 export function setImageKitMock(mock) {
@@ -38,7 +38,7 @@ export async function uploadPrivateFile({ buffer, originalFilename, folder = '/s
     return testMock.upload({ buffer, originalFilename, folder });
   }
 
-  // AGENTS.md rule 4: Mock ImageKit in automated tests so we never hit external file storage
+  // Mock ImageKit in automated tests so we never hit external file storage
   if (config.env === 'test' && !process.env.USE_REAL_IMAGEKIT) {
     const fileId = `mock_ik_${crypto.randomUUID()}`;
     return {

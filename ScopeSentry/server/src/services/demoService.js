@@ -11,7 +11,7 @@ import { AppError } from '../middleware/errorHandler.js';
 import { ERROR_CODES } from '../config/constants.js';
 
 /**
- * Returns all active public demo projects (MASTER_PROMPT section 13)
+ * Returns all active public demo projects
  */
 export async function getDemoProjects() {
   const projects = await Project.find({ isDemo: true, status: 'active' }).sort({ createdAt: 1 });
@@ -42,7 +42,7 @@ export async function getDemoProjectDocuments(projectId) {
     projectId: project._id,
     isDemo: true,
     processingStatus: 'ready'
-  }).select('id originalFilename category mimeType sizeBytes pageCount isDemo createdAt');
+  }).select('id originalFilename category mimeType sizeBytes pageCount extractedText isDemo createdAt');
 
   return documents;
 }
@@ -59,7 +59,7 @@ export async function getDemoDocumentById(documentId) {
 }
 
 /**
- * Runs a REAL AI investigation on demo documents with demoSessionId isolation (MASTER_PROMPT section 13)
+ * Runs a real AI investigation on demo documents with demoSessionId isolation
  */
 export async function runDemoInvestigation({
   projectId,
@@ -103,12 +103,27 @@ export async function runDemoInvestigation({
   });
 
   if (existing) {
-    return {
-      demoSessionId: sessionId,
-      investigation: existing,
-      isExisting: true
-    };
+    const existingFindingsCount = await Finding.countDocuments({ investigationId: existing._id });
+    if (existingFindingsCount > 0) {
+      return {
+        demoSessionId: sessionId,
+        investigation: existing,
+        isExisting: true
+      };
+    }
+    // Remove stale 0-finding investigation so a fresh run executes cleanly
+    await Investigation.deleteOne({ _id: existing._id });
   }
+
+  // Load any supporting demo documents for this project (e.g. OAC Meeting Minutes)
+  const supportingDocs = await Document.find({
+    projectId: project._id,
+    isDemo: true,
+    _id: { $nin: [origDoc._id, revDoc._id] }
+  });
+  const effectiveSupportingIds = supportingDocumentIds.length > 0
+    ? supportingDocumentIds
+    : supportingDocs.map((d) => String(d._id));
 
   // Create demo investigation record
   const investigation = await Investigation.create({
@@ -116,7 +131,7 @@ export async function runDemoInvestigation({
     projectId: project._id,
     originalDocumentId: origDoc._id,
     revisedDocumentId: revDoc._id,
-    supportingDocumentIds,
+    supportingDocumentIds: effectiveSupportingIds,
     inputHash,
     status: 'running',
     isDemo: true,
@@ -130,7 +145,7 @@ export async function runDemoInvestigation({
       projectId: String(project._id),
       originalDoc: origDoc,
       revisedDoc: revDoc,
-      supportingDocs: []
+      supportingDocs
     });
 
     const rawFindings = workflowOutput.findings || [];

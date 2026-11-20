@@ -7,7 +7,7 @@ import {
 import { calendarDateDiffDays, isValidCalendarDate } from './dates.js';
 
 /**
- * Calculates domain impacts (cost, quantity, schedule) for a detected change (MASTER_PROMPT section 7)
+ * Calculates domain impacts (cost, quantity, schedule) for a detected change
  * Never stores derived values; this calculation runs pure and on read/report generation.
  * 
  * @param {Object} params

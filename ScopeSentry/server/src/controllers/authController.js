@@ -17,6 +17,7 @@ function setSessionCookie(res, token) {
     secure: config.env === 'production',
     sameSite: config.cookieSameSite,
     domain: config.cookieDomain,
+    path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
 }
@@ -54,7 +55,8 @@ export function logout(req, res) {
     httpOnly: true,
     secure: config.env === 'production',
     sameSite: config.cookieSameSite,
-    domain: config.cookieDomain
+    domain: config.cookieDomain,
+    path: '/'
   });
 
   res.status(200).json({

@@ -11,7 +11,7 @@ ScopeSentry autonomously flags scope creep, quantity deltas, unapproved specific
 ScopeSentry is architected as a secure, high-integrity modular monolith:
 
 - **Backend (`server/`):** Node.js & Express (ESM), MongoDB via Mongoose, Decimal arithmetic (`decimal.js`), LangGraph.js workflow orchestration, PDFKit report generation.
-- **Frontend (`frontend/`):** React 18, Vite, Tailwind CSS, Lucide React icons, React Router v6, Axios.
+- **Frontend (`frontend/`):** React 18, Vite, Tailwind CSS, Lucide React icons, React Router v6, Fetch API.
 - **AI & Retrieval Engine:** Hybrid search combining MongoDB Atlas Vector Search (`text-embedding-004`, 768 dimensions) and full-text keyword search merged via Reciprocal Rank Fusion ($RRF$, $k=60$).
 - **File Storage:** Private ImageKit storage with time-limited authenticated signed URLs.
 
@@ -78,7 +78,7 @@ npm install
 ```
 
 ### 3. Seed Public Demo Data
-To seed the 3 fictional canonical construction projects (Section 13) into your database:
+To seed the 3 fictional canonical construction projects into your database:
 ```bash
 cd server
 npm run seed:demo
@@ -191,23 +191,21 @@ For full-text search and cosine semantic similarity in production, create the fo
 
 ### Backend (Render Web Service)
 1. Create a new **Web Service** on [Render](https://render.com).
-2. Root Directory: `server`
+2. Root Directory: leave at repo root (or `ScopeSentry/server` if deployed standalone).
 3. Environment: `Node`
-4. Build Command: `npm install`
-5. Start Command: `node src/server.js`
-6. Set the production environment variables in the Render Dashboard (**never share values with AI agents**).
-7. **Cold-Start Note:** On Render free/starter tiers, services spin down after 15 minutes of inactivity. First requests after idle may take 30–50 seconds. A health check ping (`GET /health`) can be configured via UptimeRobot.
+4. Build Command: `cd ScopeSentry/server && npm install`
+5. Start Command: `cd ScopeSentry/server && npm start`
+6. Set the production environment variables (`NODE_ENV=production`, `COOKIE_SAMESITE=none`, `MONGODB_URI`, JWT/CSRF secrets, ImageKit, Gemini, and SMTP credentials) in the Render Dashboard.
+7. **Cold-Start Note:** On Render free tiers, services spin down after 15 minutes of inactivity. First requests after idle may take 30–50 seconds. A health check ping (`GET /health`) can be configured via UptimeRobot.
 
 ### Frontend (Vercel)
-1. Import the repository into [Vercel](https://vercel.com).
-2. Root Directory: `frontend`
-3. Framework Preset: `Vite`
-4. Build Command: `npm run build`
-5. Output Directory: `dist`
-6. Set `VITE_API_BASE_URL` to your production backend Render URL (e.g. `https://scopesentry-api.onrender.com`).
+1. Import the repository into [Vercel](https://vercel.com) with Root Directory `ScopeSentry/frontend`.
+2. Framework Preset: `Vite`
+3. Build Command: `npm run build`
+4. Output Directory: `dist`
+5. Set `VITE_API_BASE_URL=/api/v1` and configure `frontend/vercel.json` to proxy `/api/v1/:path*` to your production Render URL for seamless first-party cookies.
 
 ---
 
 ## ⚖️ Legal & Limitations Notice
-Per Section 12.4 of the ScopeSentry Specification:
 > **ScopeSentry is an AI-assisted detection tool designed to accelerate human review. It is NOT an engineering authority, legal determination, or definitive claim verdict.** All cost calculations represent preliminary estimates based on extracted unit rates and require independent verification by certified project engineers before submission.

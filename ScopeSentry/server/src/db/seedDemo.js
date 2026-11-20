@@ -5,7 +5,7 @@ import { indexDocumentChunks } from '../services/indexingService.js';
 import { connectDatabase, disconnectDatabase } from './connection.js';
 
 /**
- * Idempotent seed script for the three fictional demo construction projects (MASTER_PROMPT section 13)
+ * Idempotent seed script for the three fictional demo construction projects
  * All demo entities are marked isDemo: true and ownerId: null.
  * Never modifies or deletes any user data.
  */

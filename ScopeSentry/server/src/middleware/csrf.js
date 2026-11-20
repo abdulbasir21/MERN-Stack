@@ -9,7 +9,8 @@ export function issueCsrfToken(res) {
     httpOnly: true,
     secure: config.env === 'production',
     sameSite: config.cookieSameSite,
-    domain: config.cookieDomain
+    domain: config.cookieDomain,
+    path: '/'
   });
   return token;
 }

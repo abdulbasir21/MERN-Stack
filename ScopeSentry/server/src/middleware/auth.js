@@ -5,7 +5,7 @@ import { AppError } from './errorHandler.js';
 import { ERROR_CODES, PERMISSIONS } from '../config/constants.js';
 import { User } from '../models/User.js';
 
-// Role-to-Permissions Mapping (Source: MASTER_PROMPT section 5 & ARCHITECTURE section 7)
+// Role-to-Permissions Mapping
 export const ROLE_PERMISSIONS = {
   visitor: [
     PERMISSIONS.DEMO_READ,

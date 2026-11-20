@@ -1,5 +1,5 @@
 /**
- * Date calculations in UTC (Source: MASTER_PROMPT section 7 & ARCHITECTURE section 14)
+ * Date calculations in UTC
  * Calendar dates YYYY-MM-DD with no time of day.
  * Schedule impact = calendarDateDiffDays only when both dates are CONFIRMED values for the same milestone.
  */

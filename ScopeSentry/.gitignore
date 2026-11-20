@@ -17,6 +17,14 @@ dist/
 build/
 *.tsbuildinfo
 .vite/
+.vercel/
+
+# Internal / Planning & Design Assets
+AGENTS.md
+REVIEW_CHECKLIST.md
+docs/
+design/
+designs/
 
 # Mandatory Secrets Protection
 server/env

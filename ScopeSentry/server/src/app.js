@@ -18,15 +18,40 @@ import { notFoundHandler, centralErrorHandler } from './middleware/errorHandler.
 export function createApp() {
   const app = express();
 
+  app.set('trust proxy', 1);
+
   // Security Headers
   app.use(helmet());
 
+  const allowedOrigins = (config.clientOrigin || '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+
   // Strict CORS allowing clientOrigin with credentials
   app.use(cors({
-    origin: config.clientOrigin,
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+      const normalized = origin.replace(/\/$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      if (
+        config.env !== 'production' &&
+        (normalized === 'http://localhost:5173' || normalized === 'http://127.0.0.1:5173')
+      ) {
+        return callback(null, true);
+      }
+      if (/^https:\/\/scopesentry(-[a-z0-9-]+)?\.vercel\.app$/.test(normalized)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Idempotency-Key']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'Idempotency-Key', 'X-Demo-Session-Id']
   }));
 
   // Body parsers with safe limits

@@ -25,7 +25,7 @@ describe('Phase 1: Domain Math & Decimal Calculations', () => {
 
   describe('quantityDifference(revised, original)', () => {
     it('calculates positive quantity difference (added scope)', () => {
-      // MASTER_PROMPT example: 20 standard windows -> 32 premium insulated windows
+      // Example: 20 standard windows -> 32 premium insulated windows
       expect(quantityDifference(32, 20)).toBe('12');
     });
 

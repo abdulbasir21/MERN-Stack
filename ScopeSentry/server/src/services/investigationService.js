@@ -152,7 +152,7 @@ export async function createInvestigation({
 
 /**
  * Runs the investigation workflow in-process (BR-I4, BR-I6)
- * Results are saved in one database transaction (MASTER_PROMPT section 8 #8).
+ * Results are saved in one database transaction.
  */
 export async function runInvestigation(investigationId) {
   const investigation = await Investigation.findById(investigationId);

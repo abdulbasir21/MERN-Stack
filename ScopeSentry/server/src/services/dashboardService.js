@@ -4,7 +4,7 @@ import { Finding } from '../models/Finding.js';
 import { Report } from '../models/Report.js';
 
 /**
- * Computes dashboard telemetry metrics live from the database (MASTER_PROMPT section 9)
+ * Computes dashboard telemetry metrics live from the database
  * All counts are dynamically computed on read and never stored.
  */
 export async function getDashboardData(ownerId) {

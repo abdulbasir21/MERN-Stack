@@ -10,7 +10,7 @@ function getGenAiClient() {
   return genAiClient;
 }
 
-// In-memory test mock for deterministic testing without external API hits (AGENTS.md rule 4)
+// In-memory test mock for deterministic testing without external API hits
 let testMock = null;
 
 export function setEmbeddingMock(mock) {
@@ -58,7 +58,7 @@ export async function getEmbedding(text) {
     return testMock.getEmbedding(text);
   }
 
-  // AGENTS.md rule 4: In test mode, always use deterministic mock vector unless real Gemini suite is requested
+  // In test mode, always use deterministic mock vector unless real Gemini suite is requested
   if (config.env === 'test' && !process.env.USE_REAL_GEMINI) {
     return generateDeterministicVector(text, config.embeddingDimensions);
   }

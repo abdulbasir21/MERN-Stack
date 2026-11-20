@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { config } from '../config/env.js';
 import {
   getDemoProjects,
   getDemoProjectById,
@@ -70,8 +71,10 @@ export async function runDemoInvestigationHandler(req, res, next) {
     // Set demo session cookie (httpOnly, 24-hour expiration)
     res.cookie('scopesentry_demo_session', result.demoSessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: config.env === 'production',
+      sameSite: config.cookieSameSite,
+      domain: config.cookieDomain,
+      path: '/',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
 

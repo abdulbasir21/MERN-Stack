@@ -4,7 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import dotenv from 'dotenv';
 
-// Explicitly load frontend/env (open decision D-2)
+// Load local frontend/env when present
 const explicitEnvPath = path.resolve(__dirname, 'env');
 if (fs.existsSync(explicitEnvPath)) {
   dotenv.config({ path: explicitEnvPath });

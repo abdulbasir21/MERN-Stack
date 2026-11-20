@@ -5,15 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/shield.svg" />
     <title>ScopeSentry — AI Construction Change Detective</title>
-    <!-- Google Fonts: Plus Jakarta Sans, Inter, JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <style>
+      #ss-splash{position:fixed;inset:0;z-index:9999;background:#0a1a33;color:#f8fafc;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif;transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .45s ease}
+      #ss-splash.ss-exit{opacity:0;transform:translateY(-100%);pointer-events:none}
+      #ss-splash.ss-exit .ss-in{opacity:0;transform:scale(1.04)}
+      .ss-bg,.ss-gl{position:absolute;inset:0;pointer-events:none}
+      .ss-bg{background-image:radial-gradient(rgba(255,255,255,.055) 1px,transparent 1px);background-size:24px 24px}
+      .ss-gl{background:radial-gradient(circle at 50% 48%,rgba(37,99,235,.28),rgba(124,58,237,.1) 38%,transparent 65%)}
+      .ss-d{position:absolute;width:4px;height:4px;border-radius:99px;background:rgba(147,197,253,.28);pointer-events:none;animation:ssD 7s ease-in-out infinite alternate}
+      .ss-in{position:relative;z-index:2;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:transform .35s ease,opacity .35s ease}
+      .ss-sw{position:relative;width:64px;height:64px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+      .ss-sr{position:absolute;inset:-8px;border-radius:99px;background:radial-gradient(circle,rgba(59,130,246,.45),transparent 70%);filter:blur(8px);opacity:0;animation:ssPg 2s ease-in-out .6s infinite alternate}
+      .ss-sp{fill:rgba(37,99,235,0);stroke:#60a5fa;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:72;stroke-dashoffset:72;animation:ssDr .75s cubic-bezier(.22,1,.36,1) forwards,ssFl .35s ease .55s forwards}
+      .ss-shs{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:300px;margin-bottom:18px;opacity:0;transform:translateY(14px);animation:ssUp .5s ease .55s forwards}
+      .ss-sh{position:relative;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px;text-align:left;overflow:hidden}
+      .ss-st{font:600 9px/1 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin-bottom:7px}
+      .ss-l{height:5px;border-radius:99px;background:rgba(203,213,225,.22);margin-bottom:5px}
+      .ss-la{background:rgba(245,158,11,.25);animation:ssAm .4s ease 1.45s forwards}
+      .ss-sc{position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#60a5fa,#a855f7,transparent);box-shadow:0 0 10px rgba(96,165,250,.9);opacity:0;animation:ssSc 1.6s ease-in-out .65s forwards}
+      .ss-bd{position:absolute;right:6px;bottom:6px;font:700 9px/1 'JetBrains Mono',monospace;color:#fef3c7;background:rgba(217,119,6,.92);border:1px solid rgba(251,191,36,.6);padding:3px 6px;border-radius:99px;opacity:0;transform:scale(.75);animation:ssBp .35s cubic-bezier(.34,1.56,.64,1) 1.55s forwards}
+      .ss-br{opacity:0;transform:translateY(10px);animation:ssUp .5s ease .8s forwards}
+      .ss-wm{font-size:25px;font-weight:800;letter-spacing:-.02em;color:#fff;margin:0}
+      .ss-tg{margin:4px 0 18px;font:500 10px/1.4 'JetBrains Mono',monospace;letter-spacing:.15em;color:#93c5fd;text-transform:uppercase}
+      .ss-pw{width:100%;max-width:340px;opacity:0;animation:ssUp .4s ease .85s forwards}
+      .ss-tr{position:relative;height:3px;background:rgba(255,255,255,.12);border-radius:99px;margin:10px 14px 12px}
+      .ss-fl{position:absolute;inset:0;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#8b5cf6);transform-origin:left;transform:scaleX(0);animation:ssPf 2.1s cubic-bezier(.25,.8,.25,1) .9s forwards}
+      .ss-ns{display:flex;justify-content:space-between;margin-top:-19px;padding:0 6px}
+      .ss-nc{display:flex;flex-direction:column;align-items:center;gap:6px;width:68px}
+      .ss-nd{width:14px;height:14px;border-radius:99px;background:#0f2342;border:2px solid rgba(148,163,184,.4)}
+      .ss-n1{animation:ssNb .2s ease .95s forwards,ssNg .25s ease 1.4s forwards}
+      .ss-n2{animation:ssNb .2s ease 1.45s forwards,ssNg .25s ease 1.9s forwards}
+      .ss-n3{animation:ssNb .2s ease 1.95s forwards,ssNg .25s ease 2.4s forwards}
+      .ss-n4{animation:ssNb .2s ease 2.45s forwards,ssNg .25s ease 2.85s forwards}
+      .ss-nl{font:500 10px/1.2 'JetBrains Mono',monospace;color:#cbd5e1}
+      .ss-sr{display:block}
+      .ss-rd{position:relative;height:16px;margin-top:8px;font:500 10px/16px 'JetBrains Mono',monospace;color:#94a3b8}
+      .ss-rd span{position:absolute;inset:0;opacity:0}
+      .ss-s1{animation:ssSt .55s ease .9s forwards}.ss-s2{animation:ssSt .55s ease 1.45s forwards}.ss-s3{animation:ssSt .55s ease 2s forwards}.ss-s4{animation:ssSh .8s ease 2.55s forwards}
+      .ss-sk{position:fixed;right:20px;bottom:18px;z-index:3;background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 10px;font:500 12px/1.2 'Inter',sans-serif;color:#94a3b8;cursor:pointer;opacity:0;animation:ssIn .3s ease 1s forwards;transition:color .15s,border-color .15s}
+      .ss-sk:hover,.ss-sk:focus-visible{color:#fff;border-color:rgba(255,255,255,.4);outline:none}
+      .ss-ho{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+      @keyframes ssDr{to{stroke-dashoffset:0}}@keyframes ssFl{to{fill:rgba(37,99,235,.92);stroke:#93c5fd}}@keyframes ssPg{from{opacity:.35;transform:scale(.95)}to{opacity:.75;transform:scale(1.08)}}
+      @keyframes ssUp{to{opacity:1;transform:translateY(0)}}@keyframes ssIn{to{opacity:1}}@keyframes ssAm{to{background:rgba(245,158,11,.85)}}@keyframes ssBp{to{opacity:1;transform:scale(1)}}
+      @keyframes ssSc{0%{opacity:0;transform:translateY(0)}15%,85%{opacity:1}100%{opacity:0;transform:translateY(64px)}}
+      @keyframes ssPf{to{transform:scaleX(1)}}@keyframes ssNb{to{border-color:#3b82f6;background:#2563eb}}@keyframes ssNg{to{border-color:#10b981;background:#10b981}}
+      @keyframes ssSt{0%,100%{opacity:0}15%,85%{opacity:1}}@keyframes ssSh{0%{opacity:0}20%,100%{opacity:1}}
+      @keyframes ssD{from{transform:translate(0,0);opacity:.2}to{transform:translate(8px,-12px);opacity:.45}}
+      @media(prefers-reduced-motion:reduce){.ss-d,.ss-sc,.ss-sr,.ss-shs,.ss-pw{display:none!important}.ss-sp{stroke-dashoffset:0;fill:rgba(37,99,235,.92);stroke:#93c5fd;animation:none}.ss-br,.ss-sk{opacity:0;transform:none;animation:ssIn .8s ease forwards}#ss-splash.ss-exit,#ss-splash.ss-exit .ss-in{transform:none}}
+    </style>
   </head>
   <body class="bg-background text-on-surface antialiased min-h-screen">
+    <div id="ss-splash" role="status" aria-live="polite">
+      <span class="ss-ho">Loading ScopeSentry</span>
+      <div class="ss-bg" aria-hidden="true"></div><div class="ss-gl" aria-hidden="true"></div>
+      <div aria-hidden="true"><span class="ss-d" style="top:18%;left:22%"></span><span class="ss-d" style="top:28%;left:78%;animation-delay:.8s"></span><span class="ss-d" style="top:72%;left:18%;animation-delay:1.4s"></span><span class="ss-d" style="top:76%;left:80%;animation-delay:.4s"></span><span class="ss-d" style="top:42%;left:12%;animation-delay:1.9s"></span><span class="ss-d" style="top:35%;left:88%;animation-delay:1.1s"></span><span class="ss-d" style="top:84%;left:48%;animation-delay:.6s"></span></div>
+      <div class="ss-in">
+        <div class="ss-sw" aria-hidden="true"><div class="ss-sr"></div><svg width="50" height="50" viewBox="0 0 24 24" style="position:relative;z-index:1"><path class="ss-sp" d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></div>
+        <div class="ss-shs" aria-hidden="true">
+          <div class="ss-sh"><div class="ss-st">Baseline</div><div class="ss-l" style="width:88%"></div><div class="ss-l" style="width:64%"></div><div class="ss-l" style="width:78%"></div></div>
+          <div class="ss-sh"><div class="ss-st">Revised</div><div class="ss-l" style="width:88%"></div><div class="ss-l ss-la" style="width:80%"></div><div class="ss-l" style="width:62%"></div><span class="ss-bd">+12 units</span></div>
+          <div class="ss-sc"></div>
+        </div>
+        <div class="ss-br"><p class="ss-wm">ScopeSentry</p><p class="ss-tg">Change Verification Engine</p></div>
+        <div class="ss-pw" aria-hidden="true">
+          <div class="ss-tr"><div class="ss-fl"></div></div>
+          <div class="ss-ns">
+            <div class="ss-nc"><span class="ss-nd ss-n1"></span><span class="ss-nl">Ingest</span></div>
+            <div class="ss-nc"><span class="ss-nd ss-n2"></span><span class="ss-nl">Match</span></div>
+            <div class="ss-nc"><span class="ss-nd ss-n3"></span><span class="ss-nl">Decimal Math</span></div>
+            <div class="ss-nc"><span class="ss-nd ss-n4"></span><span class="ss-nl">Audit</span></div>
+          </div>
+          <div class="ss-rd"><span class="ss-s1">Stage 1: Ingesting clauses...</span><span class="ss-s2">Stage 2: Deterministic matching...</span><span class="ss-s3">Stage 3: Computing decimal deltas...</span><span class="ss-s4">Stage 4: Audit citations verified</span></div>
+        </div>
+      </div>
+      <button type="button" id="ss-skip" class="ss-sk" aria-label="Skip startup loader">Skip</button>
+    </div>
+    <script>
+      (function(){var SHOW_MODE='session',KEY='scopesentry_splash_seen',MIN_MS=3000,MAX_MS=5000,el=document.getElementById('ss-splash');if(!el)return;var seen=false;if(SHOW_MODE==='session'){try{seen=sessionStorage.getItem(KEY)==='1'}catch(e){}}if(seen){el.remove();window.__hideSplash=function(){};return}if(SHOW_MODE==='session'){try{sessionStorage.setItem(KEY,'1')}catch(e){}}var oh=document.documentElement.style.overflow,ob=document.body.style.overflow;document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden';var red=matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches,min=red?800:MIN_MS,t0=Date.now(),app=false,fnt=!document.fonts||!document.fonts.ready,mDone=false,gone=false;function close(f){if(gone||(!f&&(!mDone||!app||!fnt)))return;gone=true;clearTimeout(tm);clearTimeout(tx);document.removeEventListener('keydown',ek);el.classList.add('ss-exit');document.documentElement.style.overflow=oh;document.body.style.overflow=ob;setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);window.dispatchEvent(new CustomEvent('scopesentry:splash-done'))},520)}function ek(e){if(e.key==='Escape')close(true)}document.addEventListener('keydown',ek);var sk=document.getElementById('ss-skip');if(sk)sk.addEventListener('click',function(){close(true)});var tm=setTimeout(function(){mDone=true;close(false)},min),tx=setTimeout(function(){close(true)},MAX_MS);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){fnt=true;close(false)},function(){fnt=true;close(false)});window.__hideSplash=function(){app=true;if(Date.now()-t0>=min)mDone=true;close(false)}})();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

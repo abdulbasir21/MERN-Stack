@@ -1,4 +1,4 @@
-// Global Constants & Enums for ScopeSentry (Source: MASTER_PROMPT.md)
+// Global Constants & Enums for ScopeSentry
 
 export const ERROR_CODES = {
   VALIDATION_ERROR: 'VALIDATION_ERROR',

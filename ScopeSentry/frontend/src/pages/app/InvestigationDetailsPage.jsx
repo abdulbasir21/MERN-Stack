@@ -260,7 +260,7 @@ export default function InvestigationDetailsPage() {
         </div>
       )}
 
-      {/* Mandatory Limitations Banner (MASTER_PROMPT 12.4) */}
+      {/* Limitations & Verification Notice */}
       <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 flex items-start gap-3">
         <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
