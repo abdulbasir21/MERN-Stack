@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion, useScroll, useTransform, Variants } from 'framer-motion';
+import { motion, useScroll, useTransform, useReducedMotion, Variants } from 'framer-motion';
 import {
   Search,
   ArrowRight,
@@ -27,15 +27,18 @@ import {
   Layers,
   Smartphone,
   ChevronRight,
+  Check,
   CheckCircle2,
   Briefcase,
   Zap,
   MousePointerClick,
   BadgeCheck,
   Loader2,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
+import imageKitLoader from '@/lib/imagekit-loader';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Navbar } from '@/components/layout/Navbar';
@@ -85,15 +88,10 @@ export default function MarketplaceHomePage() {
   const [isWakingUp, setIsWakingUp] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Parallax Scrolling Engine (Multi-plane transforms)
+  const shouldReduceMotion = useReducedMotion();
+
+  // Parallax Scrolling Engine (Multi-plane transforms for lower sections)
   const { scrollY } = useScroll();
-  const heroAura1Y = useTransform(scrollY, [0, 800], [0, 220]);
-  const heroAura2Y = useTransform(scrollY, [0, 800], [0, -160]);
-  const heroTextY = useTransform(scrollY, [0, 600], [0, -45]);
-  const heroCardY = useTransform(scrollY, [0, 600], [0, 90]);
-  const heroImgScale = useTransform(scrollY, [0, 600], [1, 1.15]);
-  const floatingSealY = useTransform(scrollY, [0, 600], [0, -75]);
-  const floatingSealRotate = useTransform(scrollY, [0, 600], [0, 35]);
 
   // Staggered column parallax for categories
   const colOddY = useTransform(scrollY, [300, 1400], [25, -20]);
@@ -142,14 +140,14 @@ export default function MarketplaceHomePage() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
+        staggerChildren: shouldReduceMotion ? 0 : 0.08,
       },
     },
   };
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 14 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
   };
 
   // Distinct ImageKit asset mapping per company
@@ -174,168 +172,354 @@ export default function MarketplaceHomePage() {
       {/* Universal Fully Responsive Navigation Bar */}
       <Navbar activeTab="home" />
 
-      {/* Hero Section with Multi-Layer Parallax Background & Depth */}
-      <section className="relative overflow-hidden pt-8 sm:pt-14 pb-16 sm:pb-24 border-b border-paper-border bg-gradient-to-b from-[#F7F4EE] via-[#FAF8F4] to-paper-canvas">
-        {/* Parallax Floating Ambient Light Spheres */}
-        <motion.div
-          style={{ y: heroAura1Y }}
-          className="absolute -top-24 -right-24 sm:-top-32 sm:-right-32 w-72 sm:w-96 h-72 sm:h-96 bg-brand-teal/15 rounded-full blur-3xl pointer-events-none"
-        />
-        <motion.div
-          style={{ y: heroAura2Y }}
-          className="absolute top-48 -left-24 sm:-left-32 w-64 sm:w-80 h-64 sm:h-80 bg-brand-terracotta/15 rounded-full blur-3xl pointer-events-none"
-        />
-
-        {/* Parallax Rotating Geometric Watermark Stamp */}
-        <motion.div
-          style={{ y: heroAura1Y, rotate: floatingSealRotate }}
-          className="absolute -top-10 right-1/4 w-80 h-80 rounded-full border border-brand-teal/10 pointer-events-none hidden lg:flex items-center justify-center text-[10px] font-mono text-brand-teal/20 tracking-widest uppercase select-none"
-        >
-          <div className="w-64 h-64 rounded-full border border-dashed border-brand-teal/15 flex items-center justify-center">
-            <span>• SECP COMMERCIAL ARBITRATION COVENANT •</span>
-          </div>
-        </motion.div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left 7 Columns: Pitch & Search with Parallax Lift */}
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-[#f7f4ef] border-b border-paper-border lg:h-[calc(100svh-88px)] lg:min-h-[600px] lg:max-h-[720px] flex flex-col lg:flex-row lg:items-center">
+        {/* ================= MOBILE & TABLET HERO (< lg) ================= */}
+        <div className="lg:hidden w-full">
+          {/* 1. Full-Bleed Top Image Area */}
+          <div className="relative w-full h-[360px] sm:h-[420px] overflow-hidden">
             <motion.div
-              style={{ y: heroTextY }}
-              initial="hidden"
-              animate="visible"
-              variants={containerVariants}
-              className="lg:col-span-7 space-y-5 sm:space-y-6"
+              initial={shouldReduceMotion ? false : { scale: 1.08 }}
+              animate={{ scale: 1 }}
+              transition={
+                shouldReduceMotion
+                  ? undefined
+                  : { duration: 1.2, ease: 'easeOut' }
+              }
+              className="absolute inset-0"
             >
-              <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal-tint border border-brand-teal/25 text-brand-teal text-xs font-mono shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse" />
-                <span className="truncate">SECP Arbitrated • Meezan Escrow Facilitated</span>
-              </motion.div>
-
-              <motion.h1
-                variants={itemVariants}
-                className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-ink-primary tracking-tight leading-[1.12]"
-              >
-                Commercial Service Quotations. Verified &amp; Binding.
-              </motion.h1>
-
-              <motion.p
-                variants={itemVariants}
-                className="text-sm sm:text-lg text-ink-secondary leading-relaxed max-w-xl font-sans"
-              >
-                Submit your project brief, receive instant autonomous intake verification, and obtain itemized milestone slips with strict timeline and escrow covenants.
-              </motion.p>
-
-              {/* Interactive Search Bar (Fully Responsive) */}
-              <motion.form
-                variants={itemVariants}
-                onSubmit={handleSearchSubmit}
-                className="flex flex-col sm:flex-row gap-2 bg-white p-2 rounded-2xl border border-paper-border shadow-modal max-w-xl"
-              >
-                <div className="relative flex-1 flex items-center min-h-[44px]">
-                  <Search className="w-5 h-5 text-ink-muted ml-3 shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="Search studios, disciplines, or keywords..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-transparent focus:outline-none text-ink-primary placeholder:text-ink-muted"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="w-full sm:w-auto shrink-0 px-6 font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover flex items-center justify-center gap-2 h-11"
-                >
-                  <span>Explore Studios</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Button>
-              </motion.form>
-
-              {/* Trust Value Badges with Icons (Responsive Grid on Mobile) */}
-              <motion.div
-                variants={itemVariants}
-                className="pt-2 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 sm:gap-5 text-[11px] sm:text-xs font-mono text-ink-secondary"
-              >
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-brand-teal shrink-0" />
-                  <span className="truncate">SECP Covenants</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-brand-teal shrink-0" />
-                  <span className="truncate">Gemini Gatekeeper</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <FileCheck className="w-4 h-4 text-brand-teal shrink-0" />
-                  <span className="truncate">Milestone Slips</span>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Lock className="w-4 h-4 text-brand-teal shrink-0" />
-                  <span className="truncate">Meezan Escrow</span>
-                </span>
-              </motion.div>
+              <Image
+                loader={imageKitLoader}
+                src="/quotepilot/site/hero-men.jpg"
+                alt=""
+                fill
+                sizes="100vw"
+                priority
+                className="object-cover object-[62%_center]"
+              />
             </motion.div>
 
-            {/* Right 5 Columns: Parallax Hero Slip Visual Card */}
+            {/* Overlay 1: Brand Tint */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[#0f4c4a]/10 pointer-events-none"
+            />
+
+            {/* Overlay 2: Bottom Fade into Cream Page */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-[70%] pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(to top, #f7f4ef 0%, rgba(247,244,239,0.92) 22%, rgba(247,244,239,0.55) 50%, rgba(247,244,239,0) 100%)',
+              }}
+            />
+
+            {/* Overlay 3: Top Navbar Separation Gradient */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 h-[80px] pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0) 100%)',
+              }}
+            />
+
+            {/* 2. Single Glass Chip on the Image */}
             <motion.div
-              style={{ y: heroCardY }}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="lg:col-span-5 relative"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={
+                shouldReduceMotion
+                  ? undefined
+                  : { duration: 0.45, delay: 0.4, ease: 'easeOut' }
+              }
+              className="absolute right-4 bottom-32 z-10"
             >
-              <div className="relative rounded-2xl overflow-hidden border border-paper-border shadow-modal bg-white group">
-                <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-stone-900">
-                  <motion.img
-                    style={{ scale: heroImgScale }}
-                    src={(imageKitAssets as Record<string, string>)['hero-covenant.jpg']}
-                    alt="QuotePilot Milestone Slip and Architecture Workspace"
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/20 to-transparent" />
-
-                  {/* Floating Live Badge with Opposing Parallax */}
-                  <motion.div
-                    style={{ y: floatingSealY }}
-                    className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-paper-border text-xs font-mono font-bold text-ink-primary shadow-md flex items-center gap-2"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-semantic-success animate-ping" />
-                    <span>SECP Tier-1 Certified</span>
-                  </motion.div>
-
-                  {/* Floating Parallax Depth Indicator */}
-                  <motion.div
-                    style={{ y: floatingSealY }}
-                    className="absolute top-4 right-4 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-mono text-teal-300 border border-teal-500/30 flex items-center gap-1.5"
-                  >
-                    <BadgeCheck className="w-3 h-3 text-teal-400" />
-                    <span>Escrow Arbitrated</span>
-                  </motion.div>
-
-                  {/* Bottom Image Overlay Card */}
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-teal-300 font-semibold">
-                      Standard Milestone Slip
-                    </div>
-                    <h3 className="font-serif font-bold text-base sm:text-lg text-white">
-                      Arbitrated Commercial Covenants
-                    </h3>
+              <motion.div
+                animate={shouldReduceMotion ? undefined : { y: [-3, 3, -3] }}
+                transition={
+                  shouldReduceMotion
+                    ? undefined
+                    : { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.85 }
+                }
+                className="bg-white/75 backdrop-blur-md border border-white/60 rounded-2xl shadow-lg shadow-black/10 px-3.5 py-2.5 flex items-center gap-2.5"
+              >
+                <span className="w-6 h-6 rounded-full bg-brand-teal/15 text-brand-teal flex items-center justify-center shrink-0">
+                  <Check className="w-3.5 h-3.5" strokeWidth={2.5} />
+                </span>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-brand-teal font-semibold leading-none">
+                    QUOTATION V2
+                  </div>
+                  <div className="text-[13px] font-semibold text-ink-primary mt-0.5 leading-tight tabular-nums">
+                    PKR 250,000 · 3 milestones
                   </div>
                 </div>
+              </motion.div>
+            </motion.div>
+          </div>
 
-                {/* Micro Stat Strip beneath image */}
-                <div className="p-3.5 sm:p-4 bg-paper-surface flex items-center justify-between border-t border-paper-border text-xs font-mono">
-                  <div className="flex items-center gap-1.5 text-ink-secondary">
-                    <Clock className="w-3.5 h-3.5 text-brand-teal shrink-0" />
-                    <span>&lt;4.5h Average Quote SLA</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-semantic-success font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                    <span>Meezan Escrow</span>
-                  </div>
+          {/* 3. Pulled-Up Text Block */}
+          <motion.div
+            initial={shouldReduceMotion ? false : 'hidden'}
+            animate="visible"
+            variants={containerVariants}
+            className="-mt-24 relative z-10 px-5 pb-10 space-y-4"
+          >
+            <motion.div
+              variants={itemVariants}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal-tint border border-brand-teal/25 text-brand-teal text-xs font-mono shadow-xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-brand-teal" />
+              <span>AI-checked briefs · Vetted firms</span>
+            </motion.div>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-[2rem] leading-[1.08] tracking-tight font-serif font-bold text-ink-primary"
+            >
+              From brief to signed quotation, in one platform.
+            </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-[15px] leading-relaxed text-slate-600 font-sans"
+            >
+              AI audits your brief, vetted firms respond with itemized milestone quotations, you negotiate in real-time chat.
+            </motion.p>
+
+            {/* Stacked Full-Width CTAs */}
+            <motion.div variants={itemVariants} className="flex flex-col gap-3 pt-1">
+              <Link href="/inquire" className="w-full">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full h-12 rounded-xl font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span>Get Quotes</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/companies" className="w-full">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="w-full h-12 rounded-xl font-mono text-xs bg-white hover:bg-brand-teal-tint border border-teal-800/20 text-brand-teal"
+                >
+                  Browse Companies
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Trust Strip Pills */}
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-wrap gap-2 pt-1"
+            >
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/70 border border-teal-900/10 text-ink-secondary">
+                Vetted firms
+              </span>
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/70 border border-teal-900/10 text-ink-secondary">
+                Milestone quotes in PKR
+              </span>
+              <span className="text-[11px] font-mono px-2.5 py-1 rounded-full bg-white/70 border border-teal-900/10 text-ink-secondary">
+                Real-time chat
+              </span>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* ================= DESKTOP HERO (>= lg, UNCHANGED) ================= */}
+        <div className="hidden lg:block absolute inset-0">
+          <Image
+            loader={imageKitLoader}
+            src="/quotepilot/site/hero-men.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover object-[70%_center]"
+          />
+        </div>
+
+        {/* Desktop Directional Gradient Overlay (>= lg) */}
+        <div
+          aria-hidden="true"
+          className="hidden lg:block absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(to right, #f7f4ef 0%, #f7f4ef 36%, rgba(247,244,239,0.8) 50%, rgba(247,244,239,0) 72%)',
+          }}
+        />
+
+        {/* Desktop Hero Content Container */}
+        <div className="hidden lg:flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 items-center py-12">
+          {/* Left Column */}
+          <motion.div
+            initial={shouldReduceMotion ? false : 'hidden'}
+            animate="visible"
+            variants={containerVariants}
+            className="max-w-xl z-10 space-y-4"
+          >
+            <motion.div
+              variants={itemVariants}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal-tint border border-brand-teal/25 text-brand-teal text-xs font-mono shadow-xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-brand-teal" />
+              <span>AI-checked briefs · Vetted firms</span>
+            </motion.div>
+
+            <motion.h1
+              variants={itemVariants}
+              className="text-3xl sm:text-4xl lg:text-[2.625rem] font-serif font-bold text-ink-primary tracking-tight leading-[1.15]"
+            >
+              From brief to signed quotation, in one platform.
+            </motion.h1>
+
+            <motion.p
+              variants={itemVariants}
+              className="text-sm sm:text-base text-ink-secondary leading-relaxed max-w-lg font-sans"
+            >
+              AI audits your brief, vetted firms respond with itemized milestone quotations, you negotiate in real-time chat.
+            </motion.p>
+
+            {/* Primary & Secondary CTAs */}
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col min-[480px]:flex-row items-stretch min-[480px]:items-center gap-3 pt-1"
+            >
+              <Link href="/inquire" className="w-full min-[480px]:w-auto">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full min-[480px]:w-auto font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover px-6 flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span>Get Quotes</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Link href="/companies" className="w-full min-[480px]:w-auto">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="w-full min-[480px]:w-auto font-mono text-xs bg-white/80 hover:bg-brand-teal-tint border-brand-teal/40 text-brand-teal px-6"
+                >
+                  Browse Companies
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Trust Strip */}
+            <motion.div
+              variants={itemVariants}
+              className="pt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs font-mono text-ink-secondary"
+            >
+              <span>Vetted firms</span>
+              <span className="text-brand-teal">•</span>
+              <span>Milestone quotes in PKR</span>
+              <span className="text-brand-teal">•</span>
+              <span>Real-time chat</span>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Right Side Compact Quotation Card (>= lg only, with height safety) */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.2, ease: 'easeOut' }}
+          className="hidden lg:block absolute right-8 bottom-6 z-10 w-[300px] max-h-[calc(100%-2rem)]"
+        >
+          <motion.div
+            animate={shouldReduceMotion ? undefined : { y: [-4, 4, -4] }}
+            transition={
+              shouldReduceMotion
+                ? undefined
+                : { duration: 7, repeat: Infinity, ease: 'easeInOut' }
+            }
+            className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-stone-900/10 border border-black/5 p-4 [@media(max-height:780px)]:p-3.5"
+          >
+            <div className="pb-2.5 [@media(max-height:780px)]:pb-2 border-b border-black/5">
+              <span className="block text-[10px] font-mono uppercase tracking-wider text-brand-teal font-semibold">
+                QUOTATION V2
+              </span>
+              <h2 className="font-serif font-bold text-base text-ink-primary mt-0.5 leading-snug">
+                E-commerce Website
+              </h2>
+            </div>
+
+            <div className="divide-y divide-black/5 text-sm my-1">
+              <div className="py-1.5 [@media(max-height:780px)]:py-1 flex items-center justify-between gap-2">
+                <div>
+                  <div className="font-medium text-ink-primary leading-tight">UI/UX &amp; Storefront</div>
+                  <div className="text-[11px] font-mono text-ink-muted">7 days</div>
+                </div>
+                <div className="font-mono font-semibold text-xs text-ink-primary tabular-nums shrink-0">
+                  PKR 85,000
                 </div>
               </div>
-            </motion.div>
-          </div>
+
+              <div className="py-1.5 [@media(max-height:780px)]:py-1 flex items-center justify-between gap-2">
+                <div>
+                  <div className="font-medium text-ink-primary leading-tight">Backend &amp; Checkout API</div>
+                  <div className="text-[11px] font-mono text-ink-muted">12 days</div>
+                </div>
+                <div className="font-mono font-semibold text-xs text-ink-primary tabular-nums shrink-0">
+                  PKR 120,000
+                </div>
+              </div>
+
+              <div className="py-1.5 [@media(max-height:780px)]:py-1 flex items-center justify-between gap-2">
+                <div>
+                  <div className="font-medium text-ink-primary leading-tight">Testing &amp; Launch</div>
+                  <div className="text-[11px] font-mono text-ink-muted">5 days</div>
+                </div>
+                <div className="font-mono font-semibold text-xs text-ink-primary tabular-nums shrink-0">
+                  PKR 45,000
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2.5 [@media(max-height:780px)]:pt-2 border-t border-black/5 flex items-center justify-between">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-ink-muted">
+                Total
+              </span>
+              <span className="text-sm font-mono font-bold text-brand-teal tabular-nums">
+                PKR 250,000
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Slim Search Section Below Hero */}
+      <section className="bg-white border-b border-paper-border py-4 relative z-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-paper-canvas p-1.5 rounded-xl border border-paper-border shadow-xs"
+          >
+            <div className="relative flex-1 flex items-center">
+              <Search className="w-4 h-4 text-ink-muted ml-3 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search studios, disciplines, or keywords..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-transparent focus:outline-none text-ink-primary placeholder:text-ink-muted"
+              />
+            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              className="w-full sm:w-auto shrink-0 px-5 h-9 font-mono text-xs bg-brand-teal hover:bg-brand-teal-hover flex items-center justify-center gap-1.5"
+            >
+              <span>Explore Studios</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </form>
         </div>
       </section>
 
