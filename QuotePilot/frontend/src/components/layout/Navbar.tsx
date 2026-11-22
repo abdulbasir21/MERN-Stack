@@ -99,7 +99,7 @@ export function Navbar({ activeTab }: NavbarProps) {
               className="hover:text-brand-teal transition-colors flex items-center gap-1.5"
             >
               <Scale className="w-4 h-4 text-ink-muted" />
-              <span>Arbitration Workflow</span>
+              <span>How It Works</span>
             </a>
             <a
               href="/#categories"
@@ -312,7 +312,7 @@ export function Navbar({ activeTab }: NavbarProps) {
                   <div className="w-8 h-8 rounded-lg bg-brand-teal-tint flex items-center justify-center text-brand-teal">
                     <Scale className="w-4 h-4" />
                   </div>
-                  <span>Arbitration &amp; Escrow Covenant</span>
+                  <span>How It Works</span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-ink-muted" />
               </a>

@@ -48,3 +48,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Temporary generated source images
+hero-source.jpg
